@@ -1,15 +1,31 @@
-Welcome to OSBS's documentation!
-================================
+OpenShift Build Service
+=======================
+
+
+OSBS is a bunch of tools, workflows and integration points that build and release layered container images.
+
+OSBS hooks into koji with the help of the koji-containerbuild plugin, and
+uses `OpenShift builds <https://docs.openshift.org/latest/dev_guide/builds.html>`_ as Content Generators to produce layered images.
+
+One can start an image build with ``fedpkg``, using the ``container-build``
+subcommand:
+
+.. code::
+
+    $ fedpkg container-build
+
+
+Table of Contents
+-----------------
 
 .. toctree::
-   :maxdepth: 2
+    :maxdepth: 3
 
-   koji_containerbuild
-   atomic_reactor
-   osbs_client
-   dockpulp
-   ansible_osbs
-   deploy_osbs
+    admins
+    users
+    contributors
+    reference_docs
+
 
 Indices and tables
 ==================
