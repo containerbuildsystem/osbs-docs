@@ -2,10 +2,12 @@ OpenShift Build Service
 =======================
 
 
-OSBS is a bunch of tools, workflows and integration points that build and release layered container images.
+OSBS is a collection of tools, workflows and integration points that build and release layered container images.
 
-OSBS hooks into koji with the help of the koji-containerbuild plugin, and
+OSBS hooks into Koji_ with the help of the koji-containerbuild plugin, and
 uses `OpenShift builds <https://docs.openshift.org/latest/dev_guide/builds.html>`_ as Content Generators to produce layered images.
+
+.. _Koji: https://pagure.io/koji
 
 One can start an image build with ``fedpkg``, using the ``container-build``
 subcommand:
