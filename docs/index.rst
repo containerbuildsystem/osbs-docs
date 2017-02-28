@@ -27,6 +27,7 @@ Table of Contents
     users
     contributors
     reference_docs
+    design
 
 
 Indices and tables
