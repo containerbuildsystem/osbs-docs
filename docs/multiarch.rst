@@ -105,14 +105,15 @@ Submitting builds
 -----------------
 
 A new optional parameter ``--arches`` will be added to the
-``container-image`` subcommand provided by pyrpkg. This will pass the
-parameter ``arches`` to the Koji task (implemented by the
+``container-image`` subcommand provided by pyrpkg. If supplied,
+``--scratch`` must also be supplied. It will pass the parameter
+``arches`` to the Koji task (implemented by the
 ``koji-containerbuild`` plugin for Koji).
 
-When supplied, this parameter overrides the default set of
-architectures to build for, which comes from the Koji build target. If
-an image cannot be built for any supplied architectures the build will
-fail.
+When supplied for a scratch build this parameter overrides the default
+set of architectures to build for, which comes from the Koji build
+target. If an image cannot be built for any supplied architectures the
+build will fail.
 
 Authentication
 --------------
