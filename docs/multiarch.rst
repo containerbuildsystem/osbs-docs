@@ -15,6 +15,16 @@ used:
   before (on compute nodes of the appropriate architecture)
 - *orchestrator build* which will create and manage the worker builds
 
+Two different methods are provided for grouping together image
+manifests from the worker builds in the container registry (and in
+Pulp, if Pulp integration is enabled):
+
+- grouping into a single repository using a `manifest list`_
+
+- using separate platform-specific repositories for each platform, for
+  example *foo*/*bar*-*platform* (instead of the single repository
+  *foo*/*bar*).
+
 The cluster which will run orchestrator builds is referred to here as
 the *orchestrator cluster*, and the cluster which will run worker
 builds is referred to here as the *worker cluster*.
@@ -25,81 +35,215 @@ worker. Alternatively some sites may want to have complete clusters
 for each platform as well as for the orchestration.
 
 Technically, only compute nodes in the required architectures are
-needed to perform the "docker build" step. These can be arranged
+needed to perform the container-building step. These can be arranged
 either in a single mixed-architecture cluster, or with multiple
 single-architecture clusters for each architecture, or as a mix of the
 two.
 
-Client configuration on the Koji builder will decide which cluster
-and/or `node selector`_ is required to perform image builds for each
-required platform.
+The orchestrator build will make use of `Server-side configuration for
+atomic-reactor`_ to discover which worker clusters to direct builds to
+and whether/which `node selector`_ is required for each.
 
 .. _`node selector`: https://docs.openshift.org/latest/admin_guide/managing_projects.html#developer-specified-node-selectors
-
-The orchestrator build will make use of `Server-side configuration for
-atomic-reactor`_ to discover which worker clusters to direct builds
-to.
-
-If integration with Pulp is used, there will be separate Pulp
-repositories for each image and platform, following a naming scheme
-yet to be decided. For x86_64 images the repository names will remain
-unchanged.
 
 Orchestration required for multi-platform builds
 ------------------------------------------------
 
 When a new multi-platform build is required, one designated cluster
-will always be asked to perform it. This cluster will perform this
-using atomic-reactor running in "orchestration" mode, i.e. with a
-different set of steps running as plugins:
+will always be asked to perform it. This cluster will run
+atomic-reactor in "orchestration" mode. As part of its operation it
+will in turn ask worker clusters to perform platform-specific builds,
+which each run atomic-reactor in "worker" mode.
+
+Orchestrator build
+~~~~~~~~~~~~~~~~~~
+
+The exact steps followed in the orchestrator and worker builds will
+vary depending on the grouping method. A full description, covering
+both grouping methods, is:
 
 - For base images, create the base image filesystems for all required
   architectures using Koji
-- Orchestrate worker builds on other clusters (or this cluster) as
-  needed; if any worker build fails the orchestrator plugin must also
-  fail (but other worker builds should be left to continue); if the
-  whole build is cancelled, worker builds will be cancelled
+
+- For layered images:
+
+  * determine whether the parent image was created using the
+    "single-repo" or "multiple-repos" grouping method (this is
+    independent of the grouping method used for the image to be built)
+
+  * inspect the parent image's environment variables (this is to allow
+    substitution to be performed in the "release" label)
+
+- Create worker builds on other clusters (or this cluster) as needed;
+  if any worker build fails the orchestrator build must also fail (but
+  other worker builds should be left to continue); if the orchestrator
+  build is cancelled, worker builds will be cancelled. See `Worker
+  build`_ for more details about how these builds behave.
+
 - Collect package content from all builds and compare to ensure common
   components are exactly matching (for RPMs: version-release and
   keys used for signatures)
-- Publish Pulp repositories that had content added (if Pulp
-  integration is enabled)
-- Create a Koji Build (if Koji integration is enabled). Note: no need
-  to upload image tar archives as worker builds have done this
-- On failure, remove added Pulp content and revert Pulp docker tags
-  (if Pulp integration is enabled)
+
+- If the "single-repo" grouping method is to be used for this build,
+  create a manifest list in the container registry, holding image
+  manifest digests from all the worker builds
+
+- If Pulp integration is enabled, sync the images from the container
+  registry into Pulp, following the grouping method
+
+- If Pulp integration is enabled:
+
+  * On success, sync and publish new Pulp content from this build
+
+  * On failure, remove the Pulp content
+
+- If Koji integration is enabled:
+
+  - Combine Koji metadata fragments from temporary storage (see
+    `Temporary Storage`_)
+
+  - Create a Koji Build. Note: no need to upload image tar archives as
+    worker builds have done this
+
 - Update this OpenShift Build with annotations about output,
   performance, errors, worker builds used, etc
+
+- Perform any clean-up required:
+
+  * If Pulp integration is enabled and the grouping method is
+    "single-repo", delete the manifest list from the registry
+
+Worker build
+~~~~~~~~~~~~
 
 The orchestration step will create OpenShift builds for performing the
 worker builds. Inside each of these platform-specific OpenShift
 builds, atomic-reactor will execute these steps as plugins:
 
-- Make alterations to the Dockerfile, including transforming the
-  "FROM" image name and name label into a platform-specific name, as
-  well as setting the ``architecture`` label appropriately
-- "docker build"
+- For layered images, pull the parent image and note its image ID
+
+- Make alterations to the Dockerfile, including setting the
+  ``architecture`` label appropriately
+
+- Build the container
+
 - Squash the image
+
 - Compress the docker image tar archive
+
 - Upload this compressed tar archive to Pulp (if Pulp integration and
   v1 support are both enabled)
-- Tag and push the image to the docker registry, using a unique tag
-  including the timestamp, ``latest``, the ``version`` label,
-  ``$version-$release`` (the ``version`` and ``release`` labels
-  together), and any additional tags configured by the image owner
-- Sync the image from the docker registry to Pulp but not publish it
-  (if Pulp integration is enabled)
-- Query the image to discover installed RPM packages
-- Upload image tar archive to Koji but do not create a Koji Build (if
-  Koji integration is enabled)
+
+- Tag and push the image to the container registry (see `Tagging`_)
+
+- Query the image to discover installed RPM packages (by running
+  ``rpm`` inside it)
+
+- If Koji integration is enabled:
+
+  - Upload image tar archive to Koji but do not create a Koji Build
+
+  - Upload the Koji metadata fragment (buildroot information, built
+    image information) to temporary storage (see `Temporary Storage`_)
+
 - Update this OpenShift Build with annotations about output,
   performance, errors, etc
 
-.. graphviz:: images/during-build.dot
-   :caption: During build
+Grouping methods
+----------------
 
-.. graphviz:: images/after-build.dot
-   :caption: After build
+Single repository
+~~~~~~~~~~~~~~~~~
+
+The "single-repo" grouping method has each worker build push to the
+same repository in the container registry using distinct tags
+(timestamp-based tag plus platform name).
+
+The orchestrator build then creates a manifest list in the container
+registry, tagged as described in `Tagging`_.
+
+.. graphviz:: images/single-during.dot
+   :caption: During build (single-repo grouping method)
+
+.. graphviz:: images/single-after.dot
+   :caption: After build (single-repo grouping method)
+
+Multiple repositories
+~~~~~~~~~~~~~~~~~~~~~
+
+The "multiple-repos" grouping method has each worker build push to
+separate repositories in the container registry; the repository names
+differ by platform for which they contain image manifests. The version
+and release tags are applied to all repositories.
+
+.. graphviz:: images/multi-during.dot
+   :caption: During build (multiple-repos grouping method)
+
+.. graphviz:: images/multi-after.dot
+   :caption: After build (multiple-repos grouping method)
+
+Temporary Storage
+-----------------
+
+When creating a Koji Build, the `koji_promote`_ plugin needs to
+assemble Koji Build Metadata, including:
+
+- components installed in each builder image (worker builds and
+  orchestrator build)
+
+- components installed in each built image
+
+- information about each build host
+
+To assist the orchestrator build in assembling this (JSON) data, the
+worker builds will gather information about their build hosts, builder
+images, and built images. They then need to pass this data to the
+orchestrator build. After creating the Koji Build, the orchestrator
+build must then free any resources used in passing the data.
+
+A number of approaches are possible for this, detailed below.
+
+Create OpenShift object
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The worker build could create an OpenShift object (perhaps a Secret or
+ConfigMap) in the worker cluster and store the name of this object in
+its OpenShift Build annotations. To do this the worker cluster's
+"builder" service account will need to be granted permission to create
+objects of the appropriate type.
+
+The orchestrator build would then be responsible for removing the
+OpenShift object from the worker cluster. To do this, the worker
+cluster's "orchestrator" service account will need to be granted
+permission to get and delete objects of the appropriate type.
+
+Store a blob in the Docker registry
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The worker build could store its JSON fragment as a blob in the Docker
+repository it pushed to. This blob would not be referenced by any
+manifest. On build completion, the worker build would store the blob
+digest for this JSON fragment in an OpenShift Build annotation for the
+orchestrator build to inspect.
+
+The orchestrator build would be able to discover the blob digests,
+fetch them from the registry and put together the metadata.
+
+Afterwards, even on error, it would delete them.
+
+Between being created by the worker build and deleted by the
+orchestrator build, this blob would be "dangling" i.e. not referenced
+by any manifest. If the docker/distribution garbage collector is run
+during this time the blob will be removed.
+
+Upload file to Koji hub
+~~~~~~~~~~~~~~~~~~~~~~~
+
+In the same way the Docker image archive is uploaded to the Koji hub,
+the JSON fragment could also be uploaded. However, it would not be
+referenced in the Koji Build as an output.
+
+**Will this be garbage collected?**
 
 Submitting builds
 -----------------
@@ -114,6 +258,21 @@ When supplied for a scratch build this parameter overrides the default
 set of architectures to build for, which comes from the Koji build
 target. If an image cannot be built for any supplied architectures the
 build will fail.
+
+Streamed build logs
+-------------------
+
+When atomic-reactor in the orchestrator build runs its
+`orchestrate_build`_ plugin and watches the builds, it will stream in
+the logs from those builds and emit them as logs itself, with the
+platform name as one of the fields. The extra fields for these worker
+logs will be: platform, level.
+
+Note that there will be a single Koji task with a single log output,
+which will contain logs from multiple builds. When watching this using
+``koji watch-logs <task id>`` the log output from each worker build
+will be interleaved. To watch logs from a particular worker build
+image owners can use ``koji watch-logs <task id> | grep -w x86_64``.
 
 Authentication
 --------------
@@ -173,23 +332,31 @@ Excluding platforms
 Some container images will need to be built for multiple platforms but
 some may not.
 
-The ``osbs.conf`` file will specify the full list of platforms for which
-worker builds should be created. This list of platforms can be reduced
-in three ways:
+The full set of platforms for which builds may be required will come
+initially from the Koji build tag associated with the build target, or
+from the ``platforms`` parameter provided to the
+``create_orchestrator_build`` API method when Koji is not used.
 
-- Including platforms:
+A configuration file present in the git repository named
+``container.yaml`` may contain configuration keys relevant to platform
+selection.
 
-  * the set of platforms an image is built for is determined by the
-    Koji build tag for the Koji build target
+This set of platforms can be reduced in various ways:
 
-  * Container image builds can be submitting with a parameter
+- Explicit subset:
+
+  * container image builds can be submitting with a parameter
     ``--arches``, overriding the set of platforms specified by the Koji
     build target, in the same way as for building RPM packages
 
+  * the ``container.yaml`` configuration file's ``platforms.only`` key
+    can further restrict this set of platforms (via set union)
+
 - Excluding platforms:
 
-  * a git repository file ``exclude-platform`` can be used to list
-    platforms which this image should not be built for
+  * the ``container.yaml`` configuration file's ``platforms.not`` key
+    can restrict the set of platforms even further, by removing
+    specific platforms from those remaining
 
 Tagging
 -------
@@ -213,20 +380,6 @@ omitted when performing scratch builds:
 - only the unique tag including the timestamp will be applied in the
   worker builds
 - the result will not be imported into Koji in the orchestrator build
-
-Streamed build logs
--------------------
-
-When atomic-reactor in the orchestrator build runs its
-``orchestrate_build`` plugin and watches the builds, it will stream logs
-from those builds and log them again itself with a special prefix
-indicating they are logs relating to a particular platform.
-
-Note that there will be a single Koji task with multiple log
-outputs. When watching this using ``koji watch-logs <task id>`` the log
-output from each worker build will be interleaved. To watch logs from
-a particular worker build image owners can use ``koji
-watch-logs --log=LOGFILE <task id>``.
 
 Chain rebuilds
 --------------
@@ -261,17 +414,75 @@ all the way down to the worker builds:
 - osbs-client calls the OpenShift API method to cancel the
   orchestrator build in OpenShift
 - OpenShift sends a signal to atomic-reactor
-- atomic-reactor handles this signal by running exit plugins, one of
-  which calls the osbs-client API method to cancel each worker build
+- atomic-reactor handles this signal by calling the osbs-client API
+  method to cancel each worker build
 - Each osbs-client invocation calls the OpenShift API method to cancel
   a worker builder
-- Each instance of atomic-reactor handles the signal it gets sent by
-  running exit plugins, which perform clean-up operations
+- Each worker instance of atomic-reactor handles the signal it gets
+  sent by running exit plugins, which perform clean-up operations
+- The orchestrator instance of atomic-reactor finishes by running its
+  exit plugins
 
 In the case of a build for one platform failing, builds for other
 platforms will continue. Once all have either succeeded or failed, the
 orchestrator build will fail. No content will be available from the
 registry.
+
+Git Configuration
+-----------------
+
+Each git repository to build from may contain a ``container.yaml``
+file in the following format::
+
+  platforms:
+    # all these keys are optional
+
+    only:
+    - x86_64   # can be a list (as here) or a string (as below)
+    - ppc64le
+    - armhfp
+    not: armhfp
+
+    # how image manifests for platforms should be grouped
+    grouping: single-repo      # use manifest-list
+    #grouping: multiple-repos  # use platform-specific repos
+    # default/allowed values for grouping come from osbs.conf
+
+If this file is not present the `Default Grouping`_ method will be
+used.
+
+platforms
+~~~~~~~~~
+
+Keys in this map relate to multi-platform builds.
+
+only
+  list of platform names (or a single platform name as a string); this
+  will be combined with the ``platforms`` parameter to the
+  `orchestrate_build`_ plugin using set union
+
+not
+  list of platform names (or a single platform name as a string);
+  platforms named here will be removed from the ``platforms``
+  parameter to the `orchestrate_build`_ plugin using set difference
+
+grouping
+  how image manifests created by worker builds should be grouped in
+  the container registry (and in Pulp, if Pulp integration is
+  enabled); possible values:
+
+  single-repo
+    image manifests are grouped into a single repository using a
+    `manifest list`_
+
+  multiple-repos
+    image manifests for each platform are pushed into separate
+    platform-specific repositories
+
+  Only values from `Allowed Grouping`_ are allowed. If this key is not
+  present the `Default Grouping`_ method will be used.
+
+.. _`manifest list`: https://docs.docker.com/registry/spec/manifest-v2-2/#manifest-list
 
 Client Configuration
 --------------------
@@ -280,6 +491,13 @@ The osbs-client configuration file format will be augmented with
 instance-specific fields ``node_selector``, ``reactor_config_secret``,
 ``client_config_secret``, and ``token_secrets``, as well as the
 platform-specific field ``repository_transform``.
+
+Can Orchestrate
+~~~~~~~~~~~~~~~
+
+The parameter ``can_orchestrate`` defaults to false. The API method
+``create_orchestrator_build`` will fail unless ``can_orchestrate`` is
+true for the chosen instance section.
 
 Node selector
 ~~~~~~~~~~~~~
@@ -306,10 +524,33 @@ New sections are used for configuration specific to each platform.
 
 These sections are named platform:name and have the following keys:
 
-``repository_transform`` (optional)
+repository_transform (optional)
   a description of how to alter repository names specified in FROM
-  instructions and name labels, to make them specific to this platform
-  (to do: how? Maybe regular expressions)
+  instructions and name labels, to make them specific to this
+  platform. Supported values:
+
+  suffix_non_x86_64
+    A dash, followed by the platform name, will be appended to the
+    repository name, except for x86_64 which will remain unchanged
+
+Allowed Grouping
+~~~~~~~~~~~~~~~~
+
+Allowed grouping methods, separated by whitespace, are specified using
+``allowed_grouping``. By default both ``single-repo`` and
+``multiple-repos`` are allowed. If a git repository's
+``container.yaml`` configuration file specifies a grouping method not
+known or not allowed, builds from that git repository will fail.
+
+Default Grouping
+~~~~~~~~~~~~~~~~
+
+The ``default_grouping`` value specifies the grouping method to use
+when not specified in the platforms.grouping in the `Git
+Configuration`_. It must be one of the values specified by
+``allowed_grouping``. If ``default_grouping`` is not specified
+explicitly the first value from ``allowed_grouping`` is implicitly the
+default grouping method to use.
 
 Reactor config secret
 ~~~~~~~~~~~~~~~~~~~~~
@@ -324,7 +565,7 @@ Client config secret
 
 When ``client_config_secret`` is specified this is the name of a
 Kubernetes secret holding ``osbs.conf`` for use by atomic-reactor when it
-creates worker builds. The ``orchestrate_build`` plugin is told the
+creates worker builds. The `orchestrate_build`_ plugin is told the
 path to this.
 
 Token secrets
@@ -352,11 +593,14 @@ include::
   
   [default]
   openshift_url = https://orchestrator.example.com:8443/
-  build_imagestream = buildroot:blue
+  build_image = example.registry.com/buildroot:blue
 
-  # This node selector will be applied to the orchestrator build:
+  # This node selector will be applied to triggered rebuilds:
   low_priority_node_selector = lowpriority=true
+
   distribution_scope = public
+
+  can_orchestrate = true  # allow orchestrator builds
 
   # This secret contains configuration relating to which worker
   # clusters to use and what their capacities are:
@@ -375,12 +619,15 @@ include::
   
   [scratch]
   openshift_url = https://orchestrator.example.com:8443/
-  build_imagestream = buildroot:blue
-  distribution_scope = private
+  build_image = example.registry.com/buildroot:blue
+
   low_priority_node_selector = lowpriority=true
   reactor_config_secret = reactorconf
   client_config_secret = osbsconf
   token_secrets = workertoken:/var/run/secrets/atomic-reactor/workertoken
+
+  # All scratch builds have distribution-scope=private
+  distribution_scope = private
 
   # This causes koji_promote not to be configured, and for the low
   # priority node selector to be used.
@@ -410,7 +657,7 @@ cluster, and which is contained in the Kubernetes secret named by
   # no repository_transform required
 
   [platform:ppc64le]
-  repository_transform = # some way of saying eg. "add -ppc64le suffix"
+  repository_transform = suffix_non_x86_64  # ie. "add -ppc64le suffix" etc
 
   [prod-mixed]
   openshift_url = https://worker01.example.com:8443/
@@ -423,8 +670,9 @@ cluster, and which is contained in the Kubernetes secret named by
     /var/run/secrets/atomic-reactor/workertoken/worker01-serviceaccount-token
 
   # The same builder image is used for the orchestrator and worker
-  builds, but used with different configuration.
-  # build_imagestream = buildroot:blue
+  # builds, but used with different configuration. It should not
+  # be specified here.
+  # build_image = registry.example.com/buildroot:blue
 
   # This node selector, combined with the platform-specific node
   # selector, will be applied to worker builds.
@@ -438,7 +686,6 @@ cluster, and which is contained in the Kubernetes secret named by
   use_auth = true
   token_file =
     /var/run/secrets/atomic-reactor/workertoken/osd-serviceaccount-token
-  build_imagestream = buildroot:blue
   low_priority_node_selector = lowpriority=true
   # and auth options, registries, secrets, etc
 
@@ -468,8 +715,12 @@ create worker builds for. The ``koji-containerbuild`` plugin for Koji
 will supply this parameter from the list of architectures configured
 for the Koji build tag for the Koji build target the build is for.
 
-This method can only be used for clusters definitions that specify a
-``reactor_config_secret``.
+This method takes an ``arrangement_version`` parameter to select
+which arrangement of plugins is to be used in the orchestrator and
+worker builds.
+
+This method can only be used for cluster definitions that specify they
+can orchestrate (see `Can Orchestrate`_).
 
 create_worker_build
 ~~~~~~~~~~~~~~~~~~~
@@ -482,10 +733,20 @@ platform
 release
   the value to use for the release label
 
-as well as the optional parameter:
+parent_grouping
+  the grouping method used by the parent image (see `platforms`_);
+  this is ignored when building base images but for layered images
+  controls whether the `select_platform`_ plugin will be configured
+  to run
+
+as well as the optional parameters:
 
 filesystem_koji_task_id
   Koji Task ID of image-build task
+
+arrangement_version
+  to select which arrangement of plugins is to be used in the orchestrator and
+  worker builds
 
 It will use different templates to create the BuildConfig
 (``worker.json`` and ``worker_inner.json``). The worker BuildConfig
@@ -516,13 +777,12 @@ which performs orchestration rather than the plugin which simply runs
 
 The configuration for this plugin will include the osbs-client
 instance configuration for the named workers in addition to the list
-of plugins and their configuration that needs to be used when creating
-worker builders on those workers.
+of platforms to build for.
 
 The purpose of the orchestrator build is to choose a worker cluster,
-create a worker build in it, and monitor worker builds. Below is an
-example of the ATOMIC_REACTOR_PLUGINS environment variable for an
-orchestrator build.
+create a worker build in it, monitor worker builds, and group them as
+required. Below is an example of the ATOMIC_REACTOR_PLUGINS
+environment variable for an orchestrator build.
 
 ::
 
@@ -531,7 +791,15 @@ orchestrator build.
       {
         "name": "config",
         "args": {
-          "config_path": "/var/run/secrets/.../"
+          "config_path": "/var/run/secrets/.../",
+          "build": {
+            "grouping": ...
+            "config_file": "/etc/osbs/osbs-prod.conf",
+            "platforms": [
+              "x86_64",
+              "ppc64le"
+            ]
+          }
         }
       },
       {
@@ -546,25 +814,30 @@ orchestrator build.
         }
       },
       {
+        "name": "inspect_parent",
+      },
+      {
         "name": "bump_release"
       }
     ],
     "buildstep_plugins": [
       {
-        "name": "orchestrate_build",
-        "args": {
-          "config_file": "/etc/osbs/osbs-prod.conf",
-          "platforms": [
-            "x86_64",
-            "ppc64le"
-          ]
-        }
+        "name": "orchestrate_build"
       }
     ],
     "prepublish_plugins": [],
     "postbuild_plugins": [
       {
         "name": "compare_rpm_packages"
+      },
+      {
+        "name": "group_manifests",
+        "args": {
+          "registries": ...
+        }
+      },
+      {
+        "name": "pulp_sync"
       }
     ],
     "exit_plugins": [
@@ -576,6 +849,9 @@ orchestrator build.
         }
       },
       {
+        "name": "pulp_pull"
+      },
+      {
         "name": "koji_promote",
         "args": {
           "kojihub": ...,
@@ -583,8 +859,20 @@ orchestrator build.
         }
       },
       {
+        "name": "delete_from_registry"
+        "args": {
+          "registries": { ... }
+      },
+      {
         "name": "store_metadata_in_osv3",
         "args": {"url": "...", ...}
+      },
+      {
+        "name": koji_tag_build",
+        "args": {
+          "kojihub": ...,
+          ...
+        }
       }
     ]
   }
@@ -592,18 +880,49 @@ orchestrator build.
 reactor_config
 ~~~~~~~~~~~~~~
 
-This new plugin parses the atomic-reactor config and makes it
-available to other plugins.
+This plugin parses the atomic-reactor config and makes it available to
+other plugins.
 
 add_filesystem
 ~~~~~~~~~~~~~~
 
 New parameter ``architectures``. This is used to fill in the
-``arches`` parameter for ``image-build.conf``. The server-side config
-is consulted first in case any architectures have been disabled. When
-set, this new parameter tells the plugin only to create (and wait for)
-the Koji task, not to import its output files. That step is performed
-in the worker builds.
+``arches`` parameter for ``image-build.conf``. When set, this new
+parameter tells the plugin only to create (and wait for) the Koji
+task, not to import its output files. That step is performed in the
+worker builds.
+
+inspect_parent
+~~~~~~~~~~~~~~
+
+This new plugin determines which parent image to use and fetches its
+environment variables. The environment variables are used by the
+``bump_release`` plugin, which may need them when processing the
+``release`` label.
+
+Determining the parent image is performed by issuing a Docker Registry
+HTTP API V2 request for the manifest named in the "FROM" line in the
+Dockerfile, including a header field indicating acceptance of the
+manifest list object type.
+
+The parent's grouping method will be inferred from the object type
+returned in the response.
+
+If a manifest list is returned, the "single-repo" grouping method will
+be assumed and the FROM line will remain unchanged.
+
+If any other type is returned, the "multiple-repos" grouping method
+will be assumed.  The repository specified in the FROM line will be
+adjusted using `apply_repository_transform`_, using the provided
+osbs.conf file and a platform from one of those provided in
+"platforms". Note that which particular platform is used is not
+important because any environment variables used for substitution in
+the "release" label must be identical across platforms (there is only
+a single "release" label value for all platforms for a build).
+
+When the `orchestrate_build`_ plugin creates the worker build it
+supplies the deduced grouping method, as a string, via the
+"parent_grouping" parameter.
 
 orchestrate_build
 ~~~~~~~~~~~~~~~~~
@@ -611,19 +930,23 @@ orchestrate_build
 This plugin provides the core functionality of the orchestrator
 build. It provides the following functionality:
 
-1. Look for a git repository file (``exclude-platform``) which lists
-   platforms this image must not be built for, one per line
-2. Iterate over items in the platforms parameter, and choose a worker
-   cluster for each platform specified in its clusters parameter but
-   not excluded in ``exclude-platform`` (see `clusters`_ for more
-   details of how this is performed)
+1. Look for a git repository file (``container.yaml``) and apply the
+   ``platforms.only`` and ``platforms.not`` keys in it to its
+   platforms parameter
+2. Iterate over remaining platforms, and choose a worker cluster for
+   each platform (see `clusters`_ for more details of how this is
+   performed)
 3. Create a build on each selected cluster by using the
-   ``create_worker_build`` osbs-client API method.
+   ``create_worker_build`` osbs-client API method, providing
+   "platform", "release", and "parent_grouping" parameters
 4. Monitor each created build. If any worker build fails, the
    orchestrator build should also fail (once all builds complete).
 5. Once all worker builds complete, fetch their logs and -- for those
    that succeeded -- their annotations to discover their image
    manifest digests
+
+The return value of the plugin will be a dictionary of platform name
+to BuildResult object.
 
 compare_rpm_packages
 ~~~~~~~~~~~~~~~~~~~~
@@ -635,16 +958,27 @@ any mismatches. The ``all_rpm_packages`` plugin in the worker build
 will be modified to log the RPM list in a parseable format to
 facilitate this.
 
+group_manifests
+~~~~~~~~~~~~~~~
+
+This new post-build plugin creates the Docker Manifest List in the
+registry. It does this by inspecting the return value from the
+orchestrate_build plugin to find the image manifest digests from the
+platform-specific images.
+
+The plugin's return value will include the manifest digest for the
+created object.
+
 pulp_publish
 ~~~~~~~~~~~~
 
-This new exit plugin is for copying content from the temporary Pulp
-repositories used by each worker build into the platform-specific Pulp
-repositories and publishing each of them.
+This new exit plugin is for publishing content in the Pulp repository
+or repositories (there may be one or several depending on the grouping
+method).
 
 However, if any worker build failed, or the build was cancelled, this
-plugin should instead remove the temporary Pulp repositories used by
-worker builds.
+plugin should instead remove the "v1" images from the Pulp repository
+or repositories.
 
 koji_promote
 ~~~~~~~~~~~~
@@ -652,6 +986,26 @@ koji_promote
 No longer responsible for uploading the image tar archives (see
 `koji_upload`_), this exit plugin creates a Koji build when the images
 all built successfully.
+
+To do this it gathers the platform-specific metadata fragments created
+by each worker build (see `koji_upload`_) and combines them. In
+combining them, it takes care to make each buildroot ID unique but
+preserving references to buildroots in the outputs.
+
+The combined metadata fragments are then augmented with metadata
+relating to the multi-platform build as a whole.
+
+Logs for the builds are collected by inspecting the return value of
+the `orchestrate_build`_ plugin. These logs are uploaded to Koji and
+included in the build metadata as log outputs.
+
+Finally the Koji API will be used to import the Koji Build.
+
+koji_tag
+~~~~~~~~
+
+As previously, this plugin tags the Koji build created by the
+"koji_promote" plugin.
 
 Server-side Configuration for atomic-reactor
 --------------------------------------------
@@ -664,19 +1018,19 @@ The runtime configuration will take the form of a Kubernetes secret
 with content as in the example below::
 
   clusters:
-  x86_64:
-  - name: prod-x86_64-osd
-    max_concurrent_builds: 16
-  - name: prod-x86_64
-    max_concurrent_builds: 6
-    enabled: true
-  - name: prod-other
-    max_concurrent_builds: 2
-    enabled: false
+    x86_64:
+    - name: prod-x86_64-osd
+      max_concurrent_builds: 16
+    - name: prod-x86_64
+      max_concurrent_builds: 6
+      enabled: true
+    - name: prod-other
+      max_concurrent_builds: 2
+      enabled: false
 
-  ppc64le:
-  - name: prod-ppc64le
-    max_concurrent_builds: 6
+    ppc64le:
+    - name: prod-ppc64le
+      max_concurrent_builds: 6
 
 clusters
 ~~~~~~~~
@@ -912,29 +1266,15 @@ for a worker build::
         }
       },
       {
-        "name": "pulp_init",
-        "args": {
-          ...
-        }
-      },
-      {
         "name": "pulp_push",
         "args": {
-          ...
-        }
-      },
-      {
-        "name": "pulp_sync",
-        "args": {
+          "pulp_registry_name": ...
           ...
         }
       },
       {
         "name": "compress",
         "method": "gzip"
-      },
-      {
-        "name": "pulp_pull"
       },
       {
         "name": "koji_upload",
@@ -946,11 +1286,6 @@ for a worker build::
       }
     ],
     "exit_plugins": [
-      {
-        "name": "delete_from_registry"
-        "args": {
-          "registries": { ... }
-      },
       {
         "name": "store_metadata_in_osv3"
         "args": {
@@ -974,15 +1309,26 @@ This new pre-build plugin applies the repository transform for this
 platform to the ``FROM`` instruction and name label in the Dockerfile,
 using a new method in osbs-client, `apply_repository_transform`_.
 
+It is only run when the grouping method is ``multiple-repos``.
+
 If the ``FROM`` instruction uses a value starting "koji/" it is left
 unchanged. This prefix is an indication to the ``add_filesystem``
 plugin that it needs to fetch the filesystem from a Koji build.
 
-pulp_init
+all_rpm_packages
+~~~~~~~~~~~~~~~~
+
+This existing post-build plugin will be modified. As well as fetching
+the list of installed RPMs in the built image, it will emit this list
+using a specially-formatted log output.
+
+pulp_push
 ~~~~~~~~~
 
-This new post-build plugin creates a temporary Pulp repository for
-storing content, or deletes content from it if it already exists.
+When Pulp integration and support for Docker Registry HTTP API V1 are
+both enabled, this existing post-build plugin uploads the Docker image
+archive so that Pulp is able to serve images using the V1 API (via
+Crane).
 
 koji_upload
 ~~~~~~~~~~~
@@ -990,8 +1336,27 @@ koji_upload
 This new post-build plugin uploads the image tar archive to Koji but
 does not create a Koji build.
 
-Koji metadata changes
----------------------
+Additionally, it creates the platform-specific parts of the Koji build
+metadata (see `Koji build`_) and places them in temporary storage (see
+`Temporary Storage`_).
+
+The metadata fragment will take the form of a JSON file::
+
+  {
+    "buildroots": [
+      {
+        ... single entry ...
+      }
+    ],
+    "output": [
+      {
+        ... single entry ...
+      }
+    ]
+  }
+
+Koji metadata
+-------------
 
 There are two Koji objects to consider: the task representing the
 action of building the image, and the build representing the outputs.
@@ -1002,52 +1367,104 @@ Koji task
 The "result" of a Koji task is a text field. For buildContainer tasks
 this is used to store JSON data in and pyrpkg knows how to decode this
 into a useful message including a URL to the resulting Koji build and
-also a set of Docker pull specifications for the image::
+also a set of Docker pull specifications for the image.
+
+The format remains unchanged:
+
+koji_builds
+  a list of Koji build IDs (although it will only have a single item)
+
+repositories
+  a list of fully-qualified pull specifications, with items relating
+  to each tag (see `Tagging`_)
+
+For the "single-repo" grouping method the list of repositories will
+look no different than it did prior to multi-platform
+support. However, each pull specification will relate to a manifest list::
 
   {
     "koji_builds": [123456],
     "repositories": [
-      "pulp-docker01:8888/img/name:target-20170123055916",
-      "pulp-docker01:8888/img/name:1.0-2",
-      "pulp-docker01:8888/img/name:1.0",
-      "pulp-docker01:8888/img/name:latest",
-      "pulp-docker01:8888/img/name-ppc64le:target-20170123055916",
-      "pulp-docker01:8888/img/name-ppc64le:1.0-2",
-      "pulp-docker01:8888/img/name-ppc64le:1.0",
-      "pulp-docker01:8888/img/name-ppc64le:latest",
-      "pulp-docker01:8888/img/name-ppc32:target-20170123055916",
-      "pulp-docker01:8888/img/name-ppc32:1.0-2",
-      "pulp-docker01:8888/img/name-ppc32:1.0",
-      "pulp-docker01:8888/img/name-ppc32:latest"
+      "pulp-docker1/img/name:target-20170123055916",
+      "pulp-docker1/img/name:1.0-2",
+      "pulp-docker1/img/name:1.0",
+      "pulp-docker1/img/name:latest"
     ]
   }
 
-The format is the same. The only difference is the addition of pull
-specifications for the additional architectures. Note that only tags
-are included here as these are for convenience for image owners. Image
-manifest digests are included in the Koji build, not the Koji task.
+For the "multiple-repos" grouping method the list of repositories will
+include each platform-specific image explicitly::
+
+  {
+    "koji_builds": [123456],
+    "repositories": [
+      "pulp-docker1/img/name:target-20170123055916",
+      "pulp-docker1/img/name:1.0-2",
+      "pulp-docker1/img/name:1.0",
+      "pulp-docker1/img/name:latest",
+      "pulp-docker1/img/name-ppc64le:target-20170123055916",
+      "pulp-docker1/img/name-ppc64le:1.0-2",
+      "pulp-docker1/img/name-ppc64le:1.0",
+      "pulp-docker1/img/name-ppc64le:latest",
+      "pulp-docker1/img/name-ppc32:target-20170123055916",
+      "pulp-docker1/img/name-ppc32:1.0-2",
+      "pulp-docker1/img/name-ppc32:1.0",
+      "pulp-docker1/img/name-ppc32:latest"
+    ]
+  }
+
+Note that only tags are included here as these are for convenience for
+image owners. Manifest digests are included in the `Koji build`_, not
+the Koji task.
+
+Koji task logs
+''''''''''''''
+
+The Koji build will have separate log files for each worker build, as
+well as the orchestrator build's own log file. This is arranged
+between the orchestrate_build plugin and the koji_promote plugin.
+
+For the Koji task, however, it is also desirable to have separate logs
+for each worker build (so that build submitters can watch each worker
+build separately), but the orchestrator build is only able to stream a
+single log file.
+
+The solution is for the orchestrate_build plugin to emit
+specially-formatted logs, tagged with the platform for which the
+worker build is being performed, and for osbs-client to understand how
+to separate these tagged log lines from the rest of the log output.
+
+This is similar to the way the orchestrate_build plugin gathers image
+component information from the worker builds (see
+`all_rpm_packages`_).
 
 Koji build
 ~~~~~~~~~~
 
-The Koji build will have entries in the output list as follows:
+Koji build metadata with single-repo grouping method
+''''''''''''''''''''''''''''''''''''''''''''''''''''
 
-- One "docker-image" entry for each platform an image was built for,
-  including an "arch" field
+Koji builds created using the single-repo grouping method will have
+entries in the output list as follows:
 
-- This will include the docker pull-by-digest specification for the
-  ``$version-$release`` image manifest for this platform-specific
-  image
+- A further "docker-image" entry for each platform an image was built
+  for, including:
+
+  * an "arch" field
+
+  * the docker pull-by-digest specification for the distinct tag used
+    by this platform-specific image manifest
+
+  * the buildroot ID for the builder image used for this worker build
 
 - One "log" entry for each platform an image was built for, including
   an "arch" field
 
-- One additional "log" entry for logging output from the orchestrator
-  build
+- One additional "log" entry for the logging output from the
+  orchestrator build
 
-Each "docker-image" entry in the output list will have a corresponding
-entry in the buildroots list, representing the platform-specific
-buildroot used to drive the worker build.
+The build metadata (build.extra.image) will have an additional key to
+hold a pull-by-digest specification for the manifest list.
 
 Example::
 
@@ -1057,6 +1474,15 @@ Example::
     extra:
       image:
         # usual fields for OSBS builds: autorebuild, help
+        # but also this new field describing the manifest list:
+        index:
+          pull:
+          - pulp-docker01:8888/img:7.3-1
+          - pulp-docker01:8888/img@sha256:1a2b3c4d5e...
+          tags:
+          - 7.3-1
+          - 7.3
+          - latest
 
   # This section is for metadata about atomic-reactor
   buildroots:
@@ -1103,11 +1529,11 @@ Example::
         id: sha256:abc123def...
         parent_id: sha256:123def456...
         repositories:
-        - pulp-docker01:8888/img:20170601000000-2a892
-        - pulp-docker01:8888/img@sha256:789def567…
+        - pulp-docker01:8888/img:20170601000000-2a892-x86_64
+        - pulp-docker01:8888/img@sha256:789def567...
         # This pull specification refers to the image manifest for the x86_64 platform.
         tags:
-        - 20170601000000-2a892
+        - 20170601000000-2a892-x86_64
         config:
           # docker registry config object
           docker_version: ...
@@ -1124,11 +1550,131 @@ Example::
         id: sha256:bcd234efg...
         parent_id: sha256:234efg567...
         repositories:
-        - pulp-docker01:8888/img-ppc64le:20170601000000-ae58f
+        - pulp-docker01:8888/img:20170601000000-ae58f-ppc64le
+        - pulp-docker01:8888/img@sha256:890efg678…
+        # This pull specification refers to the image manifest for the ppc64le platform.
+        tags:
+        - 20170601000000-ae58f-ppc64le
+        config:
+          # Docker registry config object
+          docker_version: ...
+          config:
+            labels: ...
+          ...
+
+Koji build metadata with multiple-repos grouping method
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Koji builds created using the multiple-repos grouping method will have
+entries in the output list as follows:
+
+- One "docker-image" entry for each platform an image was built for,
+  including:
+
+  * an "arch" field
+
+  * the docker pull-by-digest specification for the
+    ``$version-$release`` image manifest for this platform-specific
+    image
+
+  * the buildroot ID for the builder image used for this worker build
+
+- One "log" entry for each platform an image was built for, including
+  an "arch" field
+
+- One additional "log" entry for logging output from the orchestrator
+  build
+
+Each "docker-image" entry in the output list will have a corresponding
+entry in the buildroots list, representing the platform-specific
+buildroot used to drive the worker build.
+
+Example::
+
+  # This section is metadata for the build as a whole
+  build:
+    # usual name, version, release, source, time fields
+    extra:
+      image:
+        # usual fields for OSBS builds: autorebuild, help
+        # ('index' key not present, indicating there is no manifest
+        # list)
+
+  # This section is for metadata about atomic-reactor
+  buildroots:
+  - id: 1
+    container:
+      arch: x86_64
+      type: docker
+    # RPMs in x86_64 atomic-reactor container (from builder image)
+    components:
+    - name: glibc
+      arch: x86_64
+      ...
+
+    - id: 2
+    container:
+      arch: ppc64le
+      type: docker
+    # RPMs in ppc64le atomic-reactor container (from builder image)
+    components:
+    - name: glibc
+      arch: ppc64le
+      ...
+
+  # This section is for metadata about the built images
+  output:
+  - type: log
+    # Top-level log output, as before; will not include output from worker builds, only orchestration.
+    filename: orchestrate.log
+
+  - type: log
+    arch: x86_64
+    filename: x86_64.log
+
+  - type: log
+    arch: ppc64le
+    filename: ppc64le.log
+
+  - type: docker-image
+    arch: x86_64
+    buildroot_id: 1
+    filename: img-docker-7.3-1-x86_64.tar.gz
+    extra:
+      docker:
+        id: sha256:abc123def...
+        parent_id: sha256:123def456...
+        repositories:
+        - pulp-docker01:8888/img:7.3-1
+        - pulp-docker01:8888/img@sha256:789def567…
+        # This pull specification refers to the image manifest for the x86_64 platform.
+        tags:
+        - 7.3-1
+        - 7.3
+        - latest
+        config:
+          # docker registry config object
+          docker_version: ...
+          config:
+            labels: ...
+          ...
+
+  - type: docker-image
+    arch: ppc64le
+    buildroot_id: 2
+    filename: img-docker-7.3-1-ppc64le.tar.gz
+    extra:
+      docker:
+        id: sha256:bcd234efg...
+        parent_id: sha256:234efg567...
+        repositories:
+        - pulp-docker01:8888/img-ppc64le:7.3-1
         - pulp-docker01:8888/img-ppc64le@sha256:890efg678…
         # This pull specification refers to the image manifest for the ppc64le platform.
         tags:
-        - 20170601000000-ae58f
+        - 7.3-1
+        - 7.3
+        - latest
         config:
           # Docker registry config object
           docker_version: ...
