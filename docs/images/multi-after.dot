@@ -21,6 +21,7 @@ digraph G {
         koji_build [shape=none, margin=0, label=<
                     <TABLE BGCOLOR="#cfe2f3" BORDER="0" CELLSPACING="0" CELLBORDER="1">
                       <TR><TD COLSPAN="3" CELLPADDING="5"><B>Koji build</B></TD></TR>
+                      <TR><TD COLSPAN="2">metadata</TD><TD>autorebuild?<BR/>etc</TD></TR>
                       <TR><TD PORT="output" ROWSPAN="7">output</TD><TD ROWSPAN="4">logs</TD><TD>x86_64</TD></TR>
                       <TR><TD>ppc64le</TD></TR>
                       <TR><TD>ppc32</TD></TR>
@@ -48,7 +49,7 @@ digraph G {
               </TABLE>>];
     }
 
-    koji_task:build -> koji_build;
+    koji_task:build:w -> koji_build;
     orchestrator_build -> koji_build [label=import];
     koji_build:x86_64 -> pulp:x86_64;
     koji_build:ppc64le -> pulp:ppc64le;
