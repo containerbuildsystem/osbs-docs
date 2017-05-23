@@ -129,10 +129,10 @@ builds, atomic-reactor will execute these steps as plugins:
 - Update this OpenShift Build with annotations about output,
   performance, errors, etc
 
-.. graphviz:: images/during-build.dot
+.. graphviz:: images/multi-during-build.dot
    :caption: During build
 
-.. graphviz:: images/after-build.dot
+.. graphviz:: images/multi-after-build.dot
    :caption: After build
 
 Temporary Storage

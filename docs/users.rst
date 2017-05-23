@@ -74,6 +74,9 @@ automated triggered rebuilds (where the orchestrator cluster has
 complete knowledge of the latest build configurations and their
 triggers).
 
+.. graphviz:: images/arrangement-v1.dot
+   :caption: Orchestrator and worker builds (arrangement v1)
+
 Orchestrator
 ''''''''''''
 
