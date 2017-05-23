@@ -212,39 +212,6 @@ set of architectures to build for, which comes from the Koji build
 target. If an image cannot be built for any supplied architectures the
 build will fail.
 
-Streamed build logs
--------------------
-
-When atomic-reactor in the orchestrator build runs its
-`orchestrate_build`_ plugin and watches the builds, it will stream in
-the logs from those builds and emit them as logs itself, with the
-platform name as one of the fields. The extra fields for these worker
-logs will be: platform, level.
-
-Note that there will be a single Koji task with a single log output,
-which will contain logs from multiple builds. When watching this using
-``koji watch-logs <task id>`` the log output from each worker build
-will be interleaved. To watch logs from a particular worker build
-image owners can use ``koji watch-logs <task id> | grep -w x86_64``.
-
-Authentication
---------------
-
-The orchestrator cluster will have a service account (with edit role)
-created for use by Koji builders. Those Koji builders will use the
-service account's persistent token to authenticate to the orchestrator
-cluster and submit builds to it.
-
-Since the orchestrator build initiates worker builds on the worker
-cluster, it must have permission to do so. A service account should be
-created on each worker cluster in order to generate a persistent
-token. This service account should have edit role. On the orchestrator
-cluster, a secret for each worker cluster should be created to store
-the corresponding service account tokens. When osbs-client creates the
-orchestrator build it must specify the names of the secret files to be
-mounted in the BuildConfig. The orchestrator build will extract the
-token from the mounted secret file.
-
 Building base images
 --------------------
 
@@ -423,16 +390,7 @@ Client Configuration
 --------------------
 
 The osbs-client configuration file format will be augmented with
-instance-specific fields ``can_orchestrate``, ``node_selector``,
-``reactor_config_secret``, ``client_config_secret``, and
-``token_secrets``.
-
-Can Orchestrate
-~~~~~~~~~~~~~~~
-
-The parameter ``can_orchestrate`` defaults to false. The API method
-``create_orchestrator_build`` will fail unless ``can_orchestrate`` is
-true for the chosen instance section.
+instance-specific field ``node_selector``.
 
 Node selector
 ~~~~~~~~~~~~~
@@ -451,33 +409,6 @@ Implementation of this requires a new optional parameter platform for
 the API method ``create_prod_build`` specifying which platform a build
 is required for. If no platform is specified, no node selector will be
 used.
-
-Reactor config secret
-~~~~~~~~~~~~~~~~~~~~~
-
-When ``reactor_config_secret`` is specified this is the name of a
-Kubernetes secret holding :ref:`config.yaml`. A pre-build plugin will
-be configured with the location this secret is mounted.
-
-Client config secret
-~~~~~~~~~~~~~~~~~~~~
-
-When ``client_config_secret`` is specified this is the name of a
-Kubernetes secret holding ``osbs.conf`` for use by atomic-reactor when it
-creates worker builds. The `orchestrate_build`_ plugin is told the
-path to this.
-
-Token secrets
-~~~~~~~~~~~~~
-
-When ``token_secrets`` is specified the specified secrets (space
-separated) will be mounted in the OpenShift build. When ":" is used,
-the secret will be mounted at the specified path, i.e. the format is::
-
-  token_secrets = secret:path secret:path ...
-
-This allows an ``osbs.conf`` file (from ``client_config_secret``) to
-be constructed with a known value to use for ``token_file``.
 
 Example configuration file: Koji builder
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -613,7 +544,7 @@ which arrangement of plugins is to be used in the orchestrator and
 worker builds.
 
 This method can only be used for cluster definitions that specify they
-can orchestrate (see `Can Orchestrate`_).
+can orchestrate (see :ref:_`Can Orchestrate`).
 
 create_worker_build
 ~~~~~~~~~~~~~~~~~~~

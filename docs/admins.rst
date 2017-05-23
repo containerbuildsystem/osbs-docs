@@ -4,8 +4,43 @@ Administration and Maintenance
 Setting up koji for container image builds
 ------------------------------------------
 
+The /etc/osbs.conf file used by the koji-containerbuild plugin must
+name secrets configured on the OpenShift orchestration cluster:
+
+reactor_config_secret
+    This secret holds details about worker clusters; see
+    :ref:`config.yaml`
+
+client_config_secret
+    This secret holds the osbs.conf which will be used by
+    atomic-reactor to create worker builds; see
+    :ref:`client_config_secret`
+
+token_secrets
+    This set of secrets may be referenced by the osbs.conf held in
+    client_config_secret, for example for service account tokens on
+    worker clusters; see :ref:`token_secrets`
+
 Deploy OSBS on OpenShift
 ------------------------
+
+Authentication
+~~~~~~~~~~~~~~
+
+The orchestrator cluster will have a service account (with edit role)
+created for use by Koji builders. Those Koji builders will use the
+service account's persistent token to authenticate to the orchestrator
+cluster and submit builds to it.
+
+Since the orchestrator build initiates worker builds on the worker
+cluster, it must have permission to do so. A service account should be
+created on each worker cluster in order to generate a persistent
+token. This service account should have edit role. On the orchestrator
+cluster, a secret for each worker cluster should be created to store
+the corresponding service account tokens. When osbs-client creates the
+orchestrator build it must specify the names of the secret files to be
+mounted in the BuildConfig. The orchestrator build will extract the
+token from the mounted secret file.
 
 .. _config.yaml:
 
