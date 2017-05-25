@@ -76,7 +76,7 @@ Steps performed in the orchestrator build are:
 - If Koji integration is enabled:
 
   - Combine Koji metadata fragments from temporary storage (see
-    `Temporary Storage`_)
+    `Metadata Fragment Storage`_)
 
   - Create a Koji Build. Note: no need to upload image tar archives as
     worker builds have done this
@@ -120,7 +120,8 @@ builds, atomic-reactor will execute these steps as plugins:
   - Upload image tar archive to Koji but do not create a Koji Build
 
   - Upload the Koji metadata fragment (buildroot information, built
-    image information) to temporary storage (see `Temporary Storage`_)
+    image information) to temporary storage (see `Metadata Fragment
+    Storage`_)
 
 - Update this OpenShift Build with annotations about output,
   performance, errors, etc
@@ -131,8 +132,8 @@ builds, atomic-reactor will execute these steps as plugins:
 .. graphviz:: images/multi-after-build.dot
    :caption: After build
 
-Temporary Storage
------------------
+Metadata Fragment Storage
+-------------------------
 
 When creating a Koji Build, the `koji_promote`_ plugin needs to
 assemble Koji Build Metadata, including:
@@ -555,6 +556,9 @@ ATOMIC_REACTOR_PLUGINS environment variable for an orchestrator build.
     "prepublish_plugins": [],
     "postbuild_plugins": [
       {
+        "name": "fetch_worker_metadata"
+      },
+      {
         "name": "compare_rpm_packages"
       },
       {
@@ -647,15 +651,20 @@ themselves.
 The return value of the plugin will be a dictionary of platform name
 to BuildResult object.
 
+fetch_worker_metadata
+---------------------
+
+The new post-build plugin fetches metadata fragments from each worker
+build (see `Metadata Fragment Storage`_) and makes it available to the
+`compare_rpm_packages`_ and `koji_promote`_ plugins.
+
 compare_rpm_packages
 ~~~~~~~~~~~~~~~~~~~~
 
-This new post-build plugin analyses log files from each worker build
-to find out the RPM components installed in each image
-(name-version-release, and RPM signatures), and will fail if there are
-any mismatches. The ``all_rpm_packages`` plugin in the worker build
-will be modified to log the RPM list in a parseable format to
-facilitate this.
+This new post-build plugin analyses metadata fragments from each
+worker build (see `Metadata Fragment Storage`_) to find out the RPM
+components installed in each image (name-version-release, and RPM
+signatures), and will fail if there are any mismatches.
 
 group_manifests
 ~~~~~~~~~~~~~~~
@@ -702,6 +711,12 @@ koji_tag
 
 As previously, this plugin tags the Koji build created by the
 "koji_promote" plugin.
+
+remove_worker_metadata
+~~~~~~~~~~~~~~~~~~~~~~
+
+This new exit plugin removes metadata fragments created by the worker
+builds (see `Metadata Fragment Storage`_).
 
 Annotations/labels on orchestrator build
 ----------------------------------------
@@ -933,13 +948,6 @@ This configuration is created by osbs-client's ``create_worker_build``
 method, which has an optional ``filesystem_koji_task_id`` parameter
 used for building base images.
 
-all_rpm_packages
-~~~~~~~~~~~~~~~~
-
-This existing post-build plugin will be modified. As well as fetching
-the list of installed RPMs in the built image, it will emit this list
-using a specially-formatted log output.
-
 pulp_push
 ~~~~~~~~~
 
@@ -956,7 +964,7 @@ does not create a Koji build.
 
 Additionally, it creates the platform-specific parts of the Koji build
 metadata (see `Koji build`_) and places them in temporary storage (see
-`Temporary Storage`_).
+`Metadata Fragment Storage`_).
 
 The metadata fragment will take the form of a JSON file::
 
@@ -972,6 +980,32 @@ The metadata fragment will take the form of a JSON file::
       }
     ]
   }
+
+store_metadata_in_osv3
+~~~~~~~~~~~~~~~~~~~~~~
+
+This existing exit plugin will store the `metadata_fragment`_
+annotation using the result of the `koji_upload`_ plugin.
+
+Annotations/labels on worker build
+----------------------------------
+
+The worker build annotations remain largely unchanged for
+multi-platform builds. However, to support `Metadata Fragment
+Storage`_ a new annotation will be added::
+
+  metadata:
+    labels:
+      ...
+    annotations:
+      ...
+      metadata_fragment: "secret/koji-metadata-7e4aab0"
+
+metadata_fragment
+~~~~~~~~~~~~~~~~~
+
+This annotation has a string value which is the kind and name of the
+OpenShift object in which the metadata fragment is stored.
 
 Koji metadata
 -------------
