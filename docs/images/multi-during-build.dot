@@ -2,10 +2,10 @@ digraph G {
     koji_task [shape=none, margin=0, label=<
                <TABLE BGCOLOR="#cfe2f3" BORDER="0" CELLSPACING="0" CELLBORDER="1">
                  <TR><TD PORT="main" COLSPAN="2" CELLPADDING="5"><B>Koji task</B></TD></TR>
-                 <TR><TD PORT="logs" BORDER="1" ROWSPAN="4">logs</TD><TD>x86_64</TD></TR>
+                 <TR><TD BORDER="1" ROWSPAN="4">logs</TD><TD PORT="orchestrator">orchestrator</TD></TR>
+                 <TR><TD PORT="x86_64">x86_64</TD></TR>
+                 <TR><TD PORT="ppc32">ppc32</TD></TR>
                  <TR><TD PORT="ppc64le">ppc64le</TD></TR>
-                 <TR><TD>ppc32</TD></TR>
-                 <TR><TD>orchestrator</TD></TR>
                </TABLE>>];
 
     koji_hub [shape=box, style=filled, color="#cfe2f3",
@@ -43,9 +43,9 @@ digraph G {
     }
 
     koji_task:main -> orchestrator_build;
-    orchestrator_build -> koji_task:logs [style=dashed, label=logs];
-    {x86_64_build, ppc64le_build, ppc32_build} ->
-        orchestrator_build [style=dashed, label=logs];
+    orchestrator_build -> koji_task:orchestrator:e [style=dashed, label=logs];
+    x86_64_build -> koji_task:x86_64:e [style=dashed, label=logs];
+    ppc32_build -> koji_task:ppc32:e [style=dashed, label=logs];
     orchestrator_build -> {x86_64_build ppc64le_build ppc32_build};
     ppc64le_build -> koji_hub [label=upload];
     ppc64le_build -> registry:ppc64le;

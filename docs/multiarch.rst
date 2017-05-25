@@ -18,14 +18,8 @@ used:
 
 .. _`manifest list`: https://docs.docker.com/registry/spec/manifest-v2-2/#manifest-list
 
-The cluster which will run orchestrator builds is referred to here as
-the *orchestrator cluster*, and the cluster which will run worker
-builds is referred to here as the *worker cluster*.
-
-Note that the orchestrator cluster itself may also be configured to
-accept worker builds, so the cluster may be both orchestrator and
-worker. Alternatively some sites may want to have complete clusters
-for each platform as well as for the orchestration.
+This will be a different "arrangement" (see :ref:`build process`) of
+plugins across the orchestrator and worker builds.
 
 Technically, only compute nodes in the required architectures are
 needed to perform the container-building step. These can be arranged
@@ -34,13 +28,15 @@ single-architecture clusters for each architecture, or as a mix of the
 two.
 
 The orchestrator build will make use of :ref:`config.yaml` to discover
-which worker clusters to direct builds to and whether/which `node
-selector`_ is required for each.
+which worker clusters to direct builds to and
+:ref:`client_config_secret` to discover how to connect to those
+clusters, including whether/which `node selector`_ is required for
+each platform.
 
 .. _`node selector`: https://docs.openshift.org/latest/admin_guide/managing_projects.html#developer-specified-node-selectors
 
-Orchestration required for multi-platform builds
-------------------------------------------------
+Orchestration arrangement for multi-platform builds
+---------------------------------------------------
 
 When a new multi-platform build is required, one designated cluster
 will always be asked to perform it. This cluster will run
@@ -154,49 +150,16 @@ images, and built images. They then need to pass this data to the
 orchestrator build. After creating the Koji Build, the orchestrator
 build must then free any resources used in passing the data.
 
-A number of approaches are possible for this, detailed below.
-
-Create OpenShift object
-~~~~~~~~~~~~~~~~~~~~~~~
-
-The worker build could create an OpenShift object (perhaps a Secret or
-ConfigMap) in the worker cluster and store the name of this object in
-its OpenShift Build annotations. To do this the worker cluster's
-"builder" service account will need to be granted permission to create
-objects of the appropriate type.
+This data will be stored in an OpenShift object (perhaps a Secret or
+ConfigMap) in the worker cluster, and its name will be stored in the
+OpenShift Build annotations for the worker build. To do this the
+worker cluster's "builder" service account will need to be granted
+permission to create objects of the appropriate type.
 
 The orchestrator build would then be responsible for removing the
 OpenShift object from the worker cluster. To do this, the worker
 cluster's "orchestrator" service account will need to be granted
 permission to get and delete objects of the appropriate type.
-
-Store a blob in the Docker registry
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The worker build could store its JSON fragment as a blob in the Docker
-repository it pushed to. This blob would not be referenced by any
-manifest. On build completion, the worker build would store the blob
-digest for this JSON fragment in an OpenShift Build annotation for the
-orchestrator build to inspect.
-
-The orchestrator build would be able to discover the blob digests,
-fetch them from the registry and put together the metadata.
-
-Afterwards, even on error, it would delete them.
-
-Between being created by the worker build and deleted by the
-orchestrator build, this blob would be "dangling" i.e. not referenced
-by any manifest. If the docker/distribution garbage collector is run
-during this time the blob will be removed.
-
-Upload file to Koji hub
-~~~~~~~~~~~~~~~~~~~~~~~
-
-In the same way the Docker image archive is uploaded to the Koji hub,
-the JSON fragment could also be uploaded. However, it would not be
-referenced in the Koji Build as an output.
-
-**Will this be garbage collected?**
 
 Submitting builds
 -----------------
@@ -521,63 +484,16 @@ labels (prod-mixed), and another which only accepts x86_64 builds
 Client API changes
 ------------------
 
-Two new API methods will handle orchestration, and the existing API
-method for creating builds will gain a new optional parameter.
-
-create_orchestrator_build
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-This will take the same parameters as ``create_prod_build`` (except
-for platform) but will use different templates to create the
-BuildConfig (``orchestrator.json`` and
-``orchestrator_inner.json``). The orchestrator BuildConfig template
-will set its resource request.
-
-Instead of a ``platform`` parameter specifying a single platform it
-will take a ``platforms`` parameter, which is a list of platforms to
-create worker builds for. The ``koji-containerbuild`` plugin for Koji
-will supply this parameter from the list of architectures configured
-for the Koji build tag for the Koji build target the build is for.
-
-This method takes an ``arrangement_version`` parameter to select
-which arrangement of plugins is to be used in the orchestrator and
-worker builds.
-
-This method can only be used for cluster definitions that specify they
-can orchestrate (see :ref:_`Can Orchestrate`).
-
 create_worker_build
 ~~~~~~~~~~~~~~~~~~~
 
-This will have required parameters:
-
-platform
-  the platform to build for
-
-release
-  the value to use for the release label
-
-as well as the optional parameters:
+This existing API method will gain an additional optional parameter:
 
 filesystem_koji_task_id
   Koji Task ID of image-build task
 
-arrangement_version
-  to select which arrangement of plugins is to be used in the orchestrator and
-  worker builds
-
-It will use different templates to create the BuildConfig
-(``worker.json`` and ``worker_inner.json``). The worker BuildConfig
-template will not set its resource request and will use the default
-supplied by the worker cluster.
-
-create_prod_build
-~~~~~~~~~~~~~~~~~
-
-This existing API method will gain an optional ``platform`` parameter
-(the platform to build for) and will remain in place for compatibility
-but can be removed once all site OSBS implementations are using
-orchestration.
+This will be supplied as a "from_task_id" argument to the
+add_filesystem plugin in the worker build.
 
 Anatomy of an orchestrator build
 --------------------------------
@@ -660,9 +576,6 @@ ATOMIC_REACTOR_PLUGINS environment variable for an orchestrator build.
         }
       },
       {
-        "name": "pulp_pull"
-      },
-      {
         "name": "koji_promote",
         "args": {
           "kojihub": ...,
@@ -688,12 +601,6 @@ ATOMIC_REACTOR_PLUGINS environment variable for an orchestrator build.
     ]
   }
 
-reactor_config
-~~~~~~~~~~~~~~
-
-This plugin parses the atomic-reactor config and makes it available to
-other plugins.
-
 add_filesystem
 ~~~~~~~~~~~~~~
 
@@ -713,8 +620,9 @@ may need them when processing the ``release`` label.
 orchestrate_build
 ~~~~~~~~~~~~~~~~~
 
-This plugin provides the core functionality of the orchestrator
-build. It provides the following functionality:
+This existing buildstep plugin provides the core functionality of the
+orchestrator build, but will need some changes for multi-platform
+builds.
 
 1. Look for a git repository file (``container.yaml``) and apply the
    ``platforms.only`` and ``platforms.not`` keys in it to its
@@ -730,6 +638,11 @@ build. It provides the following functionality:
 5. Once all worker builds complete, fetch their logs and -- for those
    that succeeded -- their annotations to discover their image
    manifest digests
+
+Regarding logs from the worker builds, see :ref:`Koji task logs`. The
+orchestrator build will not stream logs from the worker builds and
+will instead only emit URLs to allow clients to stream those logs
+themselves.
 
 The return value of the plugin will be a dictionary of platform name
 to BuildResult object.
@@ -1101,6 +1014,8 @@ Note that only tags are included here as these are for convenience for
 image owners. Manifest digests are included in the `Koji build`_, not
 the Koji task.
 
+.. _`Koji task logs`:
+
 Koji task logs
 ''''''''''''''
 
@@ -1108,19 +1023,12 @@ The Koji build will have separate log files for each worker build, as
 well as the orchestrator build's own log file. This is arranged
 between the orchestrate_build plugin and the koji_promote plugin.
 
-For the Koji task, however, it is also desirable to have separate logs
-for each worker build (so that build submitters can watch each worker
-build separately), but the orchestrator build is only able to stream a
-single log file.
+The logs from the orchestrator build will include output from the
+orchestrate_build plugin indicating URLs for the worker builds from
+which logs may be streamed.
 
-The solution is for the orchestrate_build plugin to emit
-specially-formatted logs, tagged with the platform for which the
-worker build is being performed, and for osbs-client to understand how
-to separate these tagged log lines from the rest of the log output.
-
-This is similar to the way the orchestrate_build plugin gathers image
-component information from the worker builds (see
-`all_rpm_packages`_).
+It is up to the koji-containerbuild plugin to stream logs from those
+URLs into separate output files for the Koji task.
 
 Koji build
 ~~~~~~~~~~

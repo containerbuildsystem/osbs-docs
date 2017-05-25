@@ -87,6 +87,8 @@ Creating a build JSON
 Writing a Dockerfile
 --------------------
 
+.. _`build process`:
+
 Understanding the Build Process
 -------------------------------
 
