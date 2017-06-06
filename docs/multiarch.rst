@@ -135,7 +135,7 @@ builds, atomic-reactor will execute these steps as plugins:
 Metadata Fragment Storage
 -------------------------
 
-When creating a Koji Build, the `koji_promote`_ plugin needs to
+When creating a Koji Build, the `koji_import`_ plugin needs to
 assemble Koji Build Metadata, including:
 
 - components installed in each builder image (worker builds and
@@ -423,7 +423,7 @@ include::
   # All scratch builds have distribution-scope=private
   distribution_scope = private
 
-  # This causes koji_promote not to be configured, and for the low
+  # This causes koji output not to be configured, and for the low
   # priority node selector to be used.
   scratch = true
 
@@ -580,7 +580,7 @@ ATOMIC_REACTOR_PLUGINS environment variable for an orchestrator build.
         }
       },
       {
-        "name": "koji_promote",
+        "name": "koji_import",
         "args": {
           "kojihub": ...,
           ...
@@ -656,7 +656,7 @@ fetch_worker_metadata
 
 The new post-build plugin fetches metadata fragments from each worker
 build (see `Metadata Fragment Storage`_) and makes it available to the
-`compare_rpm_packages`_ and `koji_promote`_ plugins.
+`compare_rpm_packages`_ and `koji_import`_ plugins.
 
 compare_rpm_packages
 ~~~~~~~~~~~~~~~~~~~~
@@ -685,12 +685,12 @@ This new exit plugin is for publishing content in the Pulp repository.
 However, if any worker build failed, or the build was cancelled, this
 plugin should instead remove the "v1" images from the Pulp repository.
 
-koji_promote
+koji_import
 ~~~~~~~~~~~~
 
-No longer responsible for uploading the image tar archives (see
-`koji_upload`_), this exit plugin creates a Koji build when the images
-all built successfully.
+This new exit plugin replaces koji_promote. No longer responsible for
+uploading the image tar archives (see `koji_upload`_), this plugin
+creates a Koji build when the images all built successfully.
 
 To do this it gathers the platform-specific metadata fragments created
 by each worker build (see `koji_upload`_) and combines them. In
@@ -710,7 +710,7 @@ koji_tag
 ~~~~~~~~
 
 As previously, this plugin tags the Koji build created by the
-"koji_promote" plugin.
+"koji_promote" or "koji_import" plugins.
 
 remove_worker_metadata
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -1055,7 +1055,8 @@ Koji task logs
 
 The Koji build will have separate log files for each worker build, as
 well as the orchestrator build's own log file. This is arranged
-between the orchestrate_build plugin and the koji_promote plugin.
+between the orchestrate_build plugin and the koji_promote/koji_import
+plugin.
 
 The logs from the orchestrator build will include output from the
 orchestrate_build plugin indicating URLs for the worker builds from
