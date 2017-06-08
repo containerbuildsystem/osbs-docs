@@ -1089,6 +1089,18 @@ Koji builds will have entries in the output list as follows:
 The build metadata (build.extra.image) will have an additional key to
 hold a pull-by-digest specification for the manifest list.
 
+index
+    information about the manifest list holding the images. This is a
+    map with the following keys:
+
+    pull
+        list of pull specifications (as strings); one must include a
+        tag, one may include a digest
+
+    tags
+        list of tags that were updated to point to this manifest list,
+        one of which must be the one used in "pull"
+
 Example::
 
   # This section is metadata for the build as a whole
