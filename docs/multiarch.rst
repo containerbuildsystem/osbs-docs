@@ -151,16 +151,20 @@ images, and built images. They then need to pass this data to the
 orchestrator build. After creating the Koji Build, the orchestrator
 build must then free any resources used in passing the data.
 
-This data will be stored in an OpenShift object (perhaps a Secret or
-ConfigMap) in the worker cluster, and its name will be stored in the
+This data will be stored in OpenShift ConfigMap object in the worker
+cluster using `create_config_map`_, and its name will be stored in the
 OpenShift Build annotations for the worker build. To do this the
 worker cluster's "builder" service account will need to be granted
-permission to create objects of the appropriate type.
+permission to create ConfigMap objects.
 
-The orchestrator build would then be responsible for removing the
-OpenShift object from the worker cluster. To do this, the worker
-cluster's "orchestrator" service account will need to be granted
-permission to get and delete objects of the appropriate type.
+The orchestrator build will collect the metadata fragment using
+`get_config_map`_ when assembling the fragments together with the
+platform-neutral metadata in `koji_import`_.
+
+The orchestrator build is then responsible for removing the OpenShift
+ConfigMap from the worker cluster using `delete_config_map`_. To do
+this, the worker cluster's "orchestrator" service account will need to
+be granted permission to get and delete ConfigMap objects.
 
 Submitting builds
 -----------------
@@ -496,6 +500,56 @@ filesystem_koji_task_id
 This will be supplied as a "from_task_id" argument to the
 add_filesystem plugin in the worker build.
 
+create_config_map
+~~~~~~~~~~~~~~~~~
+
+This new API method will be used by a worker build to create a
+ConfigMap object in which the metadata fragment for the image build
+will be stored. It takes two parameters:
+
+name
+  This string is the name of the ConfigMap object to create
+
+data
+  This is a dict whose keys and values should be stored in the
+  ConfigMap. For `Metadata Fragment Storage`_ it is expected that the
+  value will be a JSON string.
+
+get_config_map
+~~~~~~~~~~~~~~
+
+This new API method will be used by `fetch_worker_metadata`_. It takes
+a single parameter.
+
+name
+  This string is the name of the ConfigMap object to retrieve
+
+It should return a ConfigMapResponse object (this is a new object
+similar to e.g. PodResponse) which allows access to keys and values
+within the ConfigMap.
+
+delete_config_map
+~~~~~~~~~~~~~~~~~
+
+This new API method will be used by the orchestrator build to remove
+ConfigMap objects created by the worker builds. It takes a single
+parameter.
+
+name
+  This string is the name of the ConfigMap object to delete
+
+ConfigMapResponse
+~~~~~~~~~~~~~~~~~
+
+This object is similar to e.g. PodResponse, but encapsulates the
+response to a a request to get a ConfigMap. It should provide access
+to keys and values using a method such as:
+
+get_items
+  This method takes no parameters and returns a dict whose keys are
+  the keys within the ConfigMap, and whose values are the
+  corresponding values for those ConfigMap keys.
+
 Anatomy of an orchestrator build
 --------------------------------
 
@@ -655,8 +709,13 @@ fetch_worker_metadata
 ---------------------
 
 The new post-build plugin fetches metadata fragments from each worker
-build (see `Metadata Fragment Storage`_) and makes it available to the
-`compare_rpm_packages`_ and `koji_import`_ plugins.
+build using `get_config_map`_ (see `Metadata Fragment Storage`_) and
+makes it available to the `compare_rpm_packages`_ and `koji_import`_
+plugins.
+
+It makes the metadata available by returning it from its run method in
+the form of a dict, with each key being a platform name and each value
+being the metadata fragment as a dict object.
 
 compare_rpm_packages
 ~~~~~~~~~~~~~~~~~~~~
@@ -963,23 +1022,120 @@ This new post-build plugin uploads the image tar archive to Koji but
 does not create a Koji build.
 
 Additionally, it creates the platform-specific parts of the Koji build
-metadata (see `Koji build`_) and places them in temporary storage (see
-`Metadata Fragment Storage`_).
+metadata (see `Koji build`_) and places them in temporary storage
+using `create_config_map`_ (see `Metadata Fragment
+Storage`_). Finally, it sets an annotation on its OpenShift Build
+object indicating the name of the ConfigMap object.
+
+The name it should choose for the ConfigMap object is its own
+OpenShift Build name with the string "-md" concatenated onto it.
 
 The metadata fragment will take the form of a JSON file::
 
   {
+    "metadata_version": 0,
     "buildroots": [
       {
-        ... single entry ...
+        "id": 1,
+        "host": {
+          "os": "Fedora 25",
+          "arch": "x86_64"
+        },
+        "content_generator": {
+          "name": "atomic-reactor",
+          "version": "..."
+        },
+        "container": {
+          "type": "docker",
+          "arch": "x86_64"
+        },
+        "tools": [ ... ],
+        "components": [
+          {
+            "name": "glibc",
+            "version": "...",
+            "release": "...",
+            "epoch": "...",
+            "arch": "...",
+            "sigmd5": "...",
+            "signature": "..."
+          },
+          {
+            "name": "python",
+            ...
+          },,
+          {
+            "name": "atomic-reactor",
+            ...
+          },
+          ...
+        ]
       }
     ],
     "output": [
       {
-        ... single entry ...
+        "buildroot_id": 1,
+        "type": "docker-image",
+        "arch": "x86_64",
+        "filename": "docker-...-x86_64.tar.xz",
+        "filesize": ...,
+        "checksum_type": "md5",
+        "checksum": ...,
+        "extra": {
+          "docker": {
+            "id": "... (the image ID) ...",
+            "parent_id": "... (the parent image's ID) ...",
+            "repositories": [
+              "some-registry/some-repository:tag",
+              "some-registry/some-repository@sha256:(digest)"
+            ]
+          }
+        },
+        "components": [
+          {
+            "name": "glibc",
+            "version": "...",
+            "release": "...",
+            "epoch": "...",
+            "arch": "...",
+            "sigmd5": "...",
+            "signature": "..."
+          },
+          ...
+        ]
       }
     ]
   }
+
+metadata_version
+  this is an integer corresponding to the metadata version this is a
+  fragment of, i.e. 0
+
+buildroots
+  This is a list with a single item, a map. Of interest in that map:
+
+  id
+    This can be any value as long as it matches that used in the
+    output map (see below). When koji_import combines metadata
+    fragments together it will change the buildroot_id values in each
+    fragment so that they outputs and buildroots match but have
+    different values.
+
+  components
+    This is a list of RPMs available within the worker build's own
+    container, and is assembled by querying the RPM database
+
+output
+  This is a list with a single item, a map. Of interest in that map:
+
+  buildroot_id
+    This must match the id used for the buildroots entry
+
+  components
+    This is a list of RPMs available within the built image, and is
+    assembled by running an RPM database query within a container from
+    that image (this is performed by the "all_rpm_packages" plugin,
+    which runs before koji_upload)
 
 store_metadata_in_osv3
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -999,13 +1155,21 @@ Storage`_ a new annotation will be added::
       ...
     annotations:
       ...
-      metadata_fragment: "secret/koji-metadata-7e4aab0"
+      metadata_fragment: "configmap/build-name-7e4aab0-md"
+      metadata_fragment_key: "metadata.json"
 
 metadata_fragment
 ~~~~~~~~~~~~~~~~~
 
 This annotation has a string value which is the kind and name of the
 OpenShift object in which the metadata fragment is stored.
+
+metadata_fragment_key
+~~~~~~~~~~~~~~~~~~~~~
+
+This is the key within the OpenShift object; as we are using ConfigMap
+objects for this, it is the ConfigMap key whose value is the metadata
+fragment (as a JSON string).
 
 Koji metadata
 -------------
