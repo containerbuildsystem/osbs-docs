@@ -706,7 +706,7 @@ The return value of the plugin will be a dictionary of platform name
 to BuildResult object.
 
 fetch_worker_metadata
----------------------
+~~~~~~~~~~~~~~~~~~~~~
 
 The new post-build plugin fetches metadata fragments from each worker
 build using `get_config_map`_ (see `Metadata Fragment Storage`_) and
