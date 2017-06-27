@@ -60,10 +60,6 @@ Steps performed in the orchestrator build are:
   build is cancelled, worker builds will be cancelled. See `Worker
   build`_ for more details about how these builds behave.
 
-- Collect package content from all builds and compare to ensure common
-  components are exactly matching (for RPMs: version-release and
-  keys used for signatures)
-
 - Create a manifest list in the container registry, holding image
   manifest digests from all the worker builds
 
@@ -782,9 +778,6 @@ ATOMIC_REACTOR_PLUGINS environment variable for an orchestrator build.
         "name": "fetch_worker_metadata"
       },
       {
-        "name": "compare_rpm_packages"
-      },
-      {
         "name": "group_manifests",
         "args": {
           "registries": ...
@@ -876,20 +869,7 @@ fetch_worker_metadata
 
 The new post-build plugin fetches metadata fragments from each worker
 build using `get_config_map`_ (see `Metadata Fragment Storage`_) and
-makes it available to the `compare_rpm_packages`_ and `koji_import`_
-plugins.
-
-It makes the metadata available by returning it from its run method in
-the form of a dict, with each key being a platform name and each value
-being the metadata fragment as a dict object.
-
-compare_rpm_packages
-~~~~~~~~~~~~~~~~~~~~
-
-This new post-build plugin analyses metadata fragments from each
-worker build (see `Metadata Fragment Storage`_) to find out the RPM
-components installed in each image (name-version-release, and RPM
-signatures), and will fail if there are any mismatches.
+makes it available to the `koji_import`_ plugin.
 
 group_manifests
 ~~~~~~~~~~~~~~~
