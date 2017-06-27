@@ -324,6 +324,150 @@ platforms will continue. Once all have either succeeded or failed, the
 orchestrator build will fail. No content will be available from the
 registry.
 
+.. _`Logging`:
+
+Logging
+-------
+
+Logs from worker builds will be made available via the orchestrator
+build, and clients (including koji-containerbuild) will be able to
+separate individual worker build logs out from that log stream using
+a new osbs-client API method.
+
+Multiplexing
+~~~~~~~~~~~~
+
+In order to allow the client to de-multiplex logs containing a mixture
+of logs from an orchestrator build and from its worker builds, a new
+logging field, platform, is used. Within atomic-reactor all logging
+should be done through a LoggerAdapter which adds this 'platform'
+keyword to the 'extra' dict passed into logging calls. These objects
+should come from a factory function::
+
+  def get_logger(name, platform=None):
+      return logging.LoggerAdapter(logging.getLogger(name),
+                                   {'platform': platform or '-'})
+
+The logging format will include this new field::
+
+  %(asctime)s platform:%(platform)s - %(name)s - %(levelname)s - %(message)s
+
+resulting in log output like this::
+
+  2017-06-23 17:18:41,791 platform:- - atomic_reactor.foo - DEBUG - this is from the orchestrator build
+  2017-06-23 17:18:41,791 platform:x86_64 - atomic_reactor.foo - INFO - 2017-06-23 17:18:41,400 platform:- atomic_reactor.foo -  DEBUG - this is from a worker build
+  2017-06-23 17:18:41,791 platform:x86_64 - atomic_reactor.foo - INFO - continuation line
+
+Demultiplexing will be possible using a new osbs-client API method,
+get_orchestrator_build_logs(). This method is a generator function
+that returns objects with these attributes:
+
+platform
+  str, platform name if worker build, else None
+
+line
+  str, log line (Unicode)
+
+See the example below for what this would look like for these sample
+log lines.
+
+In order to do this it should find the third space-separated field
+from the log line. Since the asctime value contains a space between
+the date and time, the third field is for the platform.
+
+If the platform field does not start "platform:", then this is a log
+line from the orchestrator build which has (mistakenly) not been
+logged using the adapter.
+
+If the platform field matches "platform:-", then this is a log line
+from the orchestrator build.
+
+Otherwise, the platform name can be found by removing the "platform:"
+prefix.
+
+For orchestrator build logs, the line is returned as-is.
+
+For worker build logs, the wrapping orchestrator log fields
+('timestamp', 'platform', 'name', and 'levelname' fields) are dropped
+leaving only the worker log line (the 'message' field).
+
+This message field is then parsed as log fields. If the third field of
+the worker build log line matches "platform:-" it is removed;
+otherwise the line is left alone.
+
+See the example below to see this illustrated.
+
+Encoding issues
+~~~~~~~~~~~~~~~
+
+When retrieving logs from containers, the text encoding used is only
+known to the container. It may be based on environment variables
+within that container; it may be hard-coded; it may be influenced by
+some other factor. For this reason, container logs are treated as byte
+streams.
+
+This applies to:
+
+- containers used to construct the built image
+- the builder image running atomic-reactor for a worker build
+- the builder image running atomic-reactor for an orchestrator build
+
+When retrieving logs from a build, OpenShift cannot say which encoding
+was used. However, atomic-reactor can define its own output encoding
+to be UTF-8. By doing this, all its log output will be in a known
+encoding, allowing osbs-client to decode it. To do this it should call
+locale.setlocale(locale.LC_ALL, "") and the Dockerfile used to
+create the builder image must set an appropriate environment
+variable::
+
+  ENV LC_ALL=en_US.UTF-8
+
+In this way, the osbs-client get_build_logs() method will once again
+be able to return an iterable of decoded strings, rather than of a
+bytes type. It should gain a new keyword parameter 'decode' with
+default value False. When decode=True is supplied, older osbs-client
+versions will fail with TypeError and the caller must inspect the type
+of the returned objects.
+
+Orchestrator builds want to retrieve logs from worker builds, then
+relay them via logging. By knowing that the builder image for the
+worker is the same as the builder image for the orchestrator, we also
+know the encoding for those logs to be UTF-8.
+
+One final issue is that the build logs from the Docker Python API must
+be in a known encoding. Previously this API returned a byte stream
+containing JSON objects describing the logs. However, by supplying
+"decode=True" to the Docker Python API's 'build' method, we can get
+a generator of decoded dicts as its return value. (The Docker Python
+API assumes UTF-8, but uses a 'replace' errors handler.)
+
+Example
+~~~~~~~
+
+Here is an example Python session demonstrating this interface::
+
+  >>> server = OSBS(...)
+  >>> logs = server.get_orchestrator_build_logs(...)
+  >>> [(item.platform, item.line) for item in logs]
+  [(None, '2017-06-23 17:18:41,791 platform:- - atomic_reactor.foo - DEBUG - this is from the orchestrator build'),
+   ('x86_64', '2017-06-23 17:18:41,400 atomic_reactor.foo - DEBUG - this is from a worker build'),
+   ('x86_64', 'continuation line')]
+
+Note:
+
+- the lines are string objects (Unicode), not bytes objects
+
+- the orchestrator build's logging fields have been removed from the
+  worker build log line
+
+- the "outer" orchestrator log fields have been removed from the
+  worker build log line, and the "platform:-" field has also been
+  removed from the worker build's log line
+
+- where the worker build log line had no timestamp (perhaps the log
+  line had an embedded newline, or was logged outside the adapter
+  using a different format), the line was left alone
+
 Git Configuration
 -----------------
 
@@ -488,6 +632,31 @@ labels (prod-mixed), and another which only accepts x86_64 builds
 
 Client API changes
 ------------------
+
+get_orchestrator_build_logs
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This new API method will take the following parameters:
+
+build_id (str)
+  name of the orchestrator build
+
+follow (bool, defaults to False)
+  whether to return a generator
+
+wait_if_missing (bool, defaults to False)
+  whether to wait for the build to exist first
+
+It will call get_build_logs(decode=True) and yield a named tuple with fields
+'platform' and 'line'.
+
+platform (str)
+  platform name if worker build, else None
+
+line (str)
+  log line
+
+See `Logging`_ for more details.
 
 create_worker_build
 ~~~~~~~~~~~~~~~~~~~
@@ -691,16 +860,13 @@ builds.
 3. Create a build on each selected cluster by using the
    ``create_worker_build`` osbs-client API method, providing
    "platform", and "release" parameters
-4. Monitor each created build. If any worker build fails, the
+4. Monitor each created build, relaying streamed logs from
+   get_build_logs(decode=True). If any worker build fails, the
    orchestrator build should also fail (once all builds complete).
-5. Once all worker builds complete, fetch their logs and -- for those
-   that succeeded -- their annotations to discover their image
-   manifest digests
+5. Once all worker builds complete, for those that succeed fetch their
+   annotations to discover their image manifest digests
 
-Regarding logs from the worker builds, see :ref:`Koji task logs`. The
-orchestrator build will not stream logs from the worker builds and
-will instead only emit URLs to allow clients to stream those logs
-themselves.
+Regarding relaying worker build logs see :ref:`Logging`.
 
 The return value of the plugin will be a dictionary of platform name
 to BuildResult object.
@@ -1229,6 +1395,15 @@ which logs may be streamed.
 It is up to the koji-containerbuild plugin to stream logs from those
 URLs into separate output files for the Koji task.
 
+In detail:
+
+orchestrator.log
+  Logs streamed from the orchestrator OpenShift build
+
+_platform_.log
+  Logs from the worker OpenShift build for the _platform_, obtained by
+  demultiplexing the streamed orchestrator build logs
+
 Koji build
 ~~~~~~~~~~
 
@@ -1245,10 +1420,15 @@ Koji builds will have entries in the output list as follows:
   * the buildroot ID for the builder image used for this worker build
 
 - One "log" entry for each platform an image was built for, including
-  an "arch" field
+  an "arch" field, with name _platform_.log -- the content of this
+  file comes from having streamed the logs from the worker build,
+  i.e. no additional log fetch is required
 
 - One additional "log" entry for the logging output from the
-  orchestrator build
+  orchestrator build, with name orchestrator.log (*Note* this is a
+  change from the existing name openshift-final.log) -- the content of
+  this file comes from filtering the result of
+  get_orchestrator_build_logs() from the orchestrator build.
 
 The build metadata (build.extra.image) will have an additional key to
 hold a pull-by-digest specification for the manifest list.
