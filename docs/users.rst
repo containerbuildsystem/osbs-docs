@@ -149,6 +149,8 @@ Steps performed by the orchestrator build are:
 - Supply a value for the "release" label if it is missing and Koji
   integration is enabled (this value is provided to the worker build)
 
+- Apply labels supplied via build request parameter to the Dockerfile
+
 - Parse server-side configuration for atomic-reactor in order to know
   which worker clusters may be considered
 

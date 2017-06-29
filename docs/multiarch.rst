@@ -755,6 +755,22 @@ ATOMIC_REACTOR_PLUGINS environment variable for an orchestrator build.
         }
       },
       {
+        "name": "inspect_parent",
+      },
+      {
+        "name": "bump_release"
+      },
+      {
+        "name": "add_labels_in_dockerfile",
+        "args": {
+          "labels": {
+            "vendor": "...",
+            "authoritative-source-url": "...",
+            "distribution-scope": "...",
+          }
+        }
+      },
+      {
         "name": "add_filesystem",
         "args": {
           "koji_hub": "...",
@@ -764,12 +780,6 @@ ATOMIC_REACTOR_PLUGINS environment variable for an orchestrator build.
             "ppc64le"
           ]
         }
-      },
-      {
-        "name": "inspect_parent",
-      },
-      {
-        "name": "bump_release"
       }
     ],
     "buildstep_plugins": [
@@ -828,6 +838,14 @@ ATOMIC_REACTOR_PLUGINS environment variable for an orchestrator build.
       }
     ]
   }
+
+add_labels_in_dockerfile
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+This existing plugin runs prior to add_filesystem in order to
+correctly handle the case where a Dockerfile has no release label and
+an orchestrator build has been created using a 'release' parameter to
+set the value.
 
 add_filesystem
 ~~~~~~~~~~~~~~
