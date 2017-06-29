@@ -224,3 +224,19 @@ as plugins:
 
   * If Pulp integration is enabled, delete the image from the
     container registry
+
+Arrangement version 2 (orchestrator creates filesystem)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This arrangement is identical to version 1 except that the
+add_filesystem plugin runs in the orchestrator build as well. This is
+to create a single Koji "`image-build`_" task to create filesystems for
+all required architectures.
+
+.. _`image-build`: https://docs.pagure.org/koji/image_build/
+
+In the worker build, the add_filesystem still runs but does not create
+a Koji task. Instead the orchestrator build tells it which Koji task
+ID to stream the filesystem tar archive from. Each worker build only
+streams the filesystem tar archive for the architecture it is running
+on.
