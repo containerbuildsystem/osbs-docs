@@ -341,8 +341,8 @@ Multiplexing
 In order to allow the client to de-multiplex logs containing a mixture
 of logs from an orchestrator build and from its worker builds, a new
 logging field, platform, is used. Within atomic-reactor all logging
-should be done through a LoggerAdapter which adds this 'platform'
-keyword to the 'extra' dict passed into logging calls. These objects
+should be done through a LoggerAdapter which adds this ``platform``
+keyword to the ``extra`` dict passed into logging calls. These objects
 should come from a factory function::
 
   def get_logger(name, platform=None):
@@ -360,7 +360,7 @@ resulting in log output like this::
   2017-06-23 17:18:41,791 platform:x86_64 - atomic_reactor.foo - INFO - continuation line
 
 Demultiplexing will be possible using a new osbs-client API method,
-get_orchestrator_build_logs(). This method is a generator function
+`get_orchestrator_build_logs`_. This method is a generator function
 that returns objects with these attributes:
 
 platform
@@ -376,15 +376,15 @@ In order to do this it should find the third space-separated field
 from the log line. Since the asctime value contains a space between
 the date and time, the third field is for the platform.
 
-If the platform field does not start "platform:", then this is a log
+If the platform field does not start ``platform:``, then this is a log
 line from the orchestrator build which has (mistakenly) not been
 logged using the adapter.
 
-If the platform field matches "platform:-", then this is a log line
+If the platform field matches ``platform:-``, then this is a log line
 from the orchestrator build.
 
-Otherwise, the platform name can be found by removing the "platform:"
-prefix.
+Otherwise, the platform name can be found by removing the
+``platform:`` prefix.
 
 For orchestrator build logs, the line is returned as-is.
 
@@ -393,7 +393,7 @@ For worker build logs, the wrapping orchestrator log fields
 leaving only the worker log line (the 'message' field).
 
 This message field is then parsed as log fields. If the third field of
-the worker build log line matches "platform:-" it is removed;
+the worker build log line matches ``platform:-`` it is removed;
 otherwise the line is left alone.
 
 See the example below to see this illustrated.
@@ -417,18 +417,18 @@ When retrieving logs from a build, OpenShift cannot say which encoding
 was used. However, atomic-reactor can define its own output encoding
 to be UTF-8. By doing this, all its log output will be in a known
 encoding, allowing osbs-client to decode it. To do this it should call
-locale.setlocale(locale.LC_ALL, "") and the Dockerfile used to
+``locale.setlocale(locale.LC_ALL, "")`` and the Dockerfile used to
 create the builder image must set an appropriate environment
 variable::
 
   ENV LC_ALL=en_US.UTF-8
 
-In this way, the osbs-client get_build_logs() method will once again
+In this way, the osbs-client ``get_build_logs`` method will once again
 be able to return an iterable of decoded strings, rather than of a
-bytes type. It should gain a new keyword parameter 'decode' with
-default value False. When decode=True is supplied, older osbs-client
-versions will fail with TypeError and the caller must inspect the type
-of the returned objects.
+bytes type. It should gain a new keyword parameter ``decode`` with
+default value False. When ``decode=True`` is supplied, older
+osbs-client versions will fail with TypeError and the caller must
+inspect the type of the returned objects.
 
 Orchestrator builds want to retrieve logs from worker builds, then
 relay them via logging. By knowing that the builder image for the
@@ -438,7 +438,7 @@ know the encoding for those logs to be UTF-8.
 One final issue is that the build logs from the Docker Python API must
 be in a known encoding. Previously this API returned a byte stream
 containing JSON objects describing the logs. However, by supplying
-"decode=True" to the Docker Python API's 'build' method, we can get
+``decode=True`` to the Docker Python API's ``build`` method, we can get
 a generator of decoded dicts as its return value. (The Docker Python
 API assumes UTF-8, but uses a 'replace' errors handler.)
 
@@ -462,7 +462,7 @@ Note:
   worker build log line
 
 - the "outer" orchestrator log fields have been removed from the
-  worker build log line, and the "platform:-" field has also been
+  worker build log line, and the ``platform:-`` field has also been
   removed from the worker build's log line
 
 - where the worker build log line had no timestamp (perhaps the log
@@ -643,13 +643,13 @@ build_id (str)
   name of the orchestrator build
 
 follow (bool, defaults to False)
-  whether to return a generator
+  whether to stream logs
 
 wait_if_missing (bool, defaults to False)
   whether to wait for the build to exist first
 
-It will call get_build_logs(decode=True) and yield a named tuple with fields
-'platform' and 'line'.
+It will call ``get_build_logs(decode=True)`` and **yield** a named
+tuple with fields 'platform' and 'line'.
 
 platform (str)
   platform name if worker build, else None
@@ -1419,8 +1419,8 @@ In detail:
 orchestrator.log
   Logs streamed from the orchestrator OpenShift build
 
-_platform_.log
-  Logs from the worker OpenShift build for the _platform_, obtained by
+*platform*.log
+  Logs from the worker OpenShift build for the *platform*, obtained by
   demultiplexing the streamed orchestrator build logs
 
 Koji build
@@ -1438,8 +1438,8 @@ Koji builds will have entries in the output list as follows:
 
   * the buildroot ID for the builder image used for this worker build
 
-- One "log" entry for each platform an image was built for, including
-  an "arch" field, with name _platform_.log -- the content of this
+- One "log" entry for each *platform* an image was built for, including
+  an "arch" field, with name *platform*.log -- the content of this
   file comes from having streamed the logs from the worker build,
   i.e. no additional log fetch is required
 
