@@ -662,13 +662,18 @@ See `Logging`_ for more details.
 create_worker_build
 ~~~~~~~~~~~~~~~~~~~
 
-This existing API method will gain an additional optional parameter:
+This existing API method will gain additional optional parameters:
 
 filesystem_koji_task_id
-  Koji Task ID of image-build task
+  Koji Task ID of image-build task. This will be supplied as a
+  "from_task_id" argument to the add_filesystem plugin in the worker
+  build.
 
-This will be supplied as a "from_task_id" argument to the
-add_filesystem plugin in the worker build.
+koji_upload_dir
+  Relative path to use when uploading files to Koji. This will be
+  supplied as a "koji_upload_dir" argument to the koji_upload plugin
+  in the worker build.
+
 
 create_config_map
 ~~~~~~~~~~~~~~~~~
@@ -878,7 +883,7 @@ builds.
    how this is performed)
 3. Create a build on each selected cluster by using the
    ``create_worker_build`` osbs-client API method, providing
-   "platform", and "release" parameters
+   "platform", "release", and "koji_upload_dir" parameters
 4. Monitor each created build, relaying streamed logs from
    get_build_logs(decode=True). If any worker build fails, the
    orchestrator build should also fail (once all builds complete).
@@ -1170,7 +1175,8 @@ for a worker build::
         "name": "koji_upload",
         "args": {
           "kojihub": "...",
-          "upload_pathname": "..."
+          "upload_pathname": "...",
+          "koji_upload_dir": "koji-upload/abc123",
           ...
         }
       }
@@ -1333,7 +1339,7 @@ Annotations/labels on worker build
 
 The worker build annotations remain largely unchanged for
 multi-platform builds. However, to support `Metadata Fragment
-Storage`_ a new annotation will be added::
+Storage`_, new annotations will be added::
 
   metadata:
     labels:
