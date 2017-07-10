@@ -877,6 +877,9 @@ ATOMIC_REACTOR_PLUGINS environment variable for an orchestrator build.
       {
         "name": "group_manifests",
         "args": {
+          "goarch": {
+            "x86_64": "amd64"
+          },
           "registries": ...
         }
       },
@@ -1055,6 +1058,27 @@ group
   lists, only tag the image manifest created by the worker build whose
   platform has GOARCH amd64. This option is only expected to be used
   during development.
+
+It takes an optional parameter ``goarch`` which is a dict of
+architecture names in the format used by the golang GOARCH variable,
+indexed by platform name. It is optional (and if provided may not
+provide GOARCH values for all platforms) because in the absence of a
+GOARCH value for a given platform name, it will be assumed that the
+platform name is already a valid GOARCH value.
+
+Typically, a platform name might be "x86_64", whereas the
+corresponding GOARCH value would be "amd64".
+
+It needs to construct platform identifiers for each image manifest
+digest. It uses these values:
+
+os
+  "linux"
+
+architecture
+  look up the platform name in the ``goarch`` dict passed as a
+  parameter for the plugin and use the resulting value if found,
+  otherwise use the platform name
 
 The plugin's return value will include the manifest digest for the
 created object.
