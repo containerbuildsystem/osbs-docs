@@ -935,7 +935,7 @@ However, if any worker build failed, or the build was cancelled, this
 plugin should instead remove the "v1" images from the Pulp repository.
 
 koji_import
-~~~~~~~~~~~~
+~~~~~~~~~~~
 
 This new exit plugin replaces koji_promote. No longer responsible for
 uploading the image tar archives (see `koji_upload`_), this plugin
@@ -955,8 +955,20 @@ included in the build metadata as log outputs.
 
 Finally the Koji API will be used to import the Koji Build.
 
-koji_tag
-~~~~~~~~
+delete_from_registry
+~~~~~~~~~~~~~~~~~~~~
+
+This existing exit plugin is no longer run in the worker
+build. Instead it runs in the orchestrator build and deletes:
+
+- the images pushed to the registry by worker builds, using the image
+  manifest digests from their annotations
+
+- the manifest list created in the registry by the `group_manifests`_
+  plugin
+
+koji_tag_build
+~~~~~~~~~~~~~~
 
 As previously, this plugin tags the Koji build created by the
 "koji_promote" or "koji_import" plugins.
