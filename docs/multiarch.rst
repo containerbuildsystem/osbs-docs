@@ -1360,6 +1360,7 @@ Storage`_, new annotations will be added::
       ...
       metadata_fragment: "configmap/build-name-7e4aab0-md"
       metadata_fragment_key: "metadata.json"
+      help: "nil"
 
 metadata_fragment
 ~~~~~~~~~~~~~~~~~
@@ -1373,6 +1374,22 @@ metadata_fragment_key
 This is the key within the OpenShift object; as we are using ConfigMap
 objects for this, it is the ConfigMap key whose value is the metadata
 fragment (as a JSON string).
+
+help
+~~~~
+
+This value, a JSON string, will indicate the result of the add_help
+plugin. It is exactly analagous to the build.extra.image.help key for
+the Koji Content Generator Metadata.
+
+If the plugin did not run, the annotation will not be present.
+
+If the plugin ran and found a source help file, the annotation will be
+set to a JSON string representing the string value of the path to the
+help file (e.g. ``"\"/path/to/file\""``).
+
+If the plugin ran and found no source help file, the annotation will
+be set to a JSON string representing a nil value (i.e. ``nil``).
 
 Koji metadata
 -------------
