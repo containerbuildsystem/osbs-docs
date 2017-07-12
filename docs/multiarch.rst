@@ -239,7 +239,7 @@ This set of platforms can be reduced in various ways:
     build target, in the same way as for building RPM packages
 
   * the ``container.yaml`` configuration file's ``platforms.only`` key
-    can further restrict this set of platforms (via set union)
+    can further restrict this set of platforms (via set intersection)
 
 - Excluding platforms:
 
@@ -492,7 +492,7 @@ Keys in this map relate to multi-platform builds.
 only
   list of platform names (or a single platform name as a string); this
   will be combined with the ``platforms`` parameter to the
-  `orchestrate_build`_ plugin using set union
+  `orchestrate_build`_ plugin using set intersection
 
 not
   list of platform names (or a single platform name as a string);
