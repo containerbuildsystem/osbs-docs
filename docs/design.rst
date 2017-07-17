@@ -5,3 +5,4 @@ Designs for future changes
     :maxdepth: 3
 
     multiarch
+    build_priority
