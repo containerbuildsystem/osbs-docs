@@ -61,29 +61,34 @@ In this case, *scratch builds* can be scheduled only on **Node 1**; *explicit
 builds* on any node except **Node 3**; and auto builds on any node except **Node
 2**.
 
-Orchestrator vs Worker Builds
------------------------------
+Worker Builds Node Selectors
+----------------------------
 
-An orchestrator build is the single entry point into OSBS. This build is
-responsible for spinning off worker builds as needed. Given that orchestrator
-builds are prioritized properly with node selectors, worker builds will
-indirectly be prioritized without having to set their own node selectors.
+The build type node selectors are only applied to worker builds. This gives a
+more granular control over available resources. Since worker builds are the ones
+that actually perform the container image building steps, it requires more
+resources than orchestrator builds. For this reason, a deployment is more likely
+to have more nodes available for worker builds than orchestrator builds. This is
+important because the amount of nodes available defines the granularity of how
+builds are spread across the cluster.
 
-However, orchestrator builds require minimal resources to run. For instance, in
-a large deployment all orchestrator builds may run on only 2 dedicated
-orchestrator nodes. If build type node selectors are applied to orchestrator
-builds, builds can only be throttled by a factor of 2. This becomes more
-problematic as more worker nodes are added to the infrastructure. To have better
-granularity for throttling builds, build type node selectors are only applied
-for worker builds.
+For instance, consider a large deployment in which only 2 orchestrator nodes are
+needed.  If build type node selectors are applied to orchestrator builds, builds
+can only be throttled by a factor of 2. In contrast, this same deployment may
+use 20 worker builds, allowing builds to be throttled by a factor of 20.
 
-To fully leverage the build type node selectors, resource requests will allow
-more orchestrator builds than overall worker builds. This causes some
-orchestrator builds to wait longer than usual for their worker builds to be
-scheduled. This provides a buffer that allows OpenShift to properly schedule
-worker builds according to their build type via node selectors. Because
-OpenShift scheduling is used, worker builds of same type will run in the order
-they were submitted.
+Orchestrator Builds Allocation
+------------------------------
+
+Usually in a deployment, the amount of allowed orchestrator builds matches the
+amount of allowed worker builds for any given platform. Additional orchestrator
+builds should be allowed to fully leverage the build type node selectors on
+worker builds since some orchestrator builds will wait longer than usual for
+their worker builds to be scheduled. This provides a buffer that allows
+OpenShift to properly schedule worker builds according to their build type via
+node selectors. Because OpenShift scheduling is used, worker builds of same type
+will run in the order they were submitted.
+
 
 Koji Builder Capacity
 --------------------------
