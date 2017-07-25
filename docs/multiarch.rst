@@ -907,6 +907,8 @@ It makes the metadata available by returning it from its run method in
 the form of a dict, with each key being a platform name and each value
 being the metadata fragment as a dict object.
 
+This plugin will not be run for scratch builds.
+
 compare_rpm_packages
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -914,6 +916,8 @@ This new post-build plugin analyses metadata fragments from each
 worker build (see `Metadata Fragment Storage`_) to find out the RPM
 components installed in each image (name-version-release, and RPM
 signatures), and will fail if there are any mismatches.
+
+This plugin will not be run for scratch builds.
 
 group_manifests
 ~~~~~~~~~~~~~~~
@@ -955,6 +959,8 @@ included in the build metadata as log outputs.
 
 Finally the Koji API will be used to import the Koji Build.
 
+This plugin will not be run for scratch builds.
+
 delete_from_registry
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -973,11 +979,15 @@ koji_tag_build
 As previously, this plugin tags the Koji build created by the
 "koji_promote" or "koji_import" plugins.
 
+This plugin will not be run for scratch builds.
+
 remove_worker_metadata
 ~~~~~~~~~~~~~~~~~~~~~~
 
 This new exit plugin removes metadata fragments created by the worker
 builds (see `Metadata Fragment Storage`_).
+
+This plugin will not be run for scratch builds.
 
 Annotations/labels on orchestrator build
 ----------------------------------------
@@ -1340,6 +1350,8 @@ output
     that image (this is performed by the "all_rpm_packages" plugin,
     which runs before koji_upload)
 
+This plugin will not be run for scratch builds.
+
 store_metadata_in_osv3
 ~~~~~~~~~~~~~~~~~~~~~~
 
@@ -1351,7 +1363,7 @@ Annotations/labels on worker build
 
 The worker build annotations remain largely unchanged for
 multi-platform builds. However, to support `Metadata Fragment
-Storage`_, new annotations will be added::
+Storage`_, new annotations will be added for non-scratch builds::
 
   metadata:
     labels:
