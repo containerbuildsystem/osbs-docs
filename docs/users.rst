@@ -92,6 +92,19 @@ Writing a Dockerfile
 Understanding the Build Process
 -------------------------------
 
+OSBS creates an OpenShift BuildConfig to store the configuration
+details about how to run atomic-reactor and which git commit to build
+from. If there is already a BuildConfig for the image (and branch), it
+is updated. Afterwards, a Build is instantiated from the BuildConfig.
+
+The default OpenShift BuildConfig runPolicy of "Serial" is used,
+meaning only one Build will run at a time for a given BuildConfig, and
+other Builds will remain queued and unprocessed until the running
+build finishes. This is preferable to "SerialLatestOnly", which
+cancels all but the most recent pending queued build, because build
+logs for any user-submitted build can be watched through to
+completion.
+
 OSBS uses two types of OpenShift Build:
 
 *worker build*
