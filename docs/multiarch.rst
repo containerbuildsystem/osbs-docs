@@ -262,8 +262,8 @@ Manifest lists (from orchestrator build)
 The manifest list will be tagged using:
 
 - ``latest``
-- ``$version`` (the ``version`` label)
-- ``$version-$release`` (the ``version`` and ``release`` labels together)
+- ``{version}`` (the ``version`` label)
+- ``{version}-{release}`` (the ``version`` and ``release`` labels together)
 - a unique tag including the timestamp
 - any additional tags configured in the git repository
 
@@ -801,6 +801,22 @@ ATOMIC_REACTOR_PLUGINS environment variable for an orchestrator build.
         "name": "compare_rpm_packages"
       },
       {
+        "name": "tag_from_config",
+        "args": {
+          "tag_suffixes": {
+            "unique": [
+              "target-20170123055916"
+            ],
+            "primary": [
+              "{version}-{release}",
+              "{version}",
+              "latest",
+              "v3"
+            ]
+          }
+        }
+      },
+      {
         "name": "group_manifests",
         "args": {
           "registries": ...
@@ -919,13 +935,67 @@ signatures), and will fail if there are any mismatches.
 
 This plugin will not be run for scratch builds.
 
+tag_from_config
+~~~~~~~~~~~~~~~
+
+This existing post-build plugin will run in the orchestrator build.
+
+In addition it will take a new "tag_suffixes" parameter, which
+osbs-client will populate with the unique and primary tag suffixes to
+use.
+
+It will perform parameter substitution on the primary tag suffixes,
+using labels defined in the Dockerfile (in combination with the
+environment variables from the parent image).
+
+For the orchestrator build it will be given:
+- a unique tag suffix (without a platform name)
+- the strings ``{version}-{release}``, ``{version}`` and ``latest``
+- any tag suffixes defined in additional-tags in the git repository
+
+For the worker build it will be given:
+- a unique tag suffix (with a platform name)
+
 group_manifests
 ~~~~~~~~~~~~~~~
 
-This new post-build plugin creates the Docker Manifest List in the
+This new post-build plugin creates the `Docker Manifest List`_ in the
 registry. It does this by inspecting the return value from the
 orchestrate_build plugin to find the image manifest digests from the
-platform-specific images.
+platform-specific images, and assembling those together with platform
+specifiers ('os' being 'linux', and 'architecture' being the GOARCH
+for the platform) for each.
+
+.. _`Docker Manifest List`: https://docs.docker.com/registry/spec/manifest-v2-2/#manifest-list
+
+It takes the same "registries" parameter as the ``tag_and_push`` plugin,
+as well as some others:
+
+registries
+  a mapping, each item having a key which is the push URL and a value
+  which is a mapping, 'version' indicating the registry API version
+  and optionally 'secret' indicating the name of the Kubernetes secret
+  holding authentication credentials, for example::
+
+    {
+      "registry.example.com/repository": {
+        "version": "v2",
+        "secret": "registry-secret"
+      }
+    }
+
+  Registries with version "v1" are ignored.
+
+goarch
+  a mapping, each item having a platform name as the key and the
+  equivalent GOARCH architecture name as the value
+
+group
+  This optional Boolean parameter can be set to false in order to
+  change the way this plugin works: instead of creating manifest
+  lists, only tag the image manifest created by the worker build whose
+  platform has GOARCH amd64. This option is only expected to be used
+  during development.
 
 The plugin's return value will include the manifest digest for the
 created object.
@@ -1002,9 +1072,12 @@ reporting. The annotations will look as follows::
     annotations:
       repositories:
         primary:
-        - ...
+        - registry.example.com/repository:1.0-2
+        - registry.example.com/repository:1.0
+        - registry.example.com/repository:latest
+        - registry.example.com/repository:v3
         unique:
-        - ...
+        - registry.example.com/repository:target-20170123055916
       worker-builds:
         x86_64:
           build:
@@ -1059,11 +1132,11 @@ enabled.
 The existing "repositories" annotation holds a map with keys:
 
 primary
-  list of image pull specifications (across all worker builds) using
+  list of image pull specifications (for the manifest list) using
   primary tags
 
 unique
-  list of image pull specifications (across all worker builds) using
+  list of image pull specifications (for the manifest list) using
   unique tags
 
 There is a new annotation:
@@ -1156,7 +1229,7 @@ for a worker build::
     ],
     "buildstep_plugins": [
       {
-        "name": "dockerbuild"
+        "name": "docker_api"
       }
     ],
     "prepublish_plugins": [
@@ -1169,17 +1242,17 @@ for a worker build::
         "name": "all_rpm_packages"
       },
       {
-        "name": "tag_by_labels"
-      },
-      {
-        "name": "tag_from_config"
+        "name": "tag_from_config",
+        "args": {
+          "tag_suffixes": {
+            "unique": ["target-20170123055916-x86_64"]
+          }
+        }
       },
       {
         "name": "tag_and_push",
         "args": {
-          "registries": {
-            "...": { "insecure": true }
-          }
+          "registries": ...
         }
       },
       {
@@ -1219,6 +1292,12 @@ for a worker build::
 This configuration is created by osbs-client's ``create_worker_build``
 method, which has an optional ``filesystem_koji_task_id`` parameter
 used for building base images.
+
+tag_from_config (worker)
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+See `tag_from_config`_ for full details of the way this existing
+post-build plugin will be modified.
 
 pulp_push
 ~~~~~~~~~
