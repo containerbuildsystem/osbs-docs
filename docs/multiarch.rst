@@ -253,7 +253,7 @@ Tagging
 Image manifests (from worker builds)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The image manifests will be tagged using a unique tag include the
+The image manifests will be tagged using a unique tag including the
 timestamp and platform name.
 
 Manifest lists (from orchestrator build)
