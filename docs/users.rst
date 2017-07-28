@@ -129,8 +129,7 @@ selector`_ is required for each.
 .. _`node selector`: https://docs.openshift.org/latest/admin_guide/managing_projects.html#developer-specified-node-selectors
 
 The separation of tasks between the orchestrator build and the worker
-build is called the "arrangement", and currently there is one defined
-arrangement.
+build is called the "arrangement".
 
 Arrangement version 1 (delegation)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -243,10 +242,15 @@ as plugins:
 Arrangement version 2 (orchestrator creates filesystem)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This arrangement is identical to version 1 except that the
-add_filesystem plugin runs in the orchestrator build as well. This is
-to create a single Koji "`image-build`_" task to create filesystems for
-all required architectures.
+This arrangement, available since osbs-client-0.41, is identical to
+version 1 except that:
+
+- There is a new plugin for verifying the parent image comes from a
+  build that exists in Koji
+
+- The add_filesystem plugin runs in the orchestrator build as well as
+  the worker build. This is to create a single Koji "`image-build`_"
+  task to create filesystems for all required architectures.
 
 .. _`image-build`: https://docs.pagure.org/koji/image_build/
 
@@ -255,6 +259,28 @@ a Koji task. Instead the orchestrator build tells it which Koji task
 ID to stream the filesystem tar archive from. Each worker build only
 streams the filesystem tar archive for the architecture it is running
 on.
+
+Arrangement version 3 (Koji build created by orchestrator)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This arrangement builds on version 2. The ``koji_promote`` plugin,
+which was previously responsible for creating the Koji build, is
+replaced by these plugins:
+
+- worker build
+
+  * koji_upload
+
+- orchestrator build
+
+  * fetch_worker_metadata
+
+  * koji_import
+
+  * koji_tag_build
+
+Additionally the ``sendmail`` plugin now runs in the orchestrator
+build and not the worker build.
 
 Using Artifacts from Koji
 -------------------------
