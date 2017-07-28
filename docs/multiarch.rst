@@ -884,7 +884,20 @@ ATOMIC_REACTOR_PLUGINS environment variable for an orchestrator build.
         }
       },
       {
-        "name": "pulp_sync"
+        "name": "pulp_tag",
+        "args": {
+          "pulp_registry_name": ...,
+          "pulp_secret_path": ...,
+          ...
+        }
+      },
+      {
+        "name": "pulp_sync",
+        "args": {
+          "pulp_registry_name": ...,
+          "pulp_secret_path": ...,
+          ...
+        }
       }
     ],
     "exit_plugins": [
@@ -1082,6 +1095,13 @@ architecture
 
 The plugin's return value will include the manifest digest for the
 created object.
+
+pulp_tag
+~~~~~~~~
+
+This new post-build plugin, only run when API v1 support is enabled,
+will set tags on the API v1 image that were uploaded by a worker
+build.
 
 pulp_publish
 ~~~~~~~~~~~~
