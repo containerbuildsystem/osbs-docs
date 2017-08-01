@@ -1361,6 +1361,7 @@ for a worker build::
       {
         "name": "pulp_push",
         "args": {
+          "publish": false,
           "pulp_registry_name": ...
           ...
         }
@@ -1409,6 +1410,11 @@ When Pulp integration and support for Docker Registry HTTP API V1 are
 both enabled, this existing post-build plugin uploads the Docker image
 archive so that Pulp is able to serve images using the V1 API (via
 Crane).
+
+A new optional Boolean parameter ``publish``, defaulting to true, tells
+it whether to perform the "publish" operation (i.e. the dockpulp
+``crane`` method) -- it should be set to false. This allows backwards
+compatibility with how pulp_push was previously used.
 
 koji_upload
 ~~~~~~~~~~~
