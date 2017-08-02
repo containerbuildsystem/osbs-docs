@@ -894,6 +894,7 @@ ATOMIC_REACTOR_PLUGINS environment variable for an orchestrator build.
       {
         "name": "pulp_sync",
         "args": {
+          "publish": false,
           "pulp_registry_name": ...,
           "pulp_secret_path": ...,
           ...
@@ -1102,6 +1103,17 @@ pulp_tag
 This new post-build plugin, only run when API v1 support is enabled,
 will set tags on the API v1 image that were uploaded by a worker
 build.
+
+pulp_sync
+~~~~~~~~~
+
+This existing post-build plugin will operate as before but with the
+addition of an optional keyword parameter "publish" which defaults to
+true.
+
+The "publish" parameter will be set to false to tell the plugin not to
+publish content, as that functionality is now in the pulp_publish
+plugin.
 
 pulp_publish
 ~~~~~~~~~~~~
