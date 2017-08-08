@@ -582,6 +582,10 @@ include::
   [general]
   build_json_dir = /usr/share/osbs/
   
+  [platform:x86_64]
+  architecture = amd64
+  enable_v1 = true
+  
   [default]
   openshift_url = https://orchestrator.example.com:8443/
   build_image = example.registry.com/buildroot:blue
