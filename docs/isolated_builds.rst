@@ -18,7 +18,7 @@ update the ``latest`` tag reference with this build. To achieve this, the concep
 of isolated builds is introduced.
 
 API Changes
-===========
+-----------
 
 The following parameters will be used by ``buildContainer`` task defined by
 ``koji-containerbuild`` plugin:
@@ -56,13 +56,13 @@ koji-containerbuild plugin::
 
 
 Implementation Details
-======================
+----------------------
 
 Plugins
--------
+'''''''
 
 inject_parent_image
-'''''''''''''''''''
+"""""""""""""""""""
 
 This new pre build plugin will take a ``koji_parent_build`` parameter. If the
 parameter has a truthy value, it queries Koji for information about the build
@@ -77,7 +77,7 @@ This plugin runs in both orchestrator and worker builds just before the
 This plugin is disabled if a custom base image is being built.
 
 bump_release
-''''''''''''
+""""""""""""
 
 The ``bump_release`` plugin is modified to strip off any numerical ``.N``
 suffixes from the return value of Koji’s ``getNextRelease`` API call. When an
@@ -98,14 +98,14 @@ value is incremented until a unique NVR is generated (this is also the approach
 taken for handling failed builds).
 
 orchestrate_build
-'''''''''''''''''
+"""""""""""""""""
 
 No changes to this plugin are required, but when rendered it must be given the
 ``koji_parent_build`` and ``isolated`` parameters so they can be passed to the
 worker builds.
 
 OSBS Client API
----------------
+'''''''''''''''
 
 The osbs-client API method ``create_orchestrator_build`` is enhanced to take the
 additional build parameters: ``koji_parent_build (str)``, ``isolated (bool)``.
@@ -139,7 +139,7 @@ To support build prioritization a node selector for isolated builds is also
 be added. This can be done after initial release of this feature.
 
 Koji Container Build
---------------------
+''''''''''''''''''''
 
 The plugin koji-containerbuild takes the new ``koji_parent_build``,
 ``isolated``, and ``release`` parameters. The parameters are then forwarded to
@@ -152,7 +152,7 @@ Further parameter validation is performed by osbs-client library once
 ``create_orchestrator_build`` is invoked.
 
 Relevant Projects
-'''''''''''''''''
+-----------------
 
 - `koji-containerbuild`_
 
