@@ -67,7 +67,9 @@ inject_parent_image
 This new pre build plugin will take a ``koji_parent_build`` parameter. If the
 parameter has a truthy value, it queries Koji for information about the build
 and determine the unique tag reference for such build. This information is
-retrieved by inspecting the archives attached to Koji build. The first archive
+retrieved by first inspecting the build info value at
+``'extra'.'image'.'index'.'pull'``.  If that key path is not set, or it's an
+empty list, archives attached to Koji build are inspected. The first archive
 containing the key path ``'extra'.'docker'.'repositories'`` will be used. The
 repository reference to be used is the unique manifest digest (contains sha256).
 
