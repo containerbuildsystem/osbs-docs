@@ -860,7 +860,7 @@ ATOMIC_REACTOR_PLUGINS environment variable for an orchestrator build.
         "name": "fetch_worker_metadata"
       },
       {
-        "name": "compare_rpm_packages"
+        "name": "compare_components"
       },
       {
         "name": "tag_from_config",
@@ -995,7 +995,7 @@ fetch_worker_metadata
 
 The new post-build plugin fetches metadata fragments from each worker
 build using `get_config_map`_ (see `Metadata Fragment Storage`_) and
-makes it available to the `compare_rpm_packages`_ and `koji_import`_
+makes it available to the `compare_components`_ and `koji_import`_
 plugins.
 
 It makes the metadata available by returning it from its run method in
@@ -1004,8 +1004,8 @@ being the metadata fragment as a dict object.
 
 This plugin will not be run for scratch builds.
 
-compare_rpm_packages
-~~~~~~~~~~~~~~~~~~~~
+compare_components
+~~~~~~~~~~~~~~~~~~
 
 This new post-build plugin analyses metadata fragments from each
 worker build (see `Metadata Fragment Storage`_) to find out the RPM
