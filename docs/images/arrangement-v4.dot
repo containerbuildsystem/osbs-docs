@@ -77,6 +77,6 @@ digraph G {
 
     registry -> pulp [style=dashed, label=sync];
     koji_build:list -> pulp:list;
-    koji_build:x86_64 -> pulp:x86_64;
-    koji_build:aarch64 -> pulp:aarch64;
+    /*koji_build:x86_64 -> pulp:x86_64;*/
+    /*koji_build:aarch64 -> pulp:aarch64;*/
 }
