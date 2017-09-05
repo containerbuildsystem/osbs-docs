@@ -282,6 +282,20 @@ replaced by these plugins:
 Additionally the ``sendmail`` plugin now runs in the orchestrator
 build and not the worker build.
 
+Arrangement version 4 (Multiple worker builds)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This arrangement moves most of the Pulp integration work to the
+orchestrator build, allowing for multiple worker builds. Only the
+pulp_push plugin remains in the worker build.
+
+A new plugin, group_manifests, creates a manifest list object in the
+registry, grouping together the image manifests from the worker
+builds.
+
+.. graphviz:: images/arrangement-v4.dot
+   :caption: Orchestrator and worker builds (arrangement v4)
+
 Using Artifacts from Koji
 -------------------------
 
