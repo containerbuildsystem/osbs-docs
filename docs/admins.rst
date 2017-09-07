@@ -1,39 +1,30 @@
 Administration and Maintenance
 ==============================
 
-Setting up koji for container image builds
-------------------------------------------
-
-The /etc/osbs.conf file used by the koji-containerbuild plugin must
-name secrets configured on the OpenShift orchestration cluster:
-
-reactor_config_secret
-    This secret holds details about worker clusters; see
-    :ref:`config.yaml`
-
-client_config_secret
-    This secret holds the osbs.conf which will be used by
-    atomic-reactor to create worker builds; see
-    :ref:`client_config_secret`
-
-token_secrets
-    This set of secrets may be referenced by the osbs.conf held in
-    client_config_secret, for example for service account tokens on
-    worker clusters; see :ref:`token_secrets`
-
 Configuring osbs-client
 -----------------------
 
-Can Orchestrate
+When submitting a new build request to OSBS as a user, this request is
+for an orchestrator build. When the orchestrator build wants to create
+worker builds it also does this through osbs-client.
+
+As a result there are two osbs.conf files to consider:
+
+- the one external to OSBS, for creating orchestrator builds, and
+- the one internal to OSBS, stored in a Kubernetes secret (named by
+  `client_config_secret`_) in the orchestrator cluster
+
+These can have the same content. The important features are discussed
+below.
+
+can_orchestrate
 ~~~~~~~~~~~~~~~
 
 The parameter ``can_orchestrate`` defaults to false. The API method
 ``create_orchestrator_build`` will fail unless ``can_orchestrate`` is
 true for the chosen instance section.
 
-.. _reactor_config_secret:
-
-Reactor config secret
+reactor_config_secret
 ~~~~~~~~~~~~~~~~~~~~~
 
 When ``reactor_config_secret`` is specified this is the name of a
@@ -42,17 +33,15 @@ be configured with the location this secret is mounted.
 
 .. _client_config_secret:
 
-Client config secret
+client_config_secret
 ~~~~~~~~~~~~~~~~~~~~
 
 When ``client_config_secret`` is specified this is the name of a
-Kubernetes secret holding ``osbs.conf`` for use by atomic-reactor when it
-creates worker builds. The `orchestrate_build` plugin is told the
-path to this.
+Kubernetes secret (holding a key ``osbs.conf``) for use by
+atomic-reactor when it creates worker builds. The `orchestrate_build`
+plugin is told the path to this.
 
-.. _token_secrets:
-
-Token secrets
+token_secrets
 ~~~~~~~~~~~~~
 
 When ``token_secrets`` is specified the specified secrets (space
@@ -61,7 +50,7 @@ the secret will be mounted at the specified path, i.e. the format is::
 
   token_secrets = secret:path secret:path ...
 
-This allows an ``osbs.conf`` file (from ``client_config_secret``) to
+This allows an ``osbs.conf`` file (from `client_config_secret`_) to
 be constructed with a known value to use for ``token_file``.
 
 Deploy OSBS on OpenShift
@@ -147,6 +136,9 @@ configured capacity.
 This mechanism can also be used to temporarily disable a worker
 cluster by removing it from the list or adding ``enabled: false`` to
 the cluster description for each platform.
+
+Setting up koji for container image builds
+------------------------------------------
 
 Pushing built images to Pulp
 ----------------------------
