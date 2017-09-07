@@ -25,6 +25,7 @@ Table of Contents
 
     admins
     users
+    build_process
     contributors
     reference_docs
     design
