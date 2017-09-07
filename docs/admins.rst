@@ -21,6 +21,49 @@ token_secrets
     client_config_secret, for example for service account tokens on
     worker clusters; see :ref:`token_secrets`
 
+Configuring osbs-client
+-----------------------
+
+Can Orchestrate
+~~~~~~~~~~~~~~~
+
+The parameter ``can_orchestrate`` defaults to false. The API method
+``create_orchestrator_build`` will fail unless ``can_orchestrate`` is
+true for the chosen instance section.
+
+.. _reactor_config_secret:
+
+Reactor config secret
+~~~~~~~~~~~~~~~~~~~~~
+
+When ``reactor_config_secret`` is specified this is the name of a
+Kubernetes secret holding :ref:`config.yaml`. A pre-build plugin will
+be configured with the location this secret is mounted.
+
+.. _client_config_secret:
+
+Client config secret
+~~~~~~~~~~~~~~~~~~~~
+
+When ``client_config_secret`` is specified this is the name of a
+Kubernetes secret holding ``osbs.conf`` for use by atomic-reactor when it
+creates worker builds. The `orchestrate_build` plugin is told the
+path to this.
+
+.. _token_secrets:
+
+Token secrets
+~~~~~~~~~~~~~
+
+When ``token_secrets`` is specified the specified secrets (space
+separated) will be mounted in the OpenShift build. When ":" is used,
+the secret will be mounted at the specified path, i.e. the format is::
+
+  token_secrets = secret:path secret:path ...
+
+This allows an ``osbs.conf`` file (from ``client_config_secret``) to
+be constructed with a known value to use for ``token_file``.
+
 Deploy OSBS on OpenShift
 ------------------------
 
