@@ -1503,9 +1503,11 @@ The metadata fragment will take the form of a JSON file::
             "id": "... (the image ID) ...",
             "parent_id": "... (the parent image's ID) ...",
             "repositories": [
-              "some-registry/some-repository:tag",
-              "some-registry/some-repository@sha256:(digest)"
-            ]
+              "some-registry/some-repository:unique-tag-x86_64",
+              "some-registry/some-repository@sha256:(schema1digest)",
+              "some-registry/some-repository@sha256:(schema2digest)"
+            ],
+            "tags": ["unique-tag-x86_64"]
           }
         },
         "components": [
@@ -1684,8 +1686,9 @@ Koji builds will have entries in the output list as follows:
 
   * an "arch" field
 
-  * the docker pull-by-digest specification for the distinct tag used
-    by this platform-specific image manifest
+  * the docker pull-by-digest specifications for the distinct tag used
+    by this platform-specific image manifest for both v2 schema 1 and
+    v2 schema 2
 
   * the buildroot ID for the builder image used for this worker build
 
@@ -1780,6 +1783,7 @@ Example::
         repositories:
         - pulp-docker01:8888/img:20170601000000-2a892-x86_64
         - pulp-docker01:8888/img@sha256:789def567...
+        - pulp-docker01:8888/img@sha256:123456789...
         # This pull specification refers to the image manifest for the x86_64 platform.
         tags:
         - 20170601000000-2a892-x86_64
@@ -1800,7 +1804,8 @@ Example::
         parent_id: sha256:234efg567...
         repositories:
         - pulp-docker01:8888/img:20170601000000-ae58f-ppc64le
-        - pulp-docker01:8888/img@sha256:890efg678…
+        - pulp-docker01:8888/img@sha256:890efg678...
+        - pulp-docker01:8888/img@sha256:567890123...
         # This pull specification refers to the image manifest for the ppc64le platform.
         tags:
         - 20170601000000-ae58f-ppc64le
