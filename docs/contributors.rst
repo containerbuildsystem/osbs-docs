@@ -91,8 +91,12 @@ definitely permanent.
 
 In most cases there should be a delay before retrying. The only reason
 to retry immediately is when the request is likely to succeed when
-immediately retried (i.e. the cause is known). An example would be
-retrying a PUT operation which was rejected due to conflicts.
+immediately retried (i.e. the cause is known). However, caution must
+be exercised. For example, if the cause is a conflict (409), a naive approach
+would be to immediately retry the GET+PUT requests. However this could
+race against some other client doing the same thing. A safer approach
+is to use exponential back-off, retrying the GET+PUT requests at each
+interval.
 
 There should be a maximum number of attempts before giving up and
 reporting an exception.
