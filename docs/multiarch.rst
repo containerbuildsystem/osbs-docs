@@ -21,11 +21,10 @@ used:
 This will be a different "arrangement" (see :ref:`build process`) of
 plugins across the orchestrator and worker builds.
 
-Technically, only compute nodes in the required architectures are
-needed to perform the container-building step. These can be arranged
-either in a single mixed-architecture cluster, or with multiple
-single-architecture clusters for each architecture, or as a mix of the
-two.
+In essence, only compute nodes in the required architectures are needed to
+perform the container-building step. However, OpenShift does not support nodes
+of different architectures in the same cluster. The recommended approach is to
+use a different cluster for each architecture.
 
 The orchestrator build will make use of :ref:`config.yaml` to discover
 which worker clusters to direct builds to and
@@ -581,11 +580,11 @@ include::
 
   [general]
   build_json_dir = /usr/share/osbs/
-  
+
   [platform:x86_64]
   architecture = amd64
   enable_v1 = true
-  
+
   [default]
   openshift_url = https://orchestrator.example.com:8443/
   build_image = example.registry.com/buildroot:blue
@@ -611,7 +610,7 @@ include::
     workertoken:/var/run/secrets/atomic-reactor/workertoken
 
   # and auth options, registries, secrets, etc
-  
+
   [scratch]
   openshift_url = https://orchestrator.example.com:8443/
   build_image = example.registry.com/buildroot:blue
@@ -651,7 +650,7 @@ cluster, and which is contained in the Kubernetes secret named by
   [platform:x86_64]
   architecture = amd64
   enable_v1 = true
-  
+
   [prod-mixed]
   registry_api_versions = v1,v2
   openshift_url = https://worker01.example.com:8443/
@@ -673,7 +672,7 @@ cluster, and which is contained in the Kubernetes secret named by
   low_priority_node_selector = lowpriority=true
 
   # and auth options, registries, secrets, etc
-  
+
   [prod-osd]
   registry_api_versions = v1,v2
   openshift_url = https://api.prod-example.openshift.com/
