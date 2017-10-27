@@ -15,7 +15,7 @@ Another problem with the current state is that to produce an image with signed
 packages, a parameter is needed (yum repo URL). To complicate matters, this yum
 repo URL will likely be different for future builds. This poses a huge problem
 for OSBS autorebuilds. In this case, OSBS will automatically rebuild layered
-images upon detected changes to parent image. It is necessary that these
+images upon detected changes to its parent image. It is necessary that these
 rebuilds pick up the latest, most relevant, signed packages.
 
 The On Demand Compose Service (`odcs`_) project has been created to address
@@ -104,13 +104,13 @@ in ``container.yaml``.
 Enabling ODCS Integration
 """""""""""""""""""""""""
 
-The first step in enabling ODCS integration is by configuring the OSBS
+The first step in enabling ODCS integration is to configure the OSBS
 environment to use a specific ODCS server via the ``odcs_*`` configuration
 parameters.
 
-Next, ``container.yaml`` must be created and it must include the *compose*
+Next, a ``container.yaml`` file must be created and it must include the *compose*
 section. See example further down. This file must then be committed and pushed
-to git repository. Simply building the container image as usual will trigger
+to a container's git repository. Simply building the container image as usual will trigger
 ODCS interaction.
 
 
@@ -180,7 +180,7 @@ emphasize they may be spelled differently.
 ``container.yaml`` Changes
 --------------------------
 
-In git repo, alongside Dockerfile, the ``container.yaml`` file will be enhanced
+In git repo, alongside Dockerfile, the ``container.yaml`` file will be extended
 to contain a *compose* section. This section will include all the required
 information for requesting a compose to be created by ODCS::
 
