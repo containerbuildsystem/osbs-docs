@@ -1711,7 +1711,7 @@ index
 
     pull
         list of pull specifications (as strings); one must include a
-        tag, one may include a digest
+        tag, one must include a digest
 
     tags
         list of tags that were updated to point to this manifest list,
