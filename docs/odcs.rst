@@ -147,11 +147,11 @@ API Changes
 
   Exposed in `koji-containerbuild`_, and `osbs-client`_.
 
-  May not be used with ``yum_repourls`` parameter.
+  Must not be used with ``yum_repourls`` parameter.
 
-  May not be used if ODCS integration is not enabled.
+  Must not be used if ODCS integration is not enabled.
 
-  May not be used with ``signing_intent`` parameter.
+  Must not be used with ``signing_intent`` parameter.
 
   Ignores *compose* section in ``container.yaml`` and does not request a new
   ODCS compose to be created. The provided composes are used instead.
