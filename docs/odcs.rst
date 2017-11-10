@@ -50,13 +50,16 @@ This mapping will be defined in the secret named by reactor_config_secret which
 will allow updates to be reflected instantly for automatically triggered builds
 from an existing BuildConfig. For example::
 
-    signing_intents:
-    - release:
-      - 'my-release-key'
-    - beta:
-      - 'my-beta-key'
-      - 'my-release-key'
-    - unsigned: []
+    odcs:
+      signing_intents:
+      - name: release
+        keys: [AB123]
+      - name: beta
+        keys: [BT456, AB123]
+      - name: unsigned
+        keys: []
+      # Value must match one of the names above.
+      default_signing_intent: release
 
 The definition of intents also describes the restrictive order, which will be
 enforced when building layered images. For instance, consider the case of two
