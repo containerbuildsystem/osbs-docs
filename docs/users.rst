@@ -296,6 +296,23 @@ builds.
 .. graphviz:: images/arrangement-v4.dot
    :caption: Orchestrator and worker builds (arrangement v4)
 
+Arrangement version 5 (ODCS Integration)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This arrangement builds on version 4. The ``resolve_composes`` plugin
+enables integration with `odcs`_. See `ODCS Integration`_ for details.
+
+.. _`odcs`: https://pagure.io/odcs
+.. _`ODCS Integration`: odcs.html
+
+- worker build
+
+  * No changes
+
+- orchestrator build
+
+  * resolve_composes
+
 Using Artifacts from Koji
 -------------------------
 
