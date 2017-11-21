@@ -180,38 +180,6 @@ task. The ``add_filesystem`` plugin will need changes for this:
   filenames and looking for the platform name. This parameter will be
   set for the worker build.
 
-Excluding platforms
--------------------
-
-Some container images will need to be built for multiple platforms but
-some may not.
-
-The full set of platforms for which builds may be required will come
-initially from the Koji build tag associated with the build target, or
-from the ``platforms`` parameter provided to the
-``create_orchestrator_build`` API method when Koji is not used.
-
-A configuration file present in the git repository named
-``container.yaml`` may contain configuration keys relevant to platform
-selection.
-
-This set of platforms can be reduced in various ways:
-
-- Explicit subset:
-
-  * container image builds can be submitting with a parameter
-    ``--arches``, overriding the set of platforms specified by the Koji
-    build target, in the same way as for building RPM packages
-
-  * the ``container.yaml`` configuration file's ``platforms.only`` key
-    can further restrict this set of platforms (via set intersection)
-
-- Excluding platforms:
-
-  * the ``container.yaml`` configuration file's ``platforms.not`` key
-    can restrict the set of platforms even further, by removing
-    specific platforms from those remaining
-
 Tagging
 -------
 
@@ -433,36 +401,6 @@ Note:
 - where the worker build log line had no timestamp (perhaps the log
   line had an embedded newline, or was logged outside the adapter
   using a different format), the line was left alone
-
-Git Configuration
------------------
-
-Each git repository to build from may contain a ``container.yaml``
-file in the following format::
-
-  platforms:
-    # all these keys are optional
-
-    only:
-    - x86_64   # can be a list (as here) or a string (as below)
-    - ppc64le
-    - armhfp
-    not: armhfp
-
-platforms
-~~~~~~~~~
-
-Keys in this map relate to multi-platform builds.
-
-only
-  list of platform names (or a single platform name as a string); this
-  will be combined with the ``platforms`` parameter to the
-  `orchestrate_build`_ plugin using set intersection
-
-not
-  list of platform names (or a single platform name as a string);
-  platforms named here will be removed from the ``platforms``
-  parameter to the `orchestrate_build`_ plugin using set difference
 
 Client Configuration
 --------------------
