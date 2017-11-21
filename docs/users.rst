@@ -44,6 +44,45 @@ Creating a build JSON
 Writing a Dockerfile
 --------------------
 
+.. _container.yaml:
+
+Image configuration
+-------------------
+
+Some aspects of the container image build process are controlled by a
+file in the git repository named ``container.yaml``. This file need
+not be present, but if it is it must adhere to the `container.yaml
+schema`_.
+
+.. _`container.yaml schema`: https://github.com/projectatomic/atomic-reactor/blob/master/atomic_reactor/schemas/container.json
+
+An example::
+  platforms:
+    # all these keys are optional
+
+    only:
+    - x86_64   # can be a list (as here) or a string (as below)
+    - ppc64le
+    - armhfp
+    not: armhfp
+
+platforms
+~~~~~~~~~
+
+Keys in this map relate to multi-platform builds. The full set of
+platforms for which builds may be required will come initially from
+the Koji build tag associated with the build target, or from the
+``platforms`` parameter provided to the ``create_orchestrator_build``
+API method when Koji is not used.
+
+only
+  list of platform names (or a single platform name as a string); this
+  restricts the platforms to build for using set intersection
+
+not
+  list of platform names (or a single platform name as a string);
+  this restricts the platforms to build for using set difference
+
 Using Artifacts from Koji
 -------------------------
 
