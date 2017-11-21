@@ -75,7 +75,7 @@ Steps performed in the orchestrator build are:
 - If Koji integration is enabled:
 
   - Combine Koji metadata fragments from temporary storage (see
-    `Metadata Fragment Storage`_)
+    :ref:`Metadata Fragment Storage`)
 
   - Create a Koji Build. Note: no need to upload image tar archives as
     worker builds have done this
@@ -119,8 +119,8 @@ builds, atomic-reactor will execute these steps as plugins:
   - Upload image tar archive to Koji but do not create a Koji Build
 
   - Upload the Koji metadata fragment (buildroot information, built
-    image information) to temporary storage (see `Metadata Fragment
-    Storage`_)
+    image information) to temporary storage (see :ref:`Metadata
+    Fragment Storage`)
 
 - Update this OpenShift Build with annotations about output,
   performance, errors, etc
@@ -130,40 +130,6 @@ builds, atomic-reactor will execute these steps as plugins:
 
 .. graphviz:: images/multi-after-build.dot
    :caption: After build
-
-Metadata Fragment Storage
--------------------------
-
-When creating a Koji Build, the `koji_import`_ plugin needs to
-assemble Koji Build Metadata, including:
-
-- components installed in each builder image (worker builds and
-  orchestrator build)
-
-- components installed in each built image
-
-- information about each build host
-
-To assist the orchestrator build in assembling this (JSON) data, the
-worker builds will gather information about their build hosts, builder
-images, and built images. They then need to pass this data to the
-orchestrator build. After creating the Koji Build, the orchestrator
-build must then free any resources used in passing the data.
-
-This data will be stored in OpenShift ConfigMap object in the worker
-cluster using `create_config_map`_, and its name will be stored in the
-OpenShift Build annotations for the worker build. To do this the
-worker cluster's "builder" service account will need to be granted
-permission to create ConfigMap objects.
-
-The orchestrator build will collect the metadata fragment using
-`get_config_map`_ when assembling the fragments together with the
-platform-neutral metadata in `koji_import`_.
-
-The orchestrator build is then responsible for removing the OpenShift
-ConfigMap from the worker cluster using `delete_config_map`_. To do
-this, the worker cluster's "orchestrator" service account will need to
-be granted permission to get and delete ConfigMap objects.
 
 Submitting builds
 -----------------
@@ -748,7 +714,7 @@ name
 
 data
   This is a dict whose keys and values should be stored in the
-  ConfigMap. For `Metadata Fragment Storage`_ it is expected that the
+  ConfigMap. For :ref:`Metadata Fragment Storage` it is expected that the
   value will be a JSON string.
 
 get_config_map
@@ -993,7 +959,7 @@ fetch_worker_metadata
 ~~~~~~~~~~~~~~~~~~~~~
 
 The new post-build plugin fetches metadata fragments from each worker
-build using `get_config_map`_ (see `Metadata Fragment Storage`_) and
+build using `get_config_map`_ (see :ref:`Metadata Fragment Storage`) and
 makes it available to the `compare_components`_ and `koji_import`_
 plugins.
 
@@ -1007,8 +973,8 @@ compare_components
 ~~~~~~~~~~~~~~~~~~
 
 This new post-build plugin analyses metadata fragments from each
-worker build (see `Metadata Fragment Storage`_) to find out the RPM
-components installed in each image (name-version-release, and RPM
+worker build (see :ref:`Metadata Fragment Storage`) to find out the
+RPM components installed in each image (name-version-release, and RPM
 signatures), and will fail if there are any mismatches.
 
 This plugin will not be run for scratch builds.
@@ -1173,7 +1139,7 @@ remove_worker_metadata
 ~~~~~~~~~~~~~~~~~~~~~~
 
 This new exit plugin removes metadata fragments created by the worker
-builds (see `Metadata Fragment Storage`_).
+builds (see :ref:`Metadata Fragment Storage`).
 
 This plugin will not be run for scratch builds.
 
@@ -1439,8 +1405,8 @@ does not create a Koji build.
 
 Additionally, it creates the platform-specific parts of the Koji build
 metadata (see `Koji build`_) and places them in temporary storage
-using `create_config_map`_ (see `Metadata Fragment
-Storage`_). Finally, it sets an annotation on its OpenShift Build
+using `create_config_map`_ (see :ref:`Metadata Fragment
+Storage`). Finally, it sets an annotation on its OpenShift Build
 object indicating the name of the ConfigMap object.
 
 The name it should choose for the ConfigMap object is its own
@@ -1567,8 +1533,8 @@ Annotations/labels on worker build
 ----------------------------------
 
 The worker build annotations remain largely unchanged for
-multi-platform builds. However, to support `Metadata Fragment
-Storage`_, new annotations will be added for non-scratch builds::
+multi-platform builds. However, to support :ref:`Metadata Fragment
+Storage`, new annotations will be added for non-scratch builds::
 
   metadata:
     labels:

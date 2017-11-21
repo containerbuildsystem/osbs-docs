@@ -184,7 +184,7 @@ replaced by these plugins:
 
 - orchestrator build
 
-  * fetch_worker_metadata
+  * fetch_worker_metadata (see :ref:`Metadata Fragment Storage`)
 
   * koji_import
 
@@ -193,6 +193,43 @@ replaced by these plugins:
 Additionally the ``sendmail`` plugin now runs in the orchestrator
 build and not the worker build.
 
+.. _`Metadata Fragment Storage`:
+
+Metadata Fragment Storage
+-------------------------
+
+When creating a Koji Build using arrangement 3 and newer, the
+koji_import plugin needs to assemble Koji Build Metadata, including:
+
+- components installed in each builder image (worker builds and
+  orchestrator build)
+
+- components installed in each built image
+
+- information about each build host
+
+To assist the orchestrator build in assembling this (JSON) data, the
+worker builds gather information about their build hosts, builder
+images, and built images. They then need to pass this data to the
+orchestrator build. After creating the Koji Build, the orchestrator
+build must then free any resources used in passing the data.
+
+The method used for passing the data from the worker builds to the
+orchestrator build is to store it temporarily in a ConfigMap object in
+the worker cluster. Its name is stored in the OpenShift Build
+annotations for the worker build. To do this the worker cluster's
+"builder" service account needs permission to create ConfigMap
+objects.
+
+The orchestrator build collects the metadata fragments and assembles
+them together with the platform-neutral metadata in the koji_import
+plugin.
+
+The orchestrator build is then responsible for removing the OpenShift
+ConfigMap from the worker cluster. To do this, the worker cluster's
+"orchestrator" service account needs permission to get and delete
+ConfigMap objects.
+
 Arrangement version 4 (Multiple worker builds)
 ----------------------------------------------
 
@@ -200,9 +237,11 @@ This arrangement moves most of the Pulp integration work to the
 orchestrator build, allowing for multiple worker builds. Only the
 pulp_push plugin remains in the worker build.
 
-A new plugin, group_manifests, creates a manifest list object in the
-registry, grouping together the image manifests from the worker
+A new plugin, group_manifests, creates a `manifest list`_ object in
+the registry, grouping together the image manifests from the worker
 builds.
+
+.. _`manifest list`: https://docs.docker.com/registry/spec/manifest-v2-2/#manifest-list
 
 .. graphviz:: images/arrangement-v4.dot
    :caption: Orchestrator and worker builds (arrangement v4)
