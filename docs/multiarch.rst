@@ -109,7 +109,7 @@ builds, atomic-reactor will execute these steps as plugins:
 - Upload this compressed tar archive to Pulp (if Pulp integration and
   v1 support are both enabled)
 
-- Tag and push the image to the container registry (see `Tagging`_)
+- Tag and push the image to the container registry (see :ref:`image-tags`)
 
 - Query the image to discover installed RPM packages (by running
   ``rpm`` inside it)
@@ -179,26 +179,6 @@ task. The ``add_filesystem`` plugin will need changes for this:
   particular task output file is required by parsing the output
   filenames and looking for the platform name. This parameter will be
   set for the worker build.
-
-Tagging
--------
-
-Image manifests (from worker builds)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The image manifests will be tagged using a unique tag including the
-timestamp and platform name.
-
-Manifest lists (from orchestrator build)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The manifest list will be tagged using:
-
-- ``latest``
-- ``{version}`` (the ``version`` label)
-- ``{version}-{release}`` (the ``version`` and ``release`` labels together)
-- a unique tag including the timestamp
-- any additional tags configured in the git repository
 
 Scratch builds
 --------------
@@ -1533,7 +1513,7 @@ koji_builds
 
 repositories
   a list of fully-qualified pull specifications, with items relating
-  to each tag (see `Tagging`_)
+  to each tag (see :ref:`image-tags`)
 
 The list of repositories will look no different than it did prior to
 multi-platform support. However, each pull specification will relate

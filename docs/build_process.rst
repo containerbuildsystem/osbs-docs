@@ -237,6 +237,8 @@ This arrangement moves most of the Pulp integration work to the
 orchestrator build, allowing for multiple worker builds. Only the
 pulp_push plugin remains in the worker build.
 
+.. _group-manifests:
+
 A new plugin, group_manifests, creates a `manifest list`_ object in
 the registry, grouping together the image manifests from the worker
 builds.
