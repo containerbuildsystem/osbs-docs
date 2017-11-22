@@ -200,3 +200,29 @@ In the future, a reference of each artifact fetched by OSBS will be
 added to the koji build metadata once imported via content generator API.
 The list of components for the container image in output list will
 include the fetched artifacts in addition to the installed RPMs.
+
+.. _image-tags:
+
+Image tags
+----------
+
+The output from atomic-reactor includes container images tagged into a
+registry (or Pulp, if Pulp integration is enabled). In addition, when
+multi-platform builds are enabled each set of images will be grouped
+into a manifest list, which itself is tagged.
+
+While the repository name is specified by the ``name`` label in the
+Dockerfile, the tags used within the repository are:
+
+- a unique tag including the timestamp (this tag is the only tag
+  applied for scratch builds)
+- ``latest``
+- ``{version}`` (the ``version`` label)
+- ``{version}-{release}`` (the ``version`` and ``release`` labels together)
+- any additional tags configured in the git repository (named in the
+  ``additional-tags`` file)
+
+These tags are applied to the manifest list or, if multi-platform
+image builds are not enabled (see :ref:`group_manifests
+<group-manifests>`), to the sole image manifest resulting from the
+build.
