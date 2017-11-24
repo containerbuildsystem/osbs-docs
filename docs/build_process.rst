@@ -264,3 +264,99 @@ enables integration with `odcs`_. See `ODCS Integration`_ for details.
 - orchestrator build
 
   * resolve_composes
+
+.. _`logging`:
+
+Logging
+-------
+
+Logs from worker builds is made available via the orchestrator build,
+and clients (including koji-containerbuild) are able to separate
+individual worker build logs out from that log stream using an
+osbs-client API method.
+
+Multiplexing
+~~~~~~~~~~~~
+
+In order to allow the client to de-multiplex logs containing a mixture
+of logs from an orchestrator build and from its worker builds, a
+special logging field, platform, is used. Within atomic-reactor all
+logging goes through a LoggerAdapter which adds this ``platform``
+keyword to the ``extra`` dict passed into logging calls, resulting in
+log output like this::
+
+  2017-06-23 17:18:41,791 platform:- - atomic_reactor.foo - DEBUG - this is from the orchestrator build
+  2017-06-23 17:18:41,791 platform:x86_64 - atomic_reactor.foo - INFO - 2017-06-23 17:18:41,400 platform:- atomic_reactor.foo -  DEBUG - this is from a worker build
+  2017-06-23 17:18:41,791 platform:x86_64 - atomic_reactor.foo - INFO - continuation line
+
+Demultiplexing is possible using a the osbs-client API method,
+``get_orchestrator_build_logs``, a generator function that returns
+objects with these attributes:
+
+platform
+  str, platform name if worker build, else None
+
+line
+  str, log line (Unicode)
+
+See the example below for what this would look like for these sample
+log lines.
+
+See the example below to see this illustrated.
+
+Encoding issues
+~~~~~~~~~~~~~~~
+
+When retrieving logs from containers, the text encoding used is only
+known to the container. It may be based on environment variables
+within that container; it may be hard-coded; it may be influenced by
+some other factor. For this reason, container logs are treated as byte
+streams.
+
+This applies to:
+
+- containers used to construct the built image
+- the builder image running atomic-reactor for a worker build
+- the builder image running atomic-reactor for an orchestrator build
+
+When retrieving logs from a build, OpenShift cannot say which encoding
+was used. However, atomic-reactor can define its own output encoding
+to be UTF-8. By doing this, all its log output will be in a known
+encoding, allowing osbs-client to decode it. To do this it should call
+``locale.setlocale(locale.LC_ALL, "")`` and the Dockerfile used to
+create the builder image must set an appropriate environment
+variable::
+
+  ENV LC_ALL=en_US.UTF-8
+
+Orchestrator builds want to retrieve logs from worker builds, then
+relay them via logging. By knowing that the builder image for the
+worker is the same as the builder image for the orchestrator, we also
+know the encoding for those logs to be UTF-8.
+
+Example
+~~~~~~~
+
+Here is an example Python session demonstrating this interface::
+
+  >>> server = OSBS(...)
+  >>> logs = server.get_orchestrator_build_logs(...)
+  >>> [(item.platform, item.line) for item in logs]
+  [(None, '2017-06-23 17:18:41,791 platform:- - atomic_reactor.foo - DEBUG - this is from the orchestrator build'),
+   ('x86_64', '2017-06-23 17:18:41,400 atomic_reactor.foo - DEBUG - this is from a worker build'),
+   ('x86_64', 'continuation line')]
+
+Note:
+
+- the lines are (Unicode) string objects, not bytes objects
+
+- the orchestrator build's logging fields have been removed from the
+  worker build log line
+
+- the "outer" orchestrator log fields have been removed from the
+  worker build log line, and the ``platform:-`` field has also been
+  removed from the worker build's log line
+
+- where the worker build log line had no timestamp (perhaps the log
+  line had an embedded newline, or was logged outside the adapter
+  using a different format), the line was left alone
