@@ -53,6 +53,66 @@ the secret will be mounted at the specified path, i.e. the format is::
 This allows an ``osbs.conf`` file (from `client_config_secret`_) to
 be constructed with a known value to use for ``token_file``.
 
+Node selector
+~~~~~~~~~~~~~
+
+When an entry with the pattern ``node_selector.platform`` (for some
+*platform*) is specified, builds for this platform submitted to this
+cluster must include the given node selector, so as to run on a node
+of the correct architecture. This allows for installations that have
+mixed-architecture clusters and where node labels differentiate
+architecture.
+
+If the value is ``none``, this platform is the only one available and
+no node selector is required.
+
+Platform description
+~~~~~~~~~~~~~~~~~~~~
+
+When a section name begins with "platform:" it is interpreted not as
+an OSBS instance but as a platform description. The remainder of the
+section name is the platform name being described. The section has the
+following keys:
+
+architecture (optional)
+  the GOARCH for the platform -- the platform name is assumed to be
+  the same as the GOARCH if this is not specified
+
+enable_v1 (optional)
+  if support for the Docker Registry HTTP API v1 (pulp_push etc)
+  may be included for this platform, the value should be "true"; the
+  default is "false"
+
+When creating a worker build for an OSBS instance, both the
+"registry_api_versions" key for the instance and the "enable_v1" key
+for the platform will be consulted. They must both instruct v1 support
+to enable publishing v1 images. If either does not instruct v1 support,
+v1 images will not be published.
+
+At most one platform may have "enable_v1 = true".
+
+For example::
+
+  [platform:x86_64]
+  architecture = amd64
+  enable_v1 = true
+
+  [platform:ppc]
+  architecture = ppc64le
+
+  [instance1]
+  registry_api_versions = v1,v2
+  ...
+
+  [instance2]
+  registry_api_versions = v2
+  ...
+
+In the above configuration, worker builds created using instance1 for
+the x86_64 platform will publish v1 images as well as v2 images. Other
+platforms on instance1, and all platforms on instance2, will only
+publish v2 images.
+
 Deploy OSBS on OpenShift
 ------------------------
 
