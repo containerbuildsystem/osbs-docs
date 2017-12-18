@@ -5,5 +5,4 @@ Designs for future changes
     :maxdepth: 3
 
     build_priority
-    isolated_builds
     odcs

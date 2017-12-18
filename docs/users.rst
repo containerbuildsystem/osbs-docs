@@ -226,3 +226,87 @@ These tags are applied to the manifest list or, if multi-platform
 image builds are not enabled (see :ref:`group_manifests
 <group-manifests>`), to the sole image manifest resulting from the
 build.
+
+Override Parent Image
+----------------------
+
+The parent image used for building a layered image is determined by the ``FROM``
+instruction in the Dockerfile by default. Users can override this behavior
+by specifying a koji parent build via the ``koji_parent_build`` API parameter.
+When given, the image reference in the provided koji parent build will be used as
+the value of the FROM instruction. The same source registry restrictions
+apply.
+
+Additionally, the koji parent build must use the same container image repository
+as the value of the FROM instruction in Dockerfile. For instance, if the
+Dockerfile states ``FROM fedora:27``, the koji parent build has to be of a
+container image that pushed to the ``fedora`` repository. The koji parent build
+may refer to a ``fedora:26`` image, but using a koji parent build for an image
+that was pushed to ``rsyslog`` will cause a build failure.
+
+This behavior requires koji integration to be enabled in the OSBS environment.
+
+Koji NVR
+--------
+
+When koji integration is enabled, every container image build requires a unique
+Name-Version-Release, NVR. The Name and Version are extracted from the **name**
+and **version** labels in Dockerfile. Users can also use the **release** label
+to hard code the release value, although this requires a git commit for every
+build to change the value. A better alternative is to leave off the **release**
+label which causes OSBS to query koji for what the next release value should be.
+This is done via koji's ``getNextRelease`` API method. In either case, the
+release value can also be overridden by using the ``release`` API parameter.
+
+Isolated Builds
+---------------
+
+When a build is created via OSBS, the built container image is pushed to the
+container registry updating various tag references in the container registry.
+Some of these tag references are unique, while others are meant to transition
+over time to reference a newer image, for instance ``latest`` and ``{version}``
+tags. In other words, building a container image usually updates these
+transient, non-unique, tags in container registry. In some cases, this is not
+desired.
+
+Consider the case of a container image that includes one, or more, packages that
+have recently been identified as containing security vulnerabilities. To address
+this issue, a new container image must be built. The difference for this build
+is that only changes related to the security fix must be applied. Any unrelated
+development that has occurred should be ignored. It would not be correct to
+update the ``latest`` tag reference with this build.  To achieve this, the
+concept of isolated builds was introduced.
+
+As an example, let's use the image ``rsyslog`` again. At some point the
+container image 7.4-2 is released (version 7.4, release 2). Soon after, minor
+bug fixes are addressed in 7.4-3, a new feature is added to 7.4-4, and so on. A
+security vulnerability is then discovered in the released image 7.4-2. To
+minimize disruption to users, you may want to build a patched version of 7.4-2,
+say 7.4-2.1. The packages installed in this new container image will differ from
+the former only when needed to address the security vulnerability. It will not
+include the minor bug fixes from 7.4-3, nor the new features added in 7.4-4. For
+this reason, updating the ``latest`` tag is considered incorrect.
+
+::
+
+    7.4 version
+    |
+    |____
+    |   |1 release
+    |
+    |__________________
+    |   |2 release    |2.1 release
+    |
+    |____
+    |   |3 release
+    |
+    |____
+    |   |4 release
+    |
+
+To start an isolated build, use the ``isolated`` boolean parameter. Due to the
+nature of isolated builds, the release value must be set via the ``release``
+parameter which must match the format ``^\d+\.\d+(\..+)?$``
+
+Isolated builds will only update the ``{version}-{release}`` unique tag and the
+primary tag in target container registry.
