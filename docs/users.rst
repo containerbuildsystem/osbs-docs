@@ -57,6 +57,7 @@ schema`_.
 .. _`container.yaml schema`: https://github.com/projectatomic/atomic-reactor/blob/master/atomic_reactor/schemas/container.json
 
 An example::
+
   platforms:
     # all these keys are optional
 
