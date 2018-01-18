@@ -44,7 +44,36 @@ Creating a build JSON
 Writing a Dockerfile
 --------------------
 
-.. _container.yaml:
+A Dockerfile is required for building container images in OSBS. It must be
+placed at the root of git repository. There can only be a single Dockerfile per
+git repository branch.
+
+Some labels are required to be defined:
+
+- ``com.redhat.component``: the value of this label is used when importing a
+  build into Koji via content generator API.
+- ``name``: value is used to define the repository name in container registry to
+  push built image. Limit this to lowercase alphanumerical values with the
+  possibility to use dash as a word separator. A single ``/`` is also allowed.
+  ``.`` is not allowed in the first section. For instance, **fed/rsys.log** and
+  **rsyslog** are allowed, but **fe.d/rsyslog** and **rsys.log** aren't.
+- ``version``: used as the version portion of Koji build NVR, as well as, for
+  the version tag in container repository.
+
+For example::
+
+    LABEL com.redhat.component=rsyslog-docker \
+          name=fedora/rsyslog \
+          version=32
+
+When OSBS builds a container image that defines the above labels, a Koji build
+will be created in the format rsyslog-docker-32-X. Where X is the release value.
+The container image will be available in container registry at:
+``my-container-registry.example.com/fedora/rsyslog:32``.
+
+The ``release`` label can also be used to specify the release value use for Koji
+build. When omitted, the release value will be automatically determined by
+querying Koji's getNextRelease API method.
 
 Image configuration
 -------------------
