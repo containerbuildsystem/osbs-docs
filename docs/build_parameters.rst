@@ -124,7 +124,7 @@ As an example, the **openshift** section will be replaced with the worker
 OpenShift cluster information.
 
 The base64 encoded YAML will match the schema described in
-``atomic_reactor/schemas.config.json``. The following properties will be added
+``atomic_reactor/schemas/config.json``. The following properties will be added
 to the root of the object::
 
     "koji": {
