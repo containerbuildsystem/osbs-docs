@@ -111,12 +111,12 @@ variable in the build container. For instance::
     apiVersion: v1
     kind: ConfigMap
     data:
-        "config.yaml": <base64 encoded yaml>
+        "config.yaml": <encoded yaml>
 
 For worker builds, the **REACTOR_CONFIG** environment variable will be defined
 inline via **value**, instead of **valueFrom**. The ``orchestrate_build`` plugin
 will read the environment variable from its own running environment, encode its
-value in base64, and set environment variable **REACTOR_CONFIG** in the
+value with ``yaml.safe_dump``, and set environment variable **REACTOR_CONFIG** in the
 ``Build``/``BuildConfig`` object for each worker build. This will ensure
 environment parameters are used consistently throughout orchestrator and worker
 builds. The plugin will also substitute any environment configuration if needed.
