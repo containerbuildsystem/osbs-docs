@@ -123,394 +123,26 @@ builds. The plugin will also substitute any environment configuration if needed.
 As an example, the **openshift** section will be replaced with the worker
 OpenShift cluster information.
 
-The base64 encoded YAML will match the schema described in
-``atomic_reactor/schemas/config.json``. The following properties will be added
-to the root of the object::
+The schema `config.json`_ in atomic-reactor has been defined to validate the
+new additional properties. The schema definition contains descriptions for each
+property.
 
-    "koji": {
-        "description": "Koji instance",
-        "type": "object",
-        "properties": {
-            "hub_url": {
-                "description": "Koji hub's xmlrpc url",
-                "type": "string"
-            },
-            "root_url": {
-                "description": "Koji's root storage url",
-                "type": "string"
-            },
-            "auth": {
-                "description": "Authentication information",
-                "type": "object",
-                "properties": {
-                    "proxyuser": {
-                        "description": "Login as different user",
-                        "type": "string"
-                    },
-                    "ssl_certs_dir": {
-                        "description": "Path to directory with cert and ca files",
-                        "type": "string"
-                    },
-                    "krb_cache_path": {
-                        "description": "Path to kerberos credential cache file",
-                        "type": "string"
-                    },
-                    "krb_principal": {
-                        "description": "Kerberos principal",
-                        "type": "string"
-                    },
-                    "krb_keytab_path": {
-                        "description": "Location of Kerberos keytab, e.g. FILE:<absolute_path>",
-                        "type": "string"
-                    }
-                },
-                "additionalProperties": false,
-                "anyOf": [
-                    {
-                        "required": ["ssl_certs_dir"]
-                    },
-                    {
-                        "required": ["krb_principal", "krb_keytab_path"]
-                    },
-                    {
-                        "required": []
-                    }
-                ]
-            },
-            "additionalProperties": false,
-            "required": ["hub_url", "root_url", "auth"]
-        }
-    },
-    "pulp": {
-        "description": "Pulp registry instance",
-        "type": "object",
-        "properties": {
-            "name": {
-                "description": "Pulp registry name, specified in /etc/dockpulp.conf",
-                "type": "string"
-            },
-            "auth": {
-                "description": "Authentication information",
-                "type": "object",
-                "properties": {
-                    "ssl_certs_dir": {
-                        "description": "Path to directory with pulp.cer and pulp.key files",
-                        "type": "string"
-                    },
-                    "username": {
-                        "description": "Pulp username",
-                        "type": "string"
-                    },
-                    "password": {
-                        "description": "Pulp password",
-                        "type": "string"
-                    }
-                },
-                "additionalProperties": false,
-                "anyOf": [
-                    {
-                        "required": ["ssl_certs_dir"]
-                    },
-                    {
-                        "required": ["username", "password"]
-                    },
-                ]
-            }
-        },
-        "additionalProperties": false,
-        "required": ["name", "auth"]
-    },
-    "odcs": {
-        "description": "OnDemand Compose Service (ODCS) instance",
-        "type": "object",
-        "properties": {
-            "api_url": {
-                "description": "ODCS api url, including api version",
-                "type": "string"
-            },
-            "insecure": {
-                "description": "Don't check SSL certificate for api_url",
-                "type": "boolean"
-            },
-            "auth": {
-                "description": "Authentication information",
-                "type": "object",
-                "properties": {
-                    "ssl_certs_dir": {
-                        "description": "Path to directory with cert file",
-                        "type": "string"
-                    },
-                    "openidc_dir": {
-                        "description": "Path to directory with token file",
-                        "type": "string"
-                    }
-                },
-                "additionalProperties": false,
-                "anyOf": [
-                    {
-                        "required": ["ssl_certs_dir"]
-                    },
-                    {
-                        "required": ["openidc_dir"]
-                    }
-                ]
-            }
-        },
-        "additionalProperties": false,
-        "required": ["api_url", "auth"]
-    },
-    "smtp": {
-        "description": "SMTP notifications",
-        "type": "object",
-        "properties": {
-            "host": {
-                "description": "SMTP host server name",
-                "type": "string"
-            },
-            "from_address": {
-                "description": "From email address in notification email",
-                "type": "string"
-            },
-            "additional_addresses": {
-                "description": "Email addresses to always send notification email",
-                "type": "array",
-                "items": {
-                    "type": "string"
-                }
-            },
-            "error_addresses": {
-                "description": "Email addresses to send notifications if no other email address can be resolved",
-                "type": "array",
-                "items": {
-                    "type": "string"
-                }
-            },
-            "domain": {
-                "description": "Domain used when constructing email addresses",
-                "type": "string"
-            },
-            "send_to_submitter": {
-                "description": "Send email notification to Koji task submitter",
-                "type": "boolean"
-            },
-            "send_to_pkg_owner": {
-                "description": "Send email notification to Koji package owner",
-                "type": "boolean"
-            },
-            "additionalProperties": false,
-            "required": ["url", "from_address"]
+.. _`config.json`: https://github.com/projectatomic/atomic-reactor/blob/master/atomic_reactor/schemas/config.json
 
+Example of **REACTOR_CONFIG**::
 
-        }
-    },
-    "pdc": {
-        "description": "Product Definition Center (PDC) instance",
-        "type": "object",
-        "properties": {
-            "api_url": {
-                "description": "PDC api url, including api version",
-                "type": "string"
-            },
-            "insecure": {
-                "description": "Don't check SSL certificate for api_url",
-                "type": "boolean"
-            }
-        },
-        "additionalProperties": false,
-        "required": ["api_url"]
-    },
-    "arrangement_version": {
-        "description": "Arrangement version",
-        "type": "integer"
-    },
-    "artifacts_allowed_domains": {
-        "description": "Domains allowed to use when fetching artifacts by url",
-        "type": "array",
-        "items": {
-            "type": "string"
-        }
-    },
-    "image_labels": {
-        "description": "Labels to be applied to container image",
-        "type": "object",
-        "patternProperties": {
-            "^[\w\.-]+$": {"type": "string"}
-        },
-        "additionalProperties": false
-    },
-    "image_equal_labels": {
-        "description": "Labels that are expected to be equal in value",
-        "type": "array",
-        "items" : {
-            "type": "array",
-            "items": {
-                "type": "string"
-            }
-        }
-    },
-    "openshift": {
-        "description": "OpenShift instance running build",
-        "type": "object",
-        "properties": {
-            "url": {
-                "description": "OpenShift url",
-                "type": "string"
-            },
-            "insecure": {
-                "description": "Don't check SSL certificate for url",
-                "type": "boolean"
-            }
-            "auth": {
-                "description": "Authentication information",
-                "type": "object",
-                "properties": {
-                    "enable": {
-                        "description": "Enable authentication",
-                        "type": "boolean"
-                    },
-                    "ssl_certs_dir": {
-                        "description": "Path to directory with cert, key and ca files",
-                        "type": "string"
-                    },
-                    "krb_cache_path": {
-                        "description": "Path to kerberos credential cache file",
-                        "type": "string"
-                    },
-                    "krb_principal": {
-                        "description": "Kerberos principal",
-                        "type": "string"
-                    },
-                    "krb_keytab_path": {
-                        "description": "Location of Kerberos keytab, e.g. FILE:<absolute_path>",
-                        "type": "string"
-                    }
-                },
-                "additionalProperties": false,
-                "anyOf": [
-                    {
-                        "required": ["krb_principal", "krb_keytab_path"]
-                    },
-                    {
-                        "required": []
-                    },
-                ]
-            },
-            "additionalProperties": false,
-            "required": ["url"]
-        },
-        "additionalProperties": false,
-        "required": ["url"]
-    },
-    "group_manifests": {
-        "description": "Create manifest list, or image index, in container registry"
-        "type": "boolean"
-    },
-    "platform_descriptors": {
-        "description": "Definition of supported platforms",
-        "type": "array",
-        "items": {
-            "type": "object",
-            "properties": {
-                "platform": {
-                    "type": "string"
-                },
-                "architecture": {
-                    "type": "string"
-                },
-                "enable_v1": {
-                    "type": "boolean"
-                }
-            },
-            "additionalProperties": false
-        }
-    },
-    "prefer_schema1_digest": {
-        "description": "schema 1 as preferred digest",
-        "type": "boolean"
-    },
-    "content_versions": {
-        "description": "Produce container image of given version",
-        "type": "array",
-        "items": {
-            "type": "string",
-            "enum": ["v1", "v2"]
-        }
-    },
-    "registries": {
-        "description": "Container registries to output images",
-        "type": "array",
-        "items": {
-            "type": "object",
-            "properties": {
-                "url": {
-                    "description": "Registry URI including version",
-                    "type": "string"
-                },
-                "insecure": {
-                    "description": "Don't check SSL certificate for url",
-                    "type": "boolean"
-                },
-                "auth": {
-                    "description": "Authentication information",
-                    "type": "object",
-                    "properties": {
-                        "cfg_path": {
-                            "description": "Path to directory  containing .dockercfg for registry auth",
-                            "type": "string"
-                        }
-                    },
-                    "additionalProperties": false,
-                    "required": ["cfg_path"]
-                }
-            },
-            "additionalProperties": false,
-            "required": ["url"]
-        }
-    },
-    "yum_proxy": {
-        "description": "Proxy to access yum repositories",
-        "type": "string"
-    },
-    "source_registry": {
-        "description": "Container registry to pull parent images",
-        "type": "object",
-        "properties": {
-            "url": {
-                "description": "Registry url",
-                "type": "string"
-            },
-            "insecure": {
-                "description": "Don't check SSL certificate for url",
-                "type": "boolean"
-            }
-        },
-        "additionalProperties": false,
-        "required": ["url"]
-    },
-    "sources_command": {
-        "description": "Command to retrieve artifacts in lookaside cache",
-        "type": "string"
-    },
-    "required_secrets": {
-        "description": "List of OpenShift secrets required by this configuration",
-        "type": "array",
-        "items": {
-            "type": "string"
-        }
-    },
-    "worker_token_secrets": {
-        "description": "List of OpenShift secrets for worker clusters authentication",
-        "type": "array",
-        "items": {
-            "type": "string"
-        }
-    },
-    "build_json_dir": {
-        "description": "Path to directory containing Json files templates for osbs-client lib",
-        "type": "string"
-    }
+    version: 1
 
-Example::
+    clusters:
+        x86_64:
+        - name: x86_64-worker-1
+          max_concurrent_builds: 15
+          enabled: True
+        - name: x86_64-worker-2
+          max_concurrent_builds: 6
+          enabled: True
+
+    clusters_client_config_dir: /var/run/secrets/atomic-reactor/client-config-secret
 
     koji:
         hub_url: https://koji.example.com/hub
@@ -527,6 +159,14 @@ Example::
         api_url: https://odcs.example.com/api/1
         auth:
             ssl_certs_dir: /var/run/secrets/atomic-reactor/odcssecret
+        signing_intents:
+        - keys: ['R123', 'R234']
+          name: release
+        - keys: ['B123', 'B234', 'R123', 'R234']
+          name: beta
+        - keys: []
+          name: unsigned
+        default_signing_intent: release
 
     smtp:
         host: smtp.example.com
@@ -547,7 +187,7 @@ Example::
     - download.example.com/candidates
 
     image_labels:
-        vendor: "Spam Inc."
+        vendor: "Spam, Inc."
         authoritative-source-url: registry.public.example.com
         distribution-scope: public
 
@@ -558,6 +198,7 @@ Example::
         url: https://openshift.example.com
         auth:
             enable: True
+        build_json_dir: /usr/share/osbs/
 
     group_manifests: False
 
@@ -572,7 +213,8 @@ Example::
 
     registries:
     - url: https://container-registry.example.com/v2
-      auth: /var/run/secrets/atomic-reactor/v2-registry-dockercfg
+      auth:
+        cfg_path: /var/run/secrets/atomic-reactor/v2-registry-dockercfg
 
     source_registry:
         url: https://registry.private.example.com
@@ -584,12 +226,11 @@ Example::
     - pulpsecret
     - odcssecret
     - v2-registry-dockercfg
+    - client-config-secret
 
     worker_token_secrets:
     - x86-64-worker-1
     - x86-64-worker-2
-
-    build_json_dir: /usr/share/osbs/
 
 
 Secrets
