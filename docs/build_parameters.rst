@@ -114,20 +114,22 @@ variable in the build container. For instance::
         "config.yaml": <encoded yaml>
 
 For worker builds, the **REACTOR_CONFIG** environment variable will be defined
-inline via **value**, instead of **valueFrom**. The ``orchestrate_build`` plugin
-will read the environment variable from its own running environment, encode its
-value with ``yaml.safe_dump``, and set environment variable **REACTOR_CONFIG** in the
-``Build``/``BuildConfig`` object for each worker build. This will ensure
-environment parameters are used consistently throughout orchestrator and worker
-builds. The plugin will also substitute any environment configuration if needed.
-As an example, the **openshift** section will be replaced with the worker
-OpenShift cluster information.
+inline via **value**, instead of **valueFrom**. This will be handled via the new
+**reactor_config_override** build parameter in osbs-client. To populate this
+parameter, the ``orchestrate_build`` plugin will use the ``reactor_config``
+plugin to read the reactor configuration for orchestrator build which will be
+the basis of the reactor configuration used for worker builds with the following
+modifications:
+
+- **openshift** section will be replaced with worker specific values. These
+  values can be read from the osbs-client ``Configuration`` object created for
+  each worker cluster.
+- **worker_token_secrets** will be completely removed. This section is intended
+  for orchestrator builds only.
 
 The schema `config.json`_ in atomic-reactor has been defined to validate the
-new additional properties. The schema definition contains descriptions for each
+new additional properties. The schema definition contains description for each
 property.
-
-.. _`config.json`: https://github.com/projectatomic/atomic-reactor/blob/master/atomic_reactor/schemas/config.json
 
 Example of **REACTOR_CONFIG**::
 
@@ -290,6 +292,13 @@ the name of the ``ConfigMap`` object holding **reactor_config**. This
 configuration option will be mandatory for arrangement versions greater than or
 equal to 6. The existing osbs-client configuration **reactor_config_secret**
 will be deprecated (for all arrangements).
+
+A new osbs-client build parameter **reactor_config_override** will be added to
+allow reactor configuration to be passed in as a python dict. This dict will
+also be validated against `config.json`_ schema. When both
+**reactor_config_map** and **reactor_config_override** are defined,
+**reactor_config_override** takes precedence. NOTE: **reactor_config_override**
+is a python dict, not a string of serialized data.
 
 As any new arrangement version, this will be the default.
 
@@ -479,3 +488,7 @@ Site Customization
 The site customization configuration file will no longer be read from the system
 which created the OpenShift ``Build``, usually koji builder. Instead, this
 customization file will be read from the builder image.
+
+
+.. _`config.json`: https://github.com/projectatomic/atomic-reactor/blob/master/atomic_reactor/schemas/config.json
+
