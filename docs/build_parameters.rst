@@ -111,7 +111,7 @@ variable in the build container. For instance::
     apiVersion: v1
     kind: ConfigMap
     data:
-        "reactor-config": <base64 encoded yaml>
+        "config.yaml": <base64 encoded yaml>
 
 For worker builds, the **REACTOR_CONFIG** environment variable will be defined
 inline via **value**, instead of **valueFrom**. The ``orchestrate_build`` plugin
