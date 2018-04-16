@@ -75,6 +75,8 @@ The ``release`` label can also be used to specify the release value use for Koji
 build. When omitted, the release value will be automatically determined by
 querying Koji's getNextRelease API method.
 
+.. _image-configuration:
+
 Image configuration
 -------------------
 
@@ -87,6 +89,7 @@ schema`_.
 
 An example::
 
+  ---
   platforms:
     # all these keys are optional
 
@@ -95,6 +98,21 @@ An example::
     - ppc64le
     - armhfp
     not: armhfp
+
+  compose:
+    # used for requesting ODCS compose of type "tag"
+    packages:
+    - nss_wrapper  # package name, not an NVR.
+    - httpd
+    - httpd-devel
+    # used for requesting ODCS compose of type "pulp"
+    pulp_repos: true
+    # used for requesting ODCS compose of type "module"
+    modules:
+    - "module_name1:stream1"
+    - "module_name2:stream1"
+    # Possible values, and default, are configured in OSBS environment.
+    signing_intent: release
 
 platforms
 ~~~~~~~~~
@@ -112,6 +130,59 @@ only
 not
   list of platform names (or a single platform name as a string);
   this restricts the platforms to build for using set difference
+
+compose
+~~~~~~~
+
+This section is used for requesting yum repositories at build time. When this
+section is defined, a compose will be requested by using ODCS.
+
+packages
+  list of package names to be included in ODCS compose. Package in this case
+  refers to the "name" portion of the NVR (name-version-release) of an RPM, not
+  the Koji package name. Packages will be selected based on the Koji build tag
+  of the Koji build target used. The following command is useful in determining
+  which packages are available in a given Koji build tag:
+  ``koji list-tagged --inherit --latest TAG``
+
+pulp_repos
+  boolean to control whether or not an ODCS compose of type "pulp" should be
+  requested. If set to true, ``content_sets.yml`` must also be provided. A
+  compose will be requested for each architecture in ``content_sets.yml``.
+
+modules
+  list of modules for requesting ODCS compose of type "module".
+
+signing_intent
+  used for verifying packages in yum repositories are signed with expected
+  signing keys. The possible values for signing intent are defined in OSBS
+  environment. See :ref:`config.yaml-odcs` section for environment configuration
+  details, and full explanation of :ref:`signing-intent`.
+
+**If "compose" section is defined, non-empty list of "modules" or "packages" must
+be provided, or "pulp_repos" set to true. Otherwise, build will fail.**
+
+**The "packages" and "modules" keys are mutually exclusive. If both are
+provided, "modules" will be ignored. "pulp_repos" can be used by itself, or with
+either "packages" or "modules".**
+
+
+Content Sets
+------------
+
+This files is used to define the content sets relevant to the container image.
+This is relevant if RPM packages in container image are in pulp repositories.
+
+An example::
+
+  ---
+  x86_64:
+  - server-rpms
+  - server-extras-rpms
+
+  ppx64le:
+  - server-for-power-le-rpms
+  - server-extras-for-power-le-rpms
 
 Using Artifacts from Koji
 -------------------------
@@ -340,3 +411,118 @@ parameter which must match the format ``^\d+\.\d+(\..+)?$``
 
 Isolated builds will only update the ``{version}-{release}`` unique tag and the
 primary tag in target container registry.
+
+Yum repositories
+----------------
+
+In most cases, part of the process of building container images is to install
+RPM packages. These packages must come from yum repositories. There are various
+methods for making a yum repository available for your container build.
+
+ODCS compose
+~~~~~~~~~~~~
+
+The preferred method for injecting yum repositories in container builds is by
+enabling ODCS integration via the "compose" key in ``container.yaml``. See
+:ref:`image-configuration` and :ref:`signing-intent` for details.
+
+RHEL subscription
+~~~~~~~~~~~~~~~~~
+
+If the underlying host is Red Hat Enterprise Linux (RHEL), its subscriptions
+will be made available during container builds. Note that changes in the
+underlying host to enable/disable yum repositories is not reflected in container
+builds. ``Dockerfile`` must explicitly enable/disable yum repositories as
+needed. Although this is desirable in most cases, in an OSBS deployment it can
+cause unexpected behavior. It's recommended to disable subscription for RHEL
+hosts when they are being used by OSBS.
+
+Yum repository URL
+~~~~~~~~~~~~~~~~~~
+
+As part of a build request, you may provide the ``repo-url`` parameter with the
+URL to a yum repository file. This file is injected into the container build.
+Note that "ODCS compose" method is disabled if this parameter is given.
+
+Koji tag
+~~~~~~~~
+
+When Koji integration is enabled, a Koji build target parameter is provided. The
+yum repository for the build tag of target is automatically injected in
+container build. This behavior is disabled if either "ODCS compose" or "Yum
+repository URL" are used.
+
+.. _signing-intent:
+
+Signing intent
+--------------
+
+When the "compose" section in ``container.yaml`` is defined, ODCS composes will
+be requested at build time. ODCS is aware of RPM package signatures and can be
+used to ensure that only signed packages are added to the generated yum
+repositories. Ultimately, this can be used to ensure a container image only
+contains packages signed by known signing keys.
+
+Signing intents are an abstraction for signing keys. It allows the OSBS
+environment administrator to define which signing keys are valid for different
+types of releases. See :ref:`config.yaml-odcs` section for details.
+
+For instance, an environment may provide the following signing intents:
+``release``, ``beta``, and ``unsigned``. Each one of those intents is then
+mapped to a list of signing keys. These signing keys are then used during ODCS
+compose creation. The packages to be included must have been signed by any of
+the signing keys listed. In the example above, the intents could be mapped to
+the following keys::
+
+    # Only include packages that have been signed by "my-release-key"
+    release -> my-release-key
+    # Include packages that have been signed by either "my-beta-key" or
+    # "my-release-key"
+    beta -> my-beta-key, my-release-key
+    # Do not check signature of packages - may include unsigned packages
+    unsigned -> <empty>
+
+The signing intents are also defined by their restrictive order, which will be
+enforced when building layered images. For instance, consider the case of two
+images, X and Y. Y uses X as its parent image (FROM X). If image X was built
+with "beta" intent, image Y's intent can only be "beta" or "unsigned". If the
+dist-git repo for image Y has it configured to use "release" intent, this value
+will be downgraded to "beta" at build time.
+
+Automatically downgrading the signing intent, instead of failing the build, is
+important for allowing a hierarchy of layered images to be built automatically
+by ``ImageChangeTriggers``. For instance, with Continuous Integration in mind, a
+user may want to perform daily builds without necessarily requiring signed
+packages, while periodically also producing builds with signed content. In this
+case, the ``signing_intent`` in ``container.yaml`` can be set to ``release`` for
+all the images in hierarchy. Whether or not the layered images in the hierarchy
+use signed packages can be controlled by simply overriding the signing intent of
+the top most ancestor image. The signing intent of the layered images would then
+be automatically adjusted as needed.
+
+In the case where multiple composes are used, the least restrictive intent is
+used. Continuing with our previous signing intent example, let's say a container
+image build request uses two composes. Compose 1 was generated with no signing
+keys provided, and compose 2 was generated with "my-release-key". In this case,
+the intent is "unsigned".
+
+Compose IDs can be passed in to OSBS in a build request. If one or more compose
+IDs are provided, OSBS will classify the intent of the existing compose. This
+is done by inspecting the signing keys used for generating the compose and
+performing a reverse mapping to determine the signing intent. If a match cannot
+be determined, the build will fail. Note that if given compose is expired or
+soon to be expired, OSBS will automatically renew it.
+
+The ``signing_intent`` specified in ``container.yaml`` can be overridden with
+the build parameter of same name. This particular parameter will be ignored for
+autorebuilds. The value in ``container.yaml`` should always be used in that
+case. Note that the signing intent used by the compose of parent image is still
+taken into account which may lead to downgrading signing intent for the layered
+image.
+
+The Koji build metadata will contain a new key,
+``build.extra.image.odcs.signing_intent_overridden``, to indicate whether or not
+the ``signing_intent`` was overridden (CLI parameter, automatically downgraded,
+etc). This value will only be ``true`` if
+``build.extra.image.odcs.signing_intent`` does not match the ``signing_intent``
+in ``container.yaml``.
