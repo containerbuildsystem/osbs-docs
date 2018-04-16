@@ -251,11 +251,10 @@ builds.
 Arrangement version 5 (ODCS Integration)
 ----------------------------------------
 
-This arrangement builds on version 4. The ``resolve_composes`` plugin
-enables integration with `odcs`_. See `ODCS Integration`_ for details.
+This arrangement builds on version 4. The ``resolve_composes`` plugin enables
+integration with `odcs`_. See :ref:`yum-repositories-odcs-compose` for details.
 
 .. _`odcs`: https://pagure.io/odcs
-.. _`ODCS Integration`: odcs.html
 
 - worker build
 
