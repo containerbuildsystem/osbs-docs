@@ -141,11 +141,13 @@ Server-side Configuration for atomic-reactor
 
 This will list the maximum number of jobs that should be active at any
 given time for each cluster. It will also list worker clusters in
-order of preference.
+order of preference. It may also contain additional environment configuration
+such as ODCS integration.
 
 The runtime configuration will take the form of a Kubernetes secret
 with content as in the example below::
 
+  ---
   clusters:
     x86_64:
     - name: prod-x86_64-osd
@@ -161,6 +163,18 @@ with content as in the example below::
     - name: prod-ppc64le
       max_concurrent_builds: 6
 
+  odcs:
+    signing_intents:
+    - name: release
+      keys: [AB123]
+    - name: beta
+      keys: [BT456, AB123]
+    - name: unsigned
+      keys: []
+    # Value must match one of the names above.
+    default_signing_intent: release
+
+
 .. _config.yaml-clusters:
 
 clusters
@@ -171,7 +185,7 @@ build limits. For each platform to build for, a worker cluster is
 chosen as follows:
 
 - clusters with the enabled key set to false are discarded
-  
+
 - each remaining cluster in turn will be queried to discover all
   currently active worker builds (not failed, complete, in error, or
   cancelled)
@@ -196,6 +210,21 @@ configured capacity.
 This mechanism can also be used to temporarily disable a worker
 cluster by removing it from the list or adding ``enabled: false`` to
 the cluster description for each platform.
+
+.. _config.yaml-odcs:
+
+odcs
+''''
+
+Section used for ODCS related configuration.
+
+signing_intents
+  List of signing intents in their restrictive order.
+
+default_signing_intent
+  Name of the default signing intent to be used when one is not provided
+  in ``container.yaml``.
+
 
 Setting up koji for container image builds
 ------------------------------------------
