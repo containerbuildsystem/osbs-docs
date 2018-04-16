@@ -131,6 +131,8 @@ not
   list of platform names (or a single platform name as a string);
   this restricts the platforms to build for using set difference
 
+.. _container.yaml-compose:
+
 compose
 ~~~~~~~
 
@@ -145,10 +147,12 @@ packages
   which packages are available in a given Koji build tag:
   ``koji list-tagged --inherit --latest TAG``
 
+
 pulp_repos
   boolean to control whether or not an ODCS compose of type "pulp" should be
   requested. If set to true, ``content_sets.yml`` must also be provided. A
   compose will be requested for each architecture in ``content_sets.yml``.
+  See :ref:`content_sets.yml`.
 
 modules
   list of modules for requesting ODCS compose of type "module".
@@ -167,11 +171,15 @@ provided, "modules" will be ignored. "pulp_repos" can be used by itself, or with
 either "packages" or "modules".**
 
 
+.. _content_sets.yml:
+
 Content Sets
 ------------
 
-This files is used to define the content sets relevant to the container image.
-This is relevant if RPM packages in container image are in pulp repositories.
+The file ``content_sets.yml`` is used to define the content sets relevant to the
+container image.  This is relevant if RPM packages in container image are in
+pulp repositories. See ``pulp_repos`` in :ref:`container.yaml-compose` for how
+this file is used during build time.
 
 An example::
 
@@ -418,6 +426,8 @@ Yum repositories
 In most cases, part of the process of building container images is to install
 RPM packages. These packages must come from yum repositories. There are various
 methods for making a yum repository available for your container build.
+
+.. _yum-repositories-odcs-compose:
 
 ODCS compose
 ~~~~~~~~~~~~
