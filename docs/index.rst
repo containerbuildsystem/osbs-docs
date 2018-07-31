@@ -26,9 +26,9 @@ Table of Contents
     admins
     users
     build_process
+    build_parameters
     contributors
     reference_docs
-    design
 
 
 Indices and tables
