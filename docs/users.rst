@@ -170,6 +170,15 @@ be provided, or "pulp_repos" set to true. Otherwise, build will fail.**
 provided, "modules" will be ignored. "pulp_repos" can be used by itself, or with
 either "packages" or "modules".**
 
+.. _container.yaml-autorebuild:
+
+autorebuild
+~~~~~~~~~~~
+
+This section specifies whether and how a build should be rebuilt based on
+changes to the base parent image.
+
+TODO
 
 .. _content_sets.yml:
 

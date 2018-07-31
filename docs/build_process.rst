@@ -266,6 +266,25 @@ integration with `odcs`_. See :ref:`yum-repositories-odcs-compose` for details.
 
 .. _`logging`:
 
+Arrangement Version 6 (reactor_config_map)
+------------------------------------------
+
+In this arrangement version, environment parameters are provided by **reactor_config**.
+The order of plugins is the same, but hard coded, or placeholder, environment
+parameters in **orchestrator_inner** and **worker_inner** json files change.
+
+An osbs-client configuration option **reactor_config_map** is required to define
+the name of the ``ConfigMap`` object holding **reactor_config**. This
+configuration option is mandatory for arrangement versions greater than or
+equal to 6. The existing osbs-client configuration **reactor_config_secret**
+is be deprecated (for all arrangements).
+
+For more details on how the build system is configured as of
+Arrangement 6, consult the `Build Parameters`_ document.
+
+.. _`Build Parameters`: build_parameters
+
+
 Logging
 -------
 
@@ -359,3 +378,18 @@ Note:
 - where the worker build log line had no timestamp (perhaps the log
   line had an embedded newline, or was logged outside the adapter
   using a different format), the line was left alone
+
+
+Autorebuilds
+------------
+
+OSBS’s autorebuild feature automatically starts new builds of layered images
+whenever the base parent image changes. This is particularly useful for image
+owners that maintain a large hierarchy of images, which would otherwise require
+manually starting each image build in the correct order.  Instead, image owners
+can start a build for the topmost ancestor which upon completion triggers the
+next level of layered images, and so on.
+
+Builds may opt in to autorebuilds with an
+:ref:`autorebuild entry in the dist-git configuration. <container.yaml-autorebuild>`
+
