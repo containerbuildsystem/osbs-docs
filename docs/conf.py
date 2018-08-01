@@ -50,8 +50,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'OSBS'
-copyright = u'2016, Luiz Carvalho'
-author = u'Luiz Carvalho'
+copyright = u'2016-2018, Red Hat, Inc.'
+author = u'Luiz Carvalho, Luke Meyer'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
