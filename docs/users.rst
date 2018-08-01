@@ -182,6 +182,26 @@ TODO
 
 .. _content_sets.yml:
 
+image_build_method
+~~~~~~~~~~~~~~~~~~
+
+This string indicates which build-step plugin to use in order to perform the
+layered image build, on a per-image basis. The **docker_api** plugin uses
+the docker-py module to run the build via the Docker API, while the
+**imagebuilder** plugin uses the imagebuilder_ utility to do the same.
+Both have similar capabilities, but the **imagebuilder** plugin brings two
+advantages:
+
+1. It performs all changes made in the build in a single layer, which is
+   a little more efficient and removes the need to squash layers afterward.
+2. It can perform multistage builds without requiring Docker 17+ (which
+   Red Hat and Fedora do not support).
+
+In order to use the **imagebuilder** plugin, the imagebuilder_ binary must be
+available and in the PATH for the builder image, or an error will result.
+
+.. _imagebuilder: https://github.com/openshift/imagebuilder/
+
 Content Sets
 ------------
 
@@ -545,3 +565,51 @@ the ``signing_intent`` was overridden (CLI parameter, automatically downgraded,
 etc). This value will only be ``true`` if
 ``build.extra.image.odcs.signing_intent`` does not match the ``signing_intent``
 in ``container.yaml``.
+
+Multistage builds
+-----------------
+
+Often users may wish to build an image directly from project sources (rather
+than intermediate build artifacts), but not include the sources or toolchain
+necessary for compiling the project in the final image. Multistage builds are a
+simple solution.
+
+Multistage refers to container image builds with at least two stages in the
+Dockerfile; initial stage(s) provide a build environment and produce some kind
+of artifact(s) which in the final stage are copied into a clean base image. The
+most obvious signature of a multistage build is that the Dockerfile has more
+than one "FROM" statement. For example::
+
+    FROM toolchain:latest AS builder1
+    ADD .
+    RUN make artifact
+
+    FROM base:release
+    COPY --from=builder1 artifact /dest/
+
+In most respects, multistage builds operate very similarly to multiple
+single-stage builds; the results from initial stage(s) are simply not tagged or
+used except by later ``COPY --from`` statements. Refer to `Docker multistage
+docs`_ for complete details.
+
+.. _`Docker multistage docs`: https://docs.docker.com/develop/develop-images/multistage-build/
+
+In OSBS, multistage builds require using the **imagebuilder** plugin, which
+can be configured as the system default or per-image in ``container.yaml``.
+
+In a multistage build, yum repositories are made available in all stages. The
+build may have multiple parent builds, as each stage may specify a different
+image. The parent images FROM initial stages are pulled and rewritten similarly
+as the parent in the final stage (known as the "base image").  Note that ENV
+and LABEL entries from earlier stages do not affect later stages.
+
+Note that the ``COPY --from=<image>`` form (with a full image specification as
+opposed to a stage alias) should not be used in OSBS builds. It works, but the
+image used is not treated as other parents are (rewritten, etc). To achieve the
+same effect, specify such images with another stage, for example::
+
+    FROM registry.example.com/image:tag AS source1
+    FROM base
+    COPY --from=source1 src/ dest/
+
+

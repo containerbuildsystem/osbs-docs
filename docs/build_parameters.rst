@@ -164,6 +164,9 @@ Example of **REACTOR_CONFIG**::
     - x86-64-worker-1
     - x86-64-worker-2
 
+    default_image_build_method: imagebuilder
+
+
 Atomic Reactor Plugins and Arrangement Version 6
 """"""""""""""""""""""""""""""""""""""""""""""""
 
