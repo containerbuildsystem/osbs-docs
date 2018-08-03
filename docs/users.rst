@@ -114,6 +114,8 @@ An example::
     # Possible values, and default, are configured in OSBS environment.
     signing_intent: release
 
+   image_build_method: docker_api
+
 platforms
 ~~~~~~~~~
 

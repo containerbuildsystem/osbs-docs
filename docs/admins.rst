@@ -35,7 +35,7 @@ reactor_config_map
 
 ``reactor_config_map`` specifies the name of a
 Kubernetes configmap holding :ref:`config.yaml`. A pre-build plugin will
-be configured with the location this secret is mounted.
+read its value from REACTOR_CONFIG environment variable.
 
 .. _client_config_secret:
 
@@ -119,52 +119,16 @@ the x86_64 platform will publish v1 images as well as v2 images. Other
 platforms on instance1, and all platforms on instance2, will only
 publish v2 images.
 
-Autorebuilds and OSBS updates
+build_from
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-OSBS’s autorebuild feature automatically starts new builds of layered images
-whenever the base parent image changes. This has implications for supporting
-these builds across OSBS updates.
-
-A code release of OSBS tooling means changing the build image (AKA "buildroot",
-specified as ``build_from`` in ``osbs.conf``) to be used for building
-containers.
-
-The build image used for building container images is defined
-in the ``Build``/``BuildConfig`` OpenShift objects under
+Specifies the build image (AKA "buildroot") to be used for building container
+images, to be set in the ``Build``/``BuildConfig`` OpenShift objects under the
 ``.spec.strategy.customStrategy.from`` object. This can be a full reference to
 a specific container image in a container registry; or it can reference an
 ImageStreamTag object.
 
-Any explicit container image build will put the newer build image as configured
-into the ``BuildConfig`` object. But for autorebuilds, the ``BuildConfig``
-objects are not updated; when OpenShift detects a change in parent image and
-starts a new build for the layered image, it will use the outdated build image.
-
-Updating ``BuildConfig`` objects after OSBS updates
-'''''''''''''''''''''''''''''''''''''''''''''''''''
-
-To work around this limitation, image owners could start explicit builds for
-each image in the hierarchy of images to update the underlying ``BuildConfig``
-object to use the newer build image. But this is a tedious and error-prone
-approach.
-
-Latest Released Build Image
-'''''''''''''''''''''''''''
-
-To avoid having to update each ``BuildConfig`` object to use a newer build
-image, the build image should be specified with a transient tag. Transient
-tags are those that are meant to reference different images over time. To use a
-newer build image, simply move the transient tag to reference it. For instance,
-say we have an ``ImageStream`` called **my-build-image** which tracks a remote
-container repository. The transient tag **released** is used to track the
-latest build image that should be used. The ``BuildConfig`` objects define the
-``ImageStreamTag`` object **my-build-image:released** is used to track the
-build image. To start using a newer build image, simply tag the newer build
-image with **released** tag.
-
-This can be done when either ``DockerImage``, or ``ImageStreamTag`` types are
-used.
+Updating this globally effectively deploys a different version of OSBS.
 
 Deploy OSBS on OpenShift
 ------------------------
@@ -407,7 +371,7 @@ algorithm does not support setting a priority value for a given build. To
 achieve some sort of build prioritization, we can leverage node selectors to
 allocate different resources to different build types.
 
-Consider the following types of container builds builds:
+Consider the following types of container builds:
 
 - *scratch build*
 - *explicit build*
@@ -501,5 +465,5 @@ builder capacity should be set based on how many nodes allow **scratch builds**
 and/or **explicit builds**. In the example above, there are 4 nodes that allow
 such builds.
 
-Providing the osbs-client logs in the Koji task should give users a better
+The log file, *osbs-client.log*, in a Koji task gives users a better
 understanding of any delays due to scheduling.
