@@ -34,11 +34,20 @@ the pull request is merged.
 
 Before a pull request is approved it must meet these criteria:
 
-- unit tests pass
+- Commit messages are descriptive enough
 
-- code coverage from testing does not decrease and new code is covered
+- "Signed-off-by:" line is present in each commit
 
-- new features must have user documentation
+- Unit tests pass
+
+- Code coverage from testing does not decrease and new code is covered
+
+- JSON/YAML configuration changes are updated in the relevant schema
+
+- Changes to metadata also update the documentation for the metadata
+
+- Pull request includes link to an osbs-docs PR for user documentation
+  updates
 
 Once it is approved by two developer team members someone from the
 team will merge it. To avoid creating merge commits the pull request
