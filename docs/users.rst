@@ -286,7 +286,7 @@ the URL after ``/maven/`` when downloading archive from Koji Web UI.
 Upon downloading each file, the plugin will verify the file checksum by
 leveraging the checksum value in the archive info stored in Koji. If
 checksum fails, container build fails immediately. The checksum algorithm
-used is dictated Koji via the `checksum_type` vaue of archive info.
+used is dictated by Koji via the `checksum_type` value in the archive info.
 
 If build specified in nvr attribute does not exist, the container
 build will fail.
