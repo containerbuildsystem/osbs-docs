@@ -277,7 +277,7 @@ An osbs-client configuration option **reactor_config_map** is required to define
 the name of the ``ConfigMap`` object holding **reactor_config**. This
 configuration option is mandatory for arrangement versions greater than or
 equal to 6. The existing osbs-client configuration **reactor_config_secret**
-is be deprecated (for all arrangements).
+is deprecated (for all arrangements).
 
 For more details on how the build system is configured as of
 Arrangement 6, consult the `Build Parameters`_ document.
