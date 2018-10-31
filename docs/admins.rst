@@ -467,3 +467,16 @@ such builds.
 
 The log file, *osbs-client.log*, in a Koji task gives users a better
 understanding of any delays due to scheduling.
+
+Troubleshooting
+---------------
+
+Obtaining Atomic Reactor stack trace
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+atomic-reactor captures *SIGUSR1* signals. When receiving such signal,
+atomic-reactor responds by showing the current stack trace for every thread it
+was running when the signal was received.
+
+This feature can be used to inspect either the orchestrator or a specific
+worker build. It is specially useful to diagnose stuck builds.
