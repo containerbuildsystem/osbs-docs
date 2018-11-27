@@ -148,7 +148,8 @@ packages
   of the Koji build target used. The following command is useful in determining
   which packages are available in a given Koji build tag:
   ``koji list-tagged --inherit --latest TAG``
-
+  If "packages" key is declared but is empty, the compose will include all
+  packages from the Koji build tag of the Koji build target.
 
 pulp_repos
   boolean to control whether or not an ODCS compose of type "pulp" should be
@@ -165,8 +166,10 @@ signing_intent
   environment. See :ref:`config.yaml-odcs` section for environment configuration
   details, and full explanation of :ref:`signing-intent`.
 
-**If "compose" section is defined, non-empty list of "modules" or "packages" must
-be provided, or "pulp_repos" set to true. Otherwise, build will fail.**
+**If "compose" section is defined, then "pulp_repos" must be set to true or there
+must be a valid "modules" or "packages" key.  If there is a "modules" key, it
+must have a non-empty list of modules.  The "packages" key, and only the "packages"
+key, can have an empty list.**
 
 **The "packages" and "modules" keys are mutually exclusive. If both are
 provided, "modules" will be ignored. "pulp_repos" can be used by itself, or with
