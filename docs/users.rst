@@ -62,13 +62,13 @@ Some labels are required to be defined:
 
 For example::
 
-    LABEL com.redhat.component=rsyslog-docker \
+    LABEL com.redhat.component=rsyslog-container \
           name=fedora/rsyslog \
           version=32
 
 When OSBS builds a container image that defines the above labels, a Koji build
-will be created in the format rsyslog-docker-32-X. Where X is the release value.
-The container image will be available in container registry at:
+will be created in the format rsyslog-container-32-X. Where X is the release
+value.  The container image will be available in container registry at:
 ``my-container-registry.example.com/fedora/rsyslog:32``.
 
 The ``release`` label can also be used to specify the release value use for Koji
