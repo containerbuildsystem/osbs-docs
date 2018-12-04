@@ -148,8 +148,15 @@ packages
   of the Koji build target used. The following command is useful in determining
   which packages are available in a given Koji build tag:
   ``koji list-tagged --inherit --latest TAG``
-  If "packages" key is declared but is empty, the compose will include all
-  packages from the Koji build tag of the Koji build target.
+
+  If "packages" key is declared but is empty (``packages: []`` in YAML), the
+  compose will include all packages from the Koji build tag of the Koji build
+  target.
+
+  ODCS will work more quickly if you only specify the minimum set of packages
+  you need here, but if you want to avoid hard-coding a complete package list
+  in ``container.yaml``, you can use the empty list to just make everything
+  available.
 
 pulp_repos
   boolean to control whether or not an ODCS compose of type "pulp" should be
