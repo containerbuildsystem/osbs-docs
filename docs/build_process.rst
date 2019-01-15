@@ -280,9 +280,7 @@ equal to 6. The existing osbs-client configuration **reactor_config_secret**
 is deprecated (for all arrangements).
 
 For more details on how the build system is configured as of
-Arrangement 6, consult the `Build Parameters`_ document.
-
-.. _`Build Parameters`: build_parameters
+Arrangement 6, consult the :ref:`build_parameters` document.
 
 
 Logging
