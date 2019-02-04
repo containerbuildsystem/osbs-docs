@@ -99,6 +99,9 @@ An example::
     - armhfp
     not: armhfp
 
+  go:
+    module: example.com/go/packagename
+
   compose:
     # used for requesting ODCS compose of type "tag"
     packages:
@@ -132,6 +135,18 @@ only
 not
   list of platform names (or a single platform name as a string);
   this restricts the platforms to build for using set difference
+
+go
+~~
+
+Keys in this map relate to source code in the Go language which the
+user intends to be built into the container image. They are
+responsible for building the source code into an executable
+themselves. Keys here are only for identifying source code which was
+used to create the files in the container image.
+
+module
+  the module name for the top-level Go package
 
 .. _container.yaml-compose:
 
