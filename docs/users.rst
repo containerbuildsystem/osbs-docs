@@ -625,3 +625,37 @@ same effect, specify such images with another stage, for example::
     COPY --from=source1 src/ dest/
 
 
+Operator manifests
+------------------
+
+OSBS is able to extract operator_ manifests from an operator image. This image
+should contain a ``/manifests`` directory, whose content can be extracted to
+koji for later distribution.
+
+.. _operator: https://coreos.com/operators/
+
+To activate the operator manifests extraction from the image, you must set a
+specific label in your Dockerfile::
+
+    LABEL  com.redhat.delivery.appregistry=true
+
+When present (and set to ``true``), this label triggers the atomic-reactor
+``export_operator_manifests`` plugin. This plugin extracts the content from the
+``/manifests`` directory in the built image and uploads it to koji. If the
+``/manifests`` directory is either empty or not present in the image, the build
+will fail.
+
+Since the operator manifests are not tied to any specific architecture, OSBS
+will decide from which worker build the manifests will be extract (and make
+sure only a single platform will upload the archive to koji). If, for some
+reason, you need to select which platform will extract and upload the manifests
+archive, you can set the ``operator_manifests_extract_platform`` build param to
+the desired platform.
+
+If the build succeeds, the ``build.extra.operator_manifests_archive`` koji
+metadata will be set to the name of the archive containing the operator
+manifests (currently, ``operator_manifests.zip``).
+
+For now, the operator manifests archive is uploaded to koji as a log file
+(``type: log``). This will be changed to a more appropriate type in future
+releases.
