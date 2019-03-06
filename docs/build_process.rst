@@ -302,7 +302,7 @@ keyword to the ``extra`` dict passed into logging calls, resulting in
 log output like this::
 
   2017-06-23 17:18:41,791 platform:- - atomic_reactor.foo - DEBUG - this is from the orchestrator build
-  2017-06-23 17:18:41,791 platform:x86_64 - atomic_reactor.foo - INFO - 2017-06-23 17:18:41,400 platform:- atomic_reactor.foo -  DEBUG - this is from a worker build
+  2017-06-23 17:18:41,791 platform:x86_64 - atomic_reactor.foo - INFO - 2017-06-23 17:18:41,400 platform:- atomic_reactor.foo - DEBUG - this is from a worker build
   2017-06-23 17:18:41,791 platform:x86_64 - atomic_reactor.foo - INFO - continuation line
 
 Demultiplexing is possible using a the osbs-client API method,
@@ -384,7 +384,7 @@ Autorebuilds
 OSBS’s autorebuild feature automatically starts new builds of layered images
 whenever the base parent image changes. This is particularly useful for image
 owners that maintain a large hierarchy of images, which would otherwise require
-manually starting each image build in the correct order.  Instead, image owners
+manually starting each image build in the correct order. Instead, image owners
 can start a build for the topmost ancestor which upon completion triggers the
 next level of layered images, and so on.
 
