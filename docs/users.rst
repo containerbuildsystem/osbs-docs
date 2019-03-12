@@ -116,6 +116,8 @@ An example::
     - "module_name2:stream1"
     # Possible values, and default, are configured in OSBS environment.
     signing_intent: release
+    # used for inheritance of yum repos and ODCS composes from baseimage build
+    inherit: true
 
    image_build_method: docker_api
 
@@ -188,14 +190,16 @@ signing_intent
   environment. See :ref:`config.yaml-odcs` section for environment configuration
   details, and full explanation of :ref:`signing-intent`.
 
-**If "compose" section is defined, then "pulp_repos" must be set to true or there
-must be a valid "modules" or "packages" key.  If there is a "modules" key, it
-must have a non-empty list of modules.  The "packages" key, and only the "packages"
+inherit
+  boolean to control whether or not to inherit yum repositories and odcs composes
+  from baseimage build, default false. Scratch and isolated builds do not support
+  inheritance and false is always assumed.
+
+**If there is a "modules" key, it
+must have a non-empty list of modules. The "packages" key, and only the "packages"
 key, can have an empty list.**
 
-**The "packages" and "modules" keys are mutually exclusive. If both are
-provided, "modules" will be ignored. "pulp_repos" can be used by itself, or with
-either "packages" or "modules".**
+**The "packages", "modules" and "pulp_repos" keys can be used mutually.**
 
 .. _container.yaml-autorebuild:
 
@@ -508,7 +512,9 @@ Yum repository URL
 
 As part of a build request, you may provide the ``repo-url`` parameter with the
 URL to a yum repository file. This file is injected into the container build.
-Note that "ODCS compose" method is disabled if this parameter is given.
+Current OSBS versions support the combination of ODCS composes with repository files.
+This is a change to OSBS former behavior, where the ODCS compose would be
+disabled if a repository file URL was given.
 
 Koji tag
 ~~~~~~~~
@@ -517,6 +523,13 @@ When Koji integration is enabled, a Koji build target parameter is provided. The
 yum repository for the build tag of target is automatically injected in
 container build. This behavior is disabled if either "ODCS compose" or "Yum
 repository URL" are used.
+
+Inherited yum repository and ODCS compose
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+If you want to inherit yum repositories and ODCS composes from baseimage build,
+you can enable it via the "inherit" key under "compose" in ``container.yaml``.
+Does not support scratch or isolated builds.
+See :ref:`image-configuration`.
 
 .. _signing-intent:
 
