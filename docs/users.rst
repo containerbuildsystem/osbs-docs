@@ -100,7 +100,11 @@ An example::
     not: armhfp
 
   go:
-    module: example.com/go/packagename
+    modules:
+      - module: example.com/go/packagename
+      - module: example.com/go/anotherpackage
+        archive: anotherpackage.tar.gz
+        path: anotherpackage-v0.54.1
 
   compose:
     # used for requesting ODCS compose of type "tag"
@@ -147,8 +151,17 @@ responsible for building the source code into an executable
 themselves. Keys here are only for identifying source code which was
 used to create the files in the container image.
 
-module
-  the module name for the top-level Go package
+modules
+  sequence of mappings containing information for the Go modules (packages) built and shipped in the container image. The accepted mappings are listed bellow.
+
+  module
+    top-level go module (package) name to be built in the image. If ``modules`` is specified, this entry is required.
+
+  archive
+    possibly-compressed archive containing full source code including vendored dependencies.
+
+  path
+    path to directory containing source code (or its parent), possibly within archive.
 
 .. _container.yaml-compose:
 
