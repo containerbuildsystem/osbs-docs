@@ -21,7 +21,8 @@ add unit tests under the tests/ subdirectory (we use py.test and
 flexmock for this). When you push new commits, tests will be triggered
 to be run in Travis CI and results will be shown in your pull
 request. You can also run them locally from the top directory (py.test
-tests).
+tests). You can also use the test.sh script to run these tests in a
+container.
 
 Follow the PEP8 coding style. This project allows 99 characters per
 line.
