@@ -42,8 +42,15 @@ selector`_ is required for each.
 The separation of tasks between the orchestrator build and the worker
 build is called the "arrangement".
 
+*Note:*
+    Arrangement versions lower than 6 are no longer supported
+    (but each new version typically builds on the previous one,
+    so no functionality is lost).
+
 Arrangement version 1 (delegation)
 ----------------------------------
+
+*This arrangement version is no longer supported.*
 
 In this arrangement, the orchestrator build chooses a worker cluster
 and creates a worker build in that cluster. From then on, the worker
@@ -153,6 +160,8 @@ as plugins:
 Arrangement version 2 (orchestrator creates filesystem)
 -------------------------------------------------------
 
+*This arrangement version is no longer supported.*
+
 This arrangement, available since osbs-client-0.41, is identical to
 version 1 except that:
 
@@ -173,6 +182,8 @@ on.
 
 Arrangement version 3 (Koji build created by orchestrator)
 ----------------------------------------------------------
+
+*This arrangement version is no longer supported.*
 
 This arrangement builds on version 2. The ``koji_promote`` plugin,
 which was previously responsible for creating the Koji build, is
@@ -233,6 +244,8 @@ ConfigMap objects.
 Arrangement version 4 (Multiple worker builds)
 ----------------------------------------------
 
+*This arrangement version is no longer supported.*
+
 This arrangement moves most of the Pulp integration work to the
 orchestrator build, allowing for multiple worker builds. Only the
 pulp_push plugin remains in the worker build.
@@ -250,6 +263,8 @@ builds.
 
 Arrangement version 5 (ODCS Integration)
 ----------------------------------------
+
+*This arrangement version is no longer supported.*
 
 This arrangement builds on version 4. The ``resolve_composes`` plugin enables
 integration with `odcs`_. See :ref:`yum-repositories-odcs-compose` for details.
