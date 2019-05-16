@@ -168,6 +168,8 @@ Example of **REACTOR_CONFIG**::
 
     default_image_build_method: imagebuilder
 
+    skip_koji_check_for_base_image: False
+
 
 Atomic Reactor Plugins and Arrangement Version 6
 """"""""""""""""""""""""""""""""""""""""""""""""
