@@ -440,6 +440,25 @@ label which causes OSBS to query koji for what the next release value should be.
 This is done via koji's ``getNextRelease`` API method. In either case, the
 release value can also be overridden by using the ``release`` API parameter.
 
+During the build process, OSBS will query koji for the builds of all parent
+images using their NVRs. If any of the parent image builds is not found in
+koji, or if NVR information cannot be extracted from the parent image, OSBS
+assumes that the parent image was not built by OSBS and halts the current
+build. In othe words, an image cannot be built using a parent image which has
+not been built by OSBS. It is possible to disable this feature through reactor
+configuration. See the ``skip_koji_check_for_base_image`` option in
+`config.json`_ for further reference.
+
+Digests verification
+~~~~~~~~~~~~~~~~~~~~
+
+Once OSBS has the koji build information for a parent image, it compares the
+digest of the parent image manifest available in koji metadata (stored when
+that parent build had completed) with the actual parent image manifest digest
+(calulated by OSBS during the build). In case manifests do not match, the build
+will fail and the parent image **must** be rebuilt in OSBS before it is used in
+another build.
+
 Isolated Builds
 ---------------
 
@@ -700,3 +719,6 @@ manifests (currently, ``operator_manifests.zip``).
 For now, the operator manifests archive is uploaded to koji as a log file
 (``type: log``). This will be changed to a more appropriate type in future
 releases.
+
+
+.. _`config.json`: https://github.com/projectatomic/atomic-reactor/blob/master/atomic_reactor/schemas/config.json
