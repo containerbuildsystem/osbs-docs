@@ -139,10 +139,8 @@ Example of **REACTOR_CONFIG**::
     platform_descriptors:
     - platform: x86_64
       architecture: amd64
-      enable_v1: True
 
     content_versions:
-    - v1
     - v2
 
     registries:

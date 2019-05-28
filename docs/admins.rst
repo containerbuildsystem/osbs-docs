@@ -84,41 +84,6 @@ architecture (optional)
   the GOARCH for the platform -- the platform name is assumed to be
   the same as the GOARCH if this is not specified
 
-enable_v1 (optional)
-  if support for the Docker Registry HTTP API v1 (pulp_push etc)
-  may be included for this platform, the value should be "true"; the
-  default is "false"
-
-When creating a worker build for an OSBS instance, both the
-"registry_api_versions" key for the instance and the "enable_v1" key
-for the platform will be consulted. They must both instruct v1 support
-to enable publishing v1 images. If either does not instruct v1 support,
-v1 images will not be published.
-
-At most one platform may have "enable_v1 = true".
-
-For example::
-
-  [platform:x86_64]
-  architecture = amd64
-  enable_v1 = true
-
-  [platform:ppc]
-  architecture = ppc64le
-
-  [instance1]
-  registry_api_versions = v1,v2
-  ...
-
-  [instance2]
-  registry_api_versions = v2
-  ...
-
-In the above configuration, worker builds created using instance1 for
-the x86_64 platform will publish v1 images as well as v2 images. Other
-platforms on instance1, and all platforms on instance2, will only
-publish v2 images.
-
 build_from
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -259,7 +224,6 @@ include::
 
   [platform:x86_64]
   architecture = amd64
-  enable_v1 = true
 
   [default]
   openshift_url = https://orchestrator.example.com:8443/
@@ -321,10 +285,8 @@ cluster, and which is contained in the Kubernetes secret named by
 
   [platform:x86_64]
   architecture = amd64
-  enable_v1 = true
 
   [prod-mixed]
-  registry_api_versions = v1,v2
   openshift_url = https://worker01.example.com:8443/
   node_selector.x86_64 = beta.kubernetes.io/arch=amd64
   node_selector.ppc64le = beta.kubernetes.io/arch=ppc64le
@@ -342,7 +304,6 @@ cluster, and which is contained in the Kubernetes secret named by
   # and auth options, registries, secrets, etc
 
   [prod-osd]
-  registry_api_versions = v1,v2
   openshift_url = https://api.prod-example.openshift.com/
   node_selector.x86_64 = none
   use_auth = true
@@ -354,13 +315,6 @@ In this configuration file there are two worker clusters, one which
 builds for both x86_64 and ppc64le platforms using nodes with specific
 labels (prod-mixed), and another which only accepts x86_64 builds
 (prod-osd).
-
-Note that although "registry_api_versions" lists v1, ppc64le builds
-will not publish v1 images as there is no "platform:ppc64le" section
-containing "enable_v1 = true".
-
-Pushing built images to Pulp
-----------------------------
 
 Priority of Container Image Builds
 ----------------------------------
