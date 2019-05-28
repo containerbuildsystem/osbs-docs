@@ -127,9 +127,6 @@ as plugins:
 
 - Tag and push the image to the container registry
 
-- Upload the image archive to Pulp (if Pulp integration and v1 support
-  are both enabled)
-
 - Sync the image into Pulp from the container registry (if Pulp
   integration is enabled) and publish it -- in this case the image is
   deleted from the container registry later
