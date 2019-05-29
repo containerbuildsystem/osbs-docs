@@ -685,6 +685,8 @@ same effect, specify such images with another stage, for example::
     COPY --from=source1 src/ dest/
 
 
+.. _operator-manifests:
+
 Operator manifests
 ------------------
 
