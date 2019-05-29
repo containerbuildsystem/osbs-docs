@@ -316,6 +316,19 @@ builds for both x86_64 and ppc64le platforms using nodes with specific
 labels (prod-mixed), and another which only accepts x86_64 builds
 (prod-osd).
 
+Supporting Operator Manifests extraction
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To support the operator_ manifests extraction, as described in
+:ref:`Operator manifests <operator-manifests>`, the `operator-manifests`
+BType must be created in koji. This is done by running
+
+.. code-block:: shell
+
+  koji call addBType operator-manifests
+
+.. _operator: https://coreos.com/operators/
+
 Priority of Container Image Builds
 ----------------------------------
 
