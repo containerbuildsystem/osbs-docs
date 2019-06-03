@@ -260,5 +260,5 @@ creating the OpenShift ``Build`` (usually koji builder). Instead, this
 customization file must be stored and read from inside the builder image.
 
 
-.. _`config.json`: https://github.com/projectatomic/atomic-reactor/blob/master/atomic_reactor/schemas/config.json
+.. _`config.json`: https://github.com/containerbuildsystem/atomic-reactor/blob/master/atomic_reactor/schemas/config.json
 

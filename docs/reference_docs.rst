@@ -19,10 +19,10 @@ Atomic Reactor
 
 Python library with command line interface for building docker images.
 
-* `Installation and Usage Instructions <https://github.com/projectatomic/atomic-reactor/blob/master/README.md>`_
-* `Building Base Images <https://github.com/projectatomic/atomic-reactor/blob/master/docs/base_images.md>`_
-* `Plugins <https://github.com/projectatomic/atomic-reactor/blob/master/docs/plugins.md>`_
-* `build.json <https://github.com/projectatomic/atomic-reactor/blob/master/docs/build_json.md>`_
+* `Installation and Usage Instructions <https://github.com/containerbuildsystem/atomic-reactor/blob/master/README.md>`_
+* `Building Base Images <https://github.com/containerbuildsystem/atomic-reactor/blob/master/docs/base_images.md>`_
+* `Plugins <https://github.com/containerbuildsystem/atomic-reactor/blob/master/docs/plugins.md>`_
+* `build.json <https://github.com/containerbuildsystem/atomic-reactor/blob/master/docs/build_json.md>`_
 
 
 OSBS Client
@@ -30,9 +30,9 @@ OSBS Client
 
 Python module and command line client for OpenShift Build Service.
 
-* `Basic configuration and usage <https://github.com/projectatomic/osbs-client/blob/master/README.md>`_
-* `Description of the Build Process <https://github.com/projectatomic/osbs-client/blob/master/docs/build_process.md>`_
-* `Configuration file <https://github.com/projectatomic/osbs-client/blob/master/docs/configuration_file.md>`_
+* `Basic configuration and usage <https://github.com/containerbuildsystem/osbs-client/blob/master/README.md>`_
+* `Description of the Build Process <https://github.com/containerbuildsystem/osbs-client/blob/master/docs/build_process.md>`_
+* `Configuration file <https://github.com/containerbuildsystem/osbs-client/blob/master/docs/configuration_file.md>`_
 
 
 dockpulp
@@ -52,7 +52,7 @@ Ansible Playbook
 Deploying and Running OSBS
 --------------------------
 
-* `Deploying OpenShift Build System <https://github.com/projectatomic/osbs-client/blob/master/docs/osbs_instance_setup.md>`_
-* `OSBS Backups <https://github.com/projectatomic/osbs-client/blob/master/docs/backups.md>`_
-* `Local Development <https://github.com/projectatomic/osbs-client/blob/master/docs/development-setup.md>`_
-* `Resource limiting <https://github.com/projectatomic/osbs-client/blob/master/docs/resource.md>`_
+* `Deploying OpenShift Build System <https://github.com/containerbuildsystem/osbs-client/blob/master/docs/osbs_instance_setup.md>`_
+* `OSBS Backups <https://github.com/containerbuildsystem/osbs-client/blob/master/docs/backups.md>`_
+* `Local Development <https://github.com/containerbuildsystem/osbs-client/blob/master/docs/development-setup.md>`_
+* `Resource limiting <https://github.com/containerbuildsystem/osbs-client/blob/master/docs/resource.md>`_

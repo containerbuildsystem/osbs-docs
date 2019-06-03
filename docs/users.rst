@@ -85,7 +85,7 @@ file in the git repository named ``container.yaml``. This file need
 not be present, but if it is it must adhere to the `container.yaml
 schema`_.
 
-.. _`container.yaml schema`: https://github.com/projectatomic/atomic-reactor/blob/master/atomic_reactor/schemas/container.json
+.. _`container.yaml schema`: https://github.com/containerbuildsystem/atomic-reactor/blob/master/atomic_reactor/schemas/container.json
 
 An example::
 
@@ -721,4 +721,4 @@ For now, the operator manifests archive is uploaded to koji as a log file
 releases.
 
 
-.. _`config.json`: https://github.com/projectatomic/atomic-reactor/blob/master/atomic_reactor/schemas/config.json
+.. _`config.json`: https://github.com/containerbuildsystem/atomic-reactor/blob/master/atomic_reactor/schemas/config.json
