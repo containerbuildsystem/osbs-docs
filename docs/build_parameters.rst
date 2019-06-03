@@ -83,6 +83,7 @@ Example of **REACTOR_CONFIG**::
         root_url: https://koji.example.com/root
         auth:
             ssl_certs_dir: /var/run/secrets/atomic-reactor/kojisecret
+        use_fast_upload: false
 
     pulp:
         name: my-pulp
