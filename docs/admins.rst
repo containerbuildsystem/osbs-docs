@@ -93,7 +93,17 @@ images, to be set in the ``Build``/``BuildConfig`` OpenShift objects under the
 a specific container image in a container registry; or it can reference an
 ImageStreamTag object.
 
-Updating this globally effectively deploys a different version of OSBS.
+Updating this globally effectively deploys a different version of
+OSBS.
+
+It takes one of the following forms:
+
+imagestream:*imagestream*:*tag*
+  use the image from the specified OpenShift ImageStreamTag
+
+image:*pullspec*
+  pull the image from the specified pullspec (including
+  registry, repository, and either tag or digest)
 
 Deploy OSBS on OpenShift
 ------------------------
