@@ -400,11 +400,18 @@ Dockerfile, the tags used within the repository are:
 
 - a unique tag including the timestamp (this tag is the only tag
   applied for scratch builds)
-- ``latest``
+- ``{version}-{release}`` (the ``version`` and ``release`` labels
+  together)
+
+If the ``tags`` value is set in container.yaml, those tags are applied
+to the image as floating tags.
+
+If ``tags`` is not used in container.yaml, the following tags are
+applied:
+
 - ``{version}`` (the ``version`` label)
-- ``{version}-{release}`` (the ``version`` and ``release`` labels together)
-- any additional tags configured in the git repository (named in the
-  ``additional-tags`` file)
+- ``latest``
+- any additional tags named in the ``additional-tags`` file
 
 These tags are applied to the manifest list or, if multi-platform
 image builds are not enabled (see :ref:`group_manifests
