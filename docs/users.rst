@@ -51,7 +51,9 @@ git repository branch.
 Some labels are required to be defined:
 
 - ``com.redhat.component``: the value of this label is used when importing a
-  build into Koji via content generator API.
+  build into Koji via content generator API. We recommend that all images use
+  a component string ending in ``-container`` here, so that you can easily
+  distinguish these container builds from other non-container builds in Koji.
 - ``name``: value is used to define the repository name in container registry to
   push built image. Limit this to lowercase alphanumerical values with the
   possibility to use dash as a word separator. A single ``/`` is also allowed.
