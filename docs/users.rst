@@ -77,6 +77,32 @@ The ``release`` label can also be used to specify the release value use for Koji
 build. When omitted, the release value will be automatically determined by
 querying Koji's getNextRelease API method.
 
+Other labels are set automatically when not set in the Dockerfile:
+
+- ``build-date``: Date/Time image was built as RFC 3339 date-time.
+- ``architecture``: Architecture for the image.
+- ``com.redhat.build-host``: OpenShift node where image was built.
+- ``vcs-ref``: A reference within the version control repository; e.g. a git commit.
+- ``vcs-type``: The type of version control used by the container source. Currently, only git is supported.
+
+Although it is also possible to automatically include the ``vcs-url`` label, the default set
+of automatically included labels does not include the label.
+
+Sites wanting to include the ``vcs-url`` label to the set should do so by using custom
+``orchestrator_inner:n.json`` and ``worker_inner:n.json`` specifying the full set of implicit labels
+for the ``add_labels_in_dockerfile`` plugin::
+
+    {
+      "args": {
+        "auto_labels": ["build-date", "architecture", "vcs-type", "vcs-url", "vcs-ref", "com.redhat.build-host"]
+      },
+      "name": "add_labels_in_dockerfile"
+    },
+
+Finally, it is also possible to set additional labels through the reactor
+configuration, by setting the label key values in ``image_labels``.
+
+
 .. _image-configuration:
 
 Image configuration
