@@ -339,6 +339,32 @@ BType must be created in koji. This is done by running
 
 .. _operator: https://coreos.com/operators/
 
+
+.. _omps-integration:
+
+Enabling integration with OMPS service
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To enable optional integration with OMPS_ service to allow automatically pushing
+operators manifests to application registry (like quay_) ``omps`` configuration
+section must be added into atomic-reactor configuration.
+See configuration details in `config.json`_.
+
+Example:
+
+.. code-block:: yaml
+
+  omps:
+    omps_url: https://omps-service.example.com
+    omps_namespace: organization
+    omps_secret: /dir/where/token/file/will/be/mounted
+    appregistry_url: https://quay.io/cnr
+
+.. _OMPS: https://github.com/release-engineering/operators-manifests-push-service
+.. _quay: https://quay.io/application/
+.. _`config.json`: https://github.com/containerbuildsystem/atomic-reactor/blob/master/atomic_reactor/schemas/config.json
+
+
 Priority of Container Image Builds
 ----------------------------------
 
