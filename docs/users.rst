@@ -759,3 +759,13 @@ releases.
 
 
 .. _`config.json`: https://github.com/containerbuildsystem/atomic-reactor/blob/master/atomic_reactor/schemas/config.json
+
+After a successful build, if :ref:`OMPS integration <omps-integration>`
+is enabled, operator manifests are uploaded into configured application
+registry and namespace.
+
+Details on how operator manifest can be accessed from the application registry are
+stored in koji build, in section ``build.extra.operator_manifests.appregistry``.
+
+Manifests will not be pushed to the application registry for scratch builds,
+isolated builds, or re-builds to prevent unwanted changes
