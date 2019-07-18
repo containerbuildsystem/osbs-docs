@@ -236,6 +236,14 @@ inherit
   from baseimage build, default false. Scratch and isolated builds do not support
   inheritance and false is always assumed.
 
+include_unpublished_pulp_repos
+  If you set ``include_unpublished_pulp_repos: true`` under the ``compose``
+  section in ``container.yaml``, the ODCS composes can pull from unpublished
+  pulp repositories. The default is ``false``. Use this setting to make
+  pre-release RPMs available to your container images. Use caution with this
+  setting, because you could end up publicly shipping container images with
+  RPMs that you have not exposed publicly otherwise.
+
 **If there is a "modules" key, it
 must have a non-empty list of modules. The "packages" key, and only the "packages"
 key, can have an empty list.**
