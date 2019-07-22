@@ -314,7 +314,11 @@ The atomic-reactor pre-build plugin, fetch_maven_artifacts, can be used
 for including non-RPM content in a container image during build time.
 This plugin will look for the existence of two files in the git repository
 in the same directory as the Dockerfile:
-fetch-artifacts-koji.yaml and fetch-artifacts-url.yaml.
+fetch-artifacts-koji.yaml and fetch-artifacts-url.yaml.  (See `fetch-artifacts-url.json`_ and `fetch-artifacts-nvr.json`_ for their YAML schema.)
+
+.. _`fetch-artifacts-url.json`: https://github.com/containerbuildsystem/atomic-reactor/blob/master/atomic_reactor/schemas/fetch-artifacts-url.json
+
+.. _`fetch-artifacts-nvr.json`: https://github.com/containerbuildsystem/atomic-reactor/blob/master/atomic_reactor/schemas/fetch-artifacts-nvr.json
 
 The first is meant to fetch artifacts from an existing Koji build.
 The second allows specific URLs to be used for fetching artifacts.
