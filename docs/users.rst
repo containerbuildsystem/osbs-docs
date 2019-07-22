@@ -757,13 +757,13 @@ reason, you need to select which platform will extract and upload the manifests
 archive, you can set the ``operator_manifests_extract_platform`` build param to
 the desired platform.
 
-If the build succeeds, the ``build.extra.operator_manifests_archive`` koji
+[Backward compatibility] If the build succeeds,
+the ``build.extra.operator_manifests_archive`` koji
 metadata will be set to the name of the archive containing the operator
 manifests (currently, ``operator_manifests.zip``).
 
-For now, the operator manifests archive is uploaded to koji as a log file
-(``type: log``). This will be changed to a more appropriate type in future
-releases.
+The operator manifests archive is uploaded to koji as a separate type:
+``operator-manifests`` (currently with filename ``operator_manifests.zip``).
 
 
 .. _`config.json`: https://github.com/containerbuildsystem/atomic-reactor/blob/master/atomic_reactor/schemas/config.json
