@@ -506,6 +506,12 @@ that parent build had completed) with the actual parent image manifest digest
 will fail and the parent image **must** be rebuilt in OSBS before it is used in
 another build.
 
+If the manifest in question is a manifest list and the digests comparison fail,
+the V2 manifest digests in the manifest list will be compared with the koji
+build archive metadata digests before OSBS advises rebuilding the parent image.
+This behavior can be deactivated through the ``deep_manifest_list_inspection``
+option. See `config.json`_ for further reference.
+
 Isolated Builds
 ---------------
 
