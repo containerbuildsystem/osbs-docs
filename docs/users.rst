@@ -53,6 +53,31 @@ Everything should be set by ``koji`` package.
 Building images using osbs-client
 ---------------------------------
 
+_`osbs-client` provides ``osbs`` CLI command for interaction with OSBS builds
+and allows creation of new builds directly without koji-client.
+
+Please note that mainly ``koji`` and ``fedpkg`` commands should be used
+for building container images instead of direct ``osbs-client`` calls.
+
+To execute build via osbs-client CLI use::
+
+    osbs build -g <git_repo_url> -b <branch> -u <username> --git-commit <commit> [--platforms=x86_64] [-i <instance>]
+
+To see full list of options execute::
+
+    osbs build --help
+
+To see all osbs-client subcommands execute::
+
+    osbs --help
+
+Please note that ``osbs-client`` must be configured properly using config file ``/etc/osbs.conf``.
+Please refer to :ref:`osbs-client configuration section <configuring-osbs-client>`
+for configuration examples.
+
+
+.. `osbs-client`_: https://github.com/containerbuildsystem/osbs-client
+
 Accessing built images
 ----------------------
 

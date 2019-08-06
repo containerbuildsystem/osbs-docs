@@ -7,6 +7,9 @@ Understanding build parameters
 Please refer to :doc:`Build Parameters <build_parameters>` for
 information on how options are configured within OSBS builds.
 
+
+.. _configuring-osbs-client:
+
 Configuring osbs-client
 -----------------------
 
