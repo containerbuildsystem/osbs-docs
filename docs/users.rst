@@ -4,8 +4,23 @@ Building Container Images
 Building images using fedpkg
 ----------------------------
 
+Following command submits a build to Koji::
+
+    fedpkg container-build --target=<target>
+
+For detailed Fedora workflow please visit `Fedora Layered Image Build System`_ guide.
+
+.. _`Fedora Layered Image Build System`: https://docs.pagure.org/releng/layered_image_build_service.html
+
+
+
 Building images using koji
 --------------------------
+
+Using a koji client CLI directly you have to specify git repo URL and branch::
+
+    koji container-build <target> <repourl>#<branch/ref> --git-branch <branch>
+
 
 Streamed build logs
 ~~~~~~~~~~~~~~~~~~~
@@ -25,6 +40,15 @@ image owners can use ``koji watch-logs <task id> | grep -w x86_64``.
 
 Configuring koji-containerbuild for koji CLI
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To be able to build container images from CLI, `koji-containerbuild plugin`_
+must be installed.
+
+No additional configuration is required.
+Everything should be set by ``koji`` package.
+
+.. _`koji-containerbuild plugin`: https://github.com/containerbuildsystem/koji-containerbuild
+
 
 Building images using osbs-client
 ---------------------------------
