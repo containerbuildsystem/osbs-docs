@@ -50,6 +50,120 @@ Everything should be set by ``koji`` package.
 .. _`koji-containerbuild plugin`: https://github.com/containerbuildsystem/koji-containerbuild
 
 
+Koji Build Results
+~~~~~~~~~~~~~~~~~~
+
+Koji Web
+********
+
+This is the easiest way to access information about OSBS builds.
+
+List Builds
++++++++++++
+
+Navigate to the "Builds" tab in brew and set the "Type" filter to ``image``.
+
+
+Get Build
++++++++++
+
+If you have the build ID, go to https://<KOJI_WEB_URL>/buildinfo?buildID=<build-ID>
+
+If you want to search build by its name or part of name, use the search box on
+top of the page.
+For example, ``redis-*`` and select "Builds".
+
+
+In koji build you can find a lot information about build, some noticeable are:
+
+* pull specifications for the build in the 'Extra' section ``image.index.pull``,
+  for digest type in ``image.index.digests``
+
+* list of image archives for each specific architecture for which build was
+  executed (for more detailed information about specific archive click on 'info')
+
+
+Also in the "Extra" section, docker.config shows (parts of)
+the `docker image JSON description`_, as well it indicates container image
+API version.
+
+
+See atomic-reactor documentation for
+a `full description of the Koji container image metadata`_.
+
+.. _`docker image JSON description`: https://github.com/moby/moby/blob/master/image/spec/v1.2.md#image-json-description
+.. _`full description of the Koji container image metadata`: https://github.com/containerbuildsystem/atomic-reactor/blob/master/docs/koji.md#type-specific-build-metadata
+
+
+Get Task
+++++++++
+
+All OSBS builds triggered via koji have a task linked to them.
+On the Build info page click on the buildContainer link labelled 'Task'
+to find the task responsible for the build.
+
+
+Build Logs
+++++++++++
+
+The logs can be found in task's "Output" section (older builds will have that
+section empty as logs has been garbage collected), or in build's "Logs" section
+(persist after garbage collection).
+
+
+Koji CLI
+********
+
+List Builds
++++++++++++
+
+List all image (OSBS) builds::
+
+    koji call listBuilds type=image
+
+Apply filter for more specific search::
+
+    koji call listBuilds type=image createdAfter='2016-02-01 00:00:00' prefix=redis
+
+Search for builds of specific users::
+
+    koji call listUsers prefix=<user>  # get user-ID
+    koji call listbuilds type=image userId=<user-ID>
+
+
+Get Build
++++++++++
+
+Retrieve build information from either the build ID or the build NVR::
+
+     koji buildinfo <build-ID or build-NVR>
+
+
+Get Task
+++++++++
+
+The "Extra" field in build result is useful to track the task that originated
+this build. Use the "container_koji_task_id", or "filesystem_koji_task_id",
+to get more info about task::
+
+    koji taskinfo <task-ID>
+
+
+Cancel Task
++++++++++++
+
+You can cancel a buildContainer brew task as for other types of task, and this
+will cancel the OSBS build::
+
+    koji cancel <task-ID>
+
+
+Build Notifications
+*******************
+
+Package owners and build submitter will be notified via email about build.
+
+
 Building images using osbs-client
 ---------------------------------
 
