@@ -199,10 +199,6 @@ Information about registry and image name is included in koji build. Use one
 of names listed in ``extra.image.index.pull`` to pull built image from a registry.
 
 
-
-Building a buildroot using atomic-reactor
------------------------------------------
-
 Using atomic-reactor plugins
 ----------------------------
 
