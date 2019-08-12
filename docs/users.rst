@@ -410,13 +410,57 @@ key, can have an empty list.**
 
 .. _container.yaml-autorebuild:
 
-autorebuild
-~~~~~~~~~~~
+Automatic Rebuilds
+~~~~~~~~~~~~~~~~~~
 
 This section specifies whether and how a build should be rebuilt based on
 changes to the base parent image.
 
-TODO
+By default autorebuild is disabled. The feature can be enabled by making some
+changes in your dist-git repo and submitting a container build.
+
+
+Enabling Automatic Rebuilds
+***************************
+
+Enable autorebuild in config::
+
+    fedpkg container-build-setup --set-autorebuild true
+
+This will create/update the .osbs-repo-config file.
+The file will be automatically added for commit.
+
+Finally, add all modified files, commit, and push modifications.
+For these **changes to take place, request a container build** as usual::
+
+    fedpkg container-build
+
+This must be a regular non-scratch/non-isolated build.
+The steps above apply to a single branch in your dist-git repo.
+It must be repeated for each branch you wish to enable the feature.
+
+The next time the parent image used by your container image is updated, your image will be automatically rebuilt.
+
+
+Disabling Automatic Rebuilds
+****************************
+
+First, use fedpkg to disable autorebuild::
+
+    fedpkg container-build-setup --set-autorebuild false
+
+This will create/update the .osbs-repo-config file.
+The file will be automatically added for commit.
+
+Finally, commit and push modifications. For these **changes to take place,
+request a container build** as usual::
+
+    fedpkg container-build
+
+This must be a regular non-scratch/non-isolated build.
+The steps above apply to a single branch in your dist-git repo.
+It must be repeated for each branch you wish to disable the feature.
+
 
 .. _content_sets.yml:
 
