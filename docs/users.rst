@@ -199,10 +199,6 @@ Information about registry and image name is included in koji build. Use one
 of names listed in ``extra.image.index.pull`` to pull built image from a registry.
 
 
-Using atomic-reactor plugins
-----------------------------
-
-
 Writing a Dockerfile
 --------------------
 
