@@ -202,8 +202,6 @@ of names listed in ``extra.image.index.pull`` to pull built image from a registr
 Using atomic-reactor plugins
 ----------------------------
 
-Creating a build JSON
----------------------
 
 Writing a Dockerfile
 --------------------
