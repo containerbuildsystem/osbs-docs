@@ -893,6 +893,61 @@ etc). This value will only be ``true`` if
 ``build.extra.image.odcs.signing_intent`` does not match the ``signing_intent``
 in ``container.yaml``.
 
+
+Base image builds
+-----------------
+
+OSBS is able to create base images, and it does by creating Koji image-build task,
+importing its output as a new container image, then continuing to build
+using a Dockerfile that inherits from that imported image.
+
+Each dist-git branch should have the following files:
+
+* Dockerfile
+* image-build.conf
+* kickstart.ks (or any .ks name, but must match what image-build.conf references)
+
+The Dockerfile should start "FROM koji/image-build", and continue with LABEL
+and CMD etc instructions as needed.
+
+
+The image-build.conf file should start "[image-build]" and set the target
+(for the image-build task), distro, and ksversion, for example::
+
+  [image-build]
+  target = f30
+  distro = Fedora-30
+  ksversion = Fedora
+
+The image-build task will need to know where to find the kickstart configuration; it finds this
+from the 'ksurl' and 'kickstart' parameters in image-build.conf. If these are
+absent from the file in dist-git, atomic-reactor will provide defaults:
+
+* kickstart: 'kickstart.ks'
+* ksurl: the dist-git URL and commit hash used for the OSBS build
+
+
+In this way, the kickstart configuration can be placed in the dist-git
+repository as 'kickstart.ks' alongside the Dockerfile and image-build.conf
+files, and the correct git URL and commit hash will be recorded in Brew when
+the image is built. This is the recommended way of providing a kickstart
+configuration for base images.
+
+Alternatively it can be stored elsewhere (perhaps another git repository) in
+which case a URL is needed. However, when doing this please make sure to use
+a git commit hash in the 'ksurl' parameter instead of a symbolic name
+(e.g. branch name); failure to do this means there will be no reliable way
+to discover the kickstart configuration used for the built image.
+
+
+To execute base image build, run::
+
+  fedpkg container-build --target=<target> --repo=url=<repo-url>
+
+The --repo-url parameter specifies the URL to a repofile. The first section
+of this is inspected and the 'baseurl' is examined to discover the compose URL.
+
+
 Multistage builds
 -----------------
 
