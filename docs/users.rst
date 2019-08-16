@@ -710,9 +710,15 @@ another build.
 
 If the manifest in question is a manifest list and the digests comparison fail,
 the V2 manifest digests in the manifest list will be compared with the koji
-build archive metadata digests before OSBS advises rebuilding the parent image.
-This behavior can be deactivated through the ``deep_manifest_list_inspection``
+build archive metadata digests. In this case, OSBS will only halt the build
+with an error, advising rebuilding the parent image, if the V2 manifest digests
+in the manifest list do not match the analogous koji information.  This
+behavior can be deactivated through the ``deep_manifest_list_inspection``
 option. See `config.json`_ for further reference.
+
+It is also possible to have OSBS only warn about any digest mismatches (instead
+of halting the build with an error). This is done by setting the
+``fail_on_digest_mismatch`` option to false in the `config.json`_ file.
 
 Isolated Builds
 ---------------
