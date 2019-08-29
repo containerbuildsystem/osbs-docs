@@ -212,13 +212,16 @@ Some labels are required to be defined:
   build into Koji via content generator API. We recommend that all images use
   a component string ending in ``-container`` here, so that you can easily
   distinguish these container builds from other non-container builds in Koji.
+  The value can't be empty.
 - ``name``: value is used to define the repository name in container registry to
   push built image. Limit this to lowercase alphanumerical values with the
   possibility to use dash as a word separator. A single ``/`` is also allowed.
   ``.`` is not allowed in the first section. For instance, **fed/rsys.log** and
   **rsyslog** are allowed, but **fe.d/rsyslog** and **rsys.log** aren't.
+  The value can't be empty.
 - ``version``: used as the version portion of Koji build NVR, as well as, for
   the version tag in container repository.
+  The value can't be empty, and may be defined via ENV variable from parent.
 
 For example::
 
@@ -232,7 +235,8 @@ value.  The container image will be available in container registry at:
 ``my-container-registry.example.com/fedora/rsyslog:32``.
 
 The ``release`` label can also be used to specify the release value use for Koji
-build. When omitted, the release value will be automatically determined by
+build. The value can't be empty, and may be defined via ENV variable from parent.
+When omitted, the release value will be automatically determined by
 querying Koji's getNextRelease API method.
 
 Other labels are set automatically when not set in the Dockerfile:
