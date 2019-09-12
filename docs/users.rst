@@ -406,11 +406,92 @@ include_unpublished_pulp_repos
   setting, because you could end up publicly shipping container images with
   RPMs that you have not exposed publicly otherwise.
 
+multilib_method
+  List of methods used to determine if a package should be considered multilib.
+  Available methods are ``iso``, ``runtime``, ``devel``, and ``all``.
+
+multilib_arches
+  Platform list for which the multilib should be enabled. For each entry in the
+  list, ODCS will also include packages from other compatible architectures in
+  the compose. For example when "x86_64" is included, ODCS will also include
+  "i686" packages in the compose.
+
+modular_koji_tags
+  List of Koji tags in which the modular Koji Content Generator builds are
+  tagged. Such builds will be included in the compose.
+
 **If there is a "modules" key, it
 must have a non-empty list of modules. The "packages" key, and only the "packages"
 key, can have an empty list.**
 
 **The "packages", "modules" and "pulp_repos" keys can be used mutually.**
+
+flatpak
+~~~~~~~
+
+This section holds the information needed to build a Flatpak. For more
+information on Flatpak builds, see `flatpak-docs`_.
+This is a map with the following keys:
+
+id
+  The ID of the application or runtime. Required.
+
+name
+  ``name`` label in generated Dockerfile. Used for the repository when pushing
+  to a registry. Defaults to the module name.
+
+component
+  ``com.redhat.component`` label in generated Dockerfile. Used to name the
+  build when uploading to Koji. Defaults to the module name.
+
+branch
+  The branch of the application or runtime. In many cases, this will match the
+  stream name of the module. Required.
+
+cleanup-commands
+  A shell script that is run after installing all packages. Only applicable to
+  runtimes.
+
+command
+  The name of the executable to run to start the application. If not specified,
+  defaults to the first executable found in /usr/bin. Only applicable to
+  applications.
+
+tags
+  Tags to add to the Flatpak metadata for searching. Only applicable to
+  applications.
+
+finish-args
+  Arguments to ``flatpak build-finish`` (see the flatpak-build-finish man page).
+  This is a string split on whitespace with shell style quoting. Only
+  applicable to applications.
+
+.. _`flatpak-docs`: https://github.com/containerbuildsystem/atomic-reactor/blob/master/docs/flatpak.md
+
+tags
+~~~~
+
+List of tags to be applied to the built image. When this option is specified,
+the tags described will be applied to the image. If present, the ``{version}``,
+``latest``, and the tags listed in the ``additional-tags`` file will no longer
+be automatically applied. See the `image-tags`_ section below for further
+reference.
+
+version
+~~~~~~~
+
+This key is no longer used by OSBS and is only kept in the schema for backwards
+compatibility.
+
+autorebuild
+~~~~~~~~~~~
+
+This map accepts a single key, as described below. This value is only used
+for autorebuilds, if autorebuilds are enabled.
+
+from_latest
+  Boolean to control whether to rebuild from the latest commit in the build
+  branch. Defaults to ``false``.
 
 .. _container.yaml-autorebuild:
 
