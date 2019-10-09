@@ -313,7 +313,11 @@ An example::
     # used for inheritance of yum repos and ODCS composes from baseimage build
     inherit: true
 
-   image_build_method: docker_api
+  image_build_method: docker_api
+
+  autorebuild:
+    from_latest: false
+    add_timestamp_to_release: false
 
 platforms
 ~~~~~~~~~
@@ -483,17 +487,26 @@ version
 This key is no longer used by OSBS and is only kept in the schema for backwards
 compatibility.
 
+.. _container.yaml-autorebuild:
+
 autorebuild
 ~~~~~~~~~~~
 
-This map accepts a single key, as described below. This value is only used
+This map accepts keys, as described below. This values are only used
 for autorebuilds, if autorebuilds are enabled.
 
 from_latest
   Boolean to control whether to rebuild from the latest commit in the build
   branch. Defaults to ``false``.
 
-.. _container.yaml-autorebuild:
+add_timestamp_to_release
+  Boolean to control whether to append timestamp to explicitly specified release for autorebuilds.
+  Defaults to ``false``. When ``true`` it will append timestamp to release with ``.`` separator.
+  For example if name is ``fedora/rsyslog``, version is ``32``, and release is ``5``,
+  the container image will be available in container registry at:
+  ``my-container-registry.example.com/fedora/rsyslog:32-5.20191007151825``.
+
+.. _osbs-config-autorebuild:
 
 Automatic Rebuilds
 ~~~~~~~~~~~~~~~~~~
