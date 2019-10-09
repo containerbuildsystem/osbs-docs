@@ -401,5 +401,7 @@ can start a build for the topmost ancestor which upon completion triggers the
 next level of layered images, and so on.
 
 Builds may opt in to autorebuilds with an
-:ref:`autorebuild entry in the dist-git configuration. <container.yaml-autorebuild>`
+:ref:`autorebuild entry in the dist-git configuration. <osbs-config-autorebuild>`
+Additional options for autorebuilds can be configured in
+:ref:`container.yaml. <container.yaml-autorebuild>`
 
