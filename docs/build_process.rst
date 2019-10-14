@@ -294,6 +294,9 @@ is deprecated (for all arrangements).
 For more details on how the build system is configured as of
 Arrangement 6, consult the :ref:`build_parameters` document.
 
+As of October 2019, Pulp is no longer supported in Arrangement 6 for either worker
+or orchestrator builds.
+
 
 Logging
 -------
