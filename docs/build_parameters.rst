@@ -13,7 +13,7 @@ are reused. Environment parameters are shared by different build requests, while
 user parameters are unique to each build request.
 
 Environment parameters are used for configuring usage of external services such
-as Koji, Pulp, ODCS, SMTP, etc. They are also used for controlling some aspects
+as Koji, ODCS, SMTP, etc. They are also used for controlling some aspects
 of the container images built, for example, distribution scope, vendor,
 authoritative-registry, etc. These may change over time as the environment
 changes.
@@ -244,10 +244,10 @@ example, if **reactor_config** defines::
     - kojisecret
     - pulpsecret
 
-Secrets named **kojisecret** and **pulpsecret** must be available in orchestrator and
-worker clusters. They don't need to have the same value, just the same name. For
-instance, worker and orchestrator builds may use different authentication
-certificates.
+A secret named **kojisecret** must be available in orchestrator and
+worker clusters. The worker and orcestrator versions don't need to have the
+same value. For instance, worker and orchestrator builds may use different
+authentication certificates.
 
 Secrets needed for communication from orchestrator build to worker clusters are
 defined separately in **worker_token_secrets**. These are not passed along

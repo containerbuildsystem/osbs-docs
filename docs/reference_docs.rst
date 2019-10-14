@@ -35,14 +35,6 @@ Python module and command line client for OpenShift Build Service.
 * `Configuration file <https://github.com/containerbuildsystem/osbs-client/blob/master/docs/configuration_file.md>`_
 
 
-dockpulp
---------
-
-ReST API Client to Pulp for manipulating docker images.
-
-* `Installation and Usage <https://github.com/release-engineering/dockpulp/blob/master/README.md>`_
-
-
 Ansible Playbook
 ----------------
 
