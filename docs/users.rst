@@ -21,6 +21,19 @@ Using a koji client CLI directly you have to specify git repo URL and branch::
 
     koji container-build <target> <repourl>#<branch/ref> --git-branch <branch>
 
+The `koji-containerbuild plugin`_ provides the ``container-build`` sub-command
+in the ``koji`` CLI. Please install the plugin in order to access this
+sub-command::
+
+    sudo yum install python3-koji-containerbuild-cli
+
+You will now have the ``container-build`` sub-command available on your
+workstation. For a full list of options::
+
+    koji container-build --help
+
+.. _`koji-containerbuild plugin`: https://github.com/containerbuildsystem/koji-containerbuild
+
 
 Streamed build logs
 ~~~~~~~~~~~~~~~~~~~
@@ -36,18 +49,6 @@ which will contain logs from multiple builds. When watching this using
 ``koji watch-logs <task id>`` the log output from each worker build
 will be interleaved. To watch logs from a particular worker build
 image owners can use ``koji watch-logs <task id> | grep -w x86_64``.
-
-
-Configuring koji-containerbuild for koji CLI
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-To be able to build container images from CLI, `koji-containerbuild plugin`_
-must be installed.
-
-No additional configuration is required.
-Everything should be set by ``koji`` package.
-
-.. _`koji-containerbuild plugin`: https://github.com/containerbuildsystem/koji-containerbuild
 
 
 Koji Build Results
