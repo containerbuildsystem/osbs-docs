@@ -729,28 +729,37 @@ include the fetched artifacts in addition to the installed RPMs.
 Image tags
 ----------
 
-The output from atomic-reactor includes container images tagged into a
-registry (or Pulp, if Pulp integration is enabled). In addition, when
-multi-platform builds are enabled each set of images will be grouped
-into a manifest list, which itself is tagged.
+OSBS's atomic-reactor pushes the new container image to the container
+registry (or Pulp, if Pulp integration is enabled) and updates various tag
+references in the registry. In addition, when multi-platform builds are
+enabled, atomic-reactor groups each set of images into a manifest list
+and tags that manifest list.
 
-While the repository name is specified by the ``name`` label in the
-Dockerfile, the tags used within the repository are:
+OSBS determines the name of the repository from the ``name`` label in the
+Dockerfile. There are three categories of tags that OSBS creates when
+tagging the resulting image in the registry:
 
-- a unique tag including the timestamp (this tag is the only tag
-  applied for scratch builds)
-- ``{version}-{release}`` (the ``version`` and ``release`` labels
-  together)
+* A "**unique**" tag: This tag includes the timestamp of when the image
+  was built.  For scratch builds, this is the only tag that OSBS applies.
+  Example: ``rsync-containers-candidate-93619-20191017205627``
 
-If the ``tags`` value is set in container.yaml, those tags are applied
-to the image as floating tags.
+* A "**primary**" tag: This tag is the ``{version}-{release}`` for the
+  image (a combination of the ``version`` and ``release`` labels in the
+  Dockerfile). Example: ``4-2``. This tag is unique for each Koji build.
 
-If ``tags`` is not used in container.yaml, the following tags are
-applied:
+* "**floating**" tag(s): These tags transition to newer image references
+  over time. In other words, every time you build a new container image,
+  OSBS updates these floating tags. Examples: ``latest``, or ``{version}``
 
-- ``{version}`` (the ``version`` label)
-- ``latest``
-- any additional tags named in the ``additional-tags`` file
+  Floating tags are configurable. If you set ``tags`` in container.yaml, OSBS
+  applies those tags to your newly-built image as floating tags.
+
+  If you do not set ``tags`` in container.yaml, OSBS applies the following
+  floating tags automatically:
+
+  - ``{version}`` (the ``version`` label)
+  - ``latest``
+  - any additional tags named in the ``additional-tags`` file
 
 These tags are applied to the manifest list or, if multi-platform
 image builds are not enabled (see :ref:`group_manifests
@@ -822,21 +831,16 @@ of halting the build with an error). This is done by setting the
 Isolated Builds
 ---------------
 
-When a build is created via OSBS, the built container image is pushed to the
-container registry updating various tag references in the container registry.
-Some of these tag references are unique, while others are meant to transition
-over time to reference a newer image, for instance ``latest`` and ``{version}``
-tags. In other words, building a container image usually updates these
-transient, non-unique, tags in container registry. In some cases, this is not
-desired.
+In some cases, you may not want to update the floating tags for certain
+builds.
 
 Consider the case of a container image that includes one, or more, packages that
 have recently been identified as containing security vulnerabilities. To address
 this issue, a new container image must be built. The difference for this build
 is that only changes related to the security fix must be applied. Any unrelated
 development that has occurred should be ignored. It would not be correct to
-update the ``latest`` tag reference with this build.  To achieve this, the
-concept of isolated builds was introduced.
+update the ``latest`` floating tag reference with this build.  To achieve
+this, the concept of isolated builds was introduced.
 
 As an example, let's use the image ``rsyslog`` again. At some point the
 container image 7.4-2 is released (version 7.4, release 2). Soon after, minor
@@ -869,8 +873,9 @@ To start an isolated build, use the ``isolated`` boolean parameter. Due to the
 nature of isolated builds, the release value must be set via the ``release``
 parameter which must match the format ``^\d+\.\d+(\..+)?$``
 
-Isolated builds will only update the ``{version}-{release}`` unique tag and the
-primary tag in target container registry.
+Isolated builds will only create the ``{version}-{release}`` primary tag and
+the unique tag in the container registry. OSBS does not update any floating
+tags for an isolated build.
 
 Yum repositories
 ----------------
