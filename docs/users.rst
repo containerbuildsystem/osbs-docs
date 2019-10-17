@@ -61,7 +61,7 @@ This is the easiest way to access information about OSBS builds.
 List Builds
 +++++++++++
 
-Navigate to the "Builds" tab in brew and set the "Type" filter to ``image``.
+Navigate to the "Builds" tab in koji and set the "Type" filter to ``image``.
 
 
 Get Build
@@ -152,7 +152,7 @@ to get more info about task::
 Cancel Task
 +++++++++++
 
-You can cancel a buildContainer brew task as for other types of task, and this
+You can cancel a buildContainer koji task as for other types of task, and this
 will cancel the OSBS build::
 
     koji cancel <task-ID>
@@ -1033,7 +1033,7 @@ absent from the file in dist-git, atomic-reactor will provide defaults:
 
 In this way, the kickstart configuration can be placed in the dist-git
 repository as 'kickstart.ks' alongside the Dockerfile and image-build.conf
-files, and the correct git URL and commit hash will be recorded in Brew when
+files, and the correct git URL and commit hash will be recorded in Koji when
 the image is built. This is the recommended way of providing a kickstart
 configuration for base images.
 
