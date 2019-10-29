@@ -11,7 +11,7 @@ Provides plugin to submit builds with koji CLI.
 
 * `Installation and usage instructions <https://github.com/release-engineering/koji-containerbuild/blob/master/README.rst>`__
 
-* `General concepts behind container build architecture <https://github.com/release-engineering/koji-containerbuild/blob/master/docs/build_architecture.txt>`_
+* `General concepts behind container build architecture <https://github.com/containerbuildsystem/koji-containerbuild/blob/master/docs/build-architecture.md>`_
 
 
 Atomic Reactor
