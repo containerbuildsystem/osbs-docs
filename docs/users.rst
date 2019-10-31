@@ -468,7 +468,7 @@ tags
 
 finish-args
   Arguments to ``flatpak build-finish`` (see the flatpak-build-finish man page).
-  This is a string split on whitespace with shell style quoting. Only
+  This is a string split on white space with shell style quoting. Only
   applicable to applications.
 
 .. _`flatpak-docs`: https://github.com/containerbuildsystem/atomic-reactor/blob/master/docs/flatpak.md
@@ -598,14 +598,14 @@ An example::
   - server-rpms
   - server-extras-rpms
 
-  ppx64le:
+  ppc64le:
   - server-for-power-le-rpms
   - server-extras-for-power-le-rpms
 
 Using Artifacts from Koji
 -------------------------
 
-During a container build, it might be desireable to fetch some artifacts
+During a container build, it might be desirable to fetch some artifacts
 from an existing Koji build. For instance, when building a Java-based
 container, JAR archives from a Koji build are required to be added to
 the resulting container image.
@@ -801,7 +801,7 @@ During the build process, OSBS will query koji for the builds of all parent
 images using their NVRs. If any of the parent image builds is not found in
 koji, or if NVR information cannot be extracted from the parent image, OSBS
 assumes that the parent image was not built by OSBS and halts the current
-build. In othe words, an image cannot be built using a parent image which has
+build. In other words, an image cannot be built using a parent image which has
 not been built by OSBS. It is possible to disable this feature through reactor
 configuration. See the ``skip_koji_check_for_base_image`` option in
 `config.json`_ for further reference.
@@ -812,7 +812,7 @@ Digests verification
 Once OSBS has the koji build information for a parent image, it compares the
 digest of the parent image manifest available in koji metadata (stored when
 that parent build had completed) with the actual parent image manifest digest
-(calulated by OSBS during the build). In case manifests do not match, the build
+(calculated by OSBS during the build). In case manifests do not match, the build
 will fail and the parent image **must** be rebuilt in OSBS before it is used in
 another build.
 
