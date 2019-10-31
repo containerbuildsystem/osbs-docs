@@ -337,3 +337,6 @@ texinfo_documents = [
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #
 # texinfo_no_detailmenu = False
+
+# anchor checks seem to be broken for github anchors. Skip for now
+linkcheck_anchors = False
