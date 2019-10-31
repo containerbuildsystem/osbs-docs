@@ -68,7 +68,7 @@ Navigate to the "Builds" tab in koji and set the "Type" filter to ``image``.
 Get Build
 +++++++++
 
-If you have the build ID, go to https://<KOJI_WEB_URL>/buildinfo?buildID=<build-ID>
+If you have the build ID, go to <KOJI_WEB_URL>/buildinfo?buildID=<build-ID>
 
 If you want to search build by its name or part of name, use the search box on
 top of the page.
