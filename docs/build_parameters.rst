@@ -245,7 +245,7 @@ example, if **reactor_config** defines::
     - pulpsecret
 
 A secret named **kojisecret** must be available in orchestrator and
-worker clusters. The worker and orcestrator versions don't need to have the
+worker clusters. The worker and orchestrator versions don't need to have the
 same value. For instance, worker and orchestrator builds may use different
 authentication certificates.
 
