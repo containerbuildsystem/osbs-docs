@@ -330,10 +330,9 @@ platform
 line
   str, log line (Unicode)
 
-See the example below for what this would look like for these sample
-log lines.
-
-See the example below to see this illustrated.
+The "Example" section below demonstrates how to use the
+``get_orchestrator_build_logs()`` method in Python to parse the above log
+lines.
 
 Encoding issues
 ~~~~~~~~~~~~~~~
