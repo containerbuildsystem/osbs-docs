@@ -99,9 +99,11 @@ a `full description of the Koji container image metadata`_.
 Get Task
 ++++++++
 
-All OSBS builds triggered via koji have a task linked to them.
-On the Build info page click on the buildContainer link labelled 'Task'
-to find the task responsible for the build.
+All OSBS builds triggered via koji have a task linked to them. On the Build
+info page, look at the "Extra" field for the ``container_koji_task_id`` value.
+When you locate this task ID integer, go to
+<KOJI_WEB_URL>/taskinfo?taskID=<task-ID> to find the task responsible
+for the build.
 
 
 Build Logs
