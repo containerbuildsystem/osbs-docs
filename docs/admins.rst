@@ -484,5 +484,37 @@ atomic-reactor captures *SIGUSR1* signals. When receiving such signal,
 atomic-reactor responds by showing the current stack trace for every thread it
 was running when the signal was received.
 
-This feature can be used to inspect either the orchestrator or a specific
+An administrator can use this to inspect the orchestrator or a specific
 worker build. It is specially useful to diagnose stuck builds.
+
+As an administrator, use ``podman kill --signal=SIGUSR1
+<BUILDROOT_CONTAINER>`` or ``podman exec <BUILDROOT_CONTAINER> kill -s SIGUSR1
+1`` to send the signal to the buildroot container you wish to inspect.
+atomic-reactor will dump stack traces for all its threads into the buildroot
+container logs. For instance::
+
+    Thread 0x7f6e88a1b700 (most recent call first):
+      File "/usr/lib/python2.7/site-packages/atomic_reactor/inner.py", line 277, in run
+      File "/usr/lib64/python2.7/threading.py", line 812, in __bootstrap_inner
+      File "/usr/lib64/python2.7/threading.py", line 785, in __bootstrap
+
+    Current thread 0x7f6e95dbf740 (most recent call first):
+      File "/usr/lib/python2.7/site-packages/atomic_reactor/util.py", line 74, in dump_traceback
+      File "/usr/lib/python2.7/site-packages/atomic_reactor/util.py", line 1562, in dump_stacktraces
+      File "/usr/lib64/python2.7/socket.py", line 476, in readline
+      File "/usr/lib64/python2.7/httplib.py", line 620, in _read_chunked
+      File "/usr/lib64/python2.7/httplib.py", line 578, in read
+      File "/usr/lib/python2.7/site-packages/urllib3/response.py", line 203, in read
+      File "/usr/lib/python2.7/site-packages/docker/client.py", line 247, in _stream_helper
+      File "/usr/lib/python2.7/site-packages/atomic_reactor/util.py", line 297, in wait_for_command
+      File "/usr/lib/python2.7/site-packages/atomic_reactor/plugins/build_docker_api.py", line 46, in run
+      File "/usr/lib/python2.7/site-packages/atomic_reactor/plugin.py", line 239, in run
+      File "/usr/lib/python2.7/site-packages/atomic_reactor/plugin.py", line 449, in run
+      File "/usr/lib/python2.7/site-packages/atomic_reactor/inner.py", line 444, in build_docker_image
+      File "/usr/lib/python2.7/site-packages/atomic_reactor/inner.py", line 547, in build_inside
+      File "/usr/lib/python2.7/site-packages/atomic_reactor/cli/main.py", line 95, in cli_inside_build
+      File "/usr/lib/python2.7/site-packages/atomic_reactor/cli/main.py", line 292, in run
+      File "/usr/lib/python2.7/site-packages/atomic_reactor/cli/main.py", line 310, in run
+      File "/usr/bin/atomic-reactor", line 11, in <module>
+
+In this example, this build is stuck talking to the docker client (``docker/client.py``).
