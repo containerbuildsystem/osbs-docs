@@ -15,8 +15,7 @@ user parameters are unique to each build request.
 Environment parameters are used for configuring usage of external services such
 as Koji, ODCS, SMTP, etc. They are also used for controlling some aspects
 of the container images built, for example, distribution scope, vendor,
-authoritative-registry, etc. These may change over time as the environment
-changes.
+authoritative-registry, etc.
 
 User parameters contain the unique information for a user's build request: git
 repository, git branch, Koji target, etc. These should be reused for
