@@ -39,12 +39,13 @@ secret. With Arrangement 6 it is supplied as a ``ConfigMap`` like::
     data:
         "config.yaml": <encoded yaml>
 
-For an orchestrator build, the ``ConfigMap`` is mapped via the downward API
-into the **REACTOR_CONFIG** environment variable in a build container.
-When the ``BuildConfig`` is instantiated, OpenShift selects the ``ConfigMap``
-with name given in  **reactor-config-map**, retrieves the contents of the key
-**config.yaml**, and sets it as the value of the **REACTOR_CONFIG** environment
-variable in the build container.
+For an orchestrator build, the ``ConfigMap`` is mapped via the `downward API
+<https://docs.openshift.com/container-platform/3.11/dev_guide/downward_api.html>`_
+into the **REACTOR_CONFIG** environment variable in a build container.  When
+the ``BuildConfig`` is instantiated, OpenShift selects the ``ConfigMap`` with
+name given in  **reactor-config-map**, retrieves the contents of the key
+**config.yaml**, and sets it as the value of the **REACTOR_CONFIG**
+environment variable in the build container.
 
 For worker builds, the **REACTOR_CONFIG** environment variable is defined
 as an inline **value** (via the
