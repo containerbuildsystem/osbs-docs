@@ -477,6 +477,12 @@ understanding of any delays due to scheduling.
 Troubleshooting
 ---------------
 
+Builds will automatically cancel themselves if any worker takes more than 3
+hours to complete or the entire task takes more than 4 hours to complete.
+Administrators can override these run time values with the
+``worker_max_run_hours`` and ``orchestrator_max_run_hours`` settings in the
+``osbs.conf`` file.
+
 Obtaining Atomic Reactor stack trace
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
