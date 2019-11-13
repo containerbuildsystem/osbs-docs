@@ -298,6 +298,9 @@ As of October 2019, Pulp is no longer supported in Arrangement 6 for either work
 or orchestrator builds.
 
 
+.. graphviz:: images/arrangement-v6.dot
+   :caption: Orchestrator and worker builds (arrangement v6)
+
 Logging
 -------
 
