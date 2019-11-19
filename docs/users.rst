@@ -563,8 +563,6 @@ The steps above apply to a single branch in your dist-git repo.
 It must be repeated for each branch you wish to disable the feature.
 
 
-.. _content_sets.yml:
-
 image_build_method
 ~~~~~~~~~~~~~~~~~~
 
@@ -584,6 +582,8 @@ In order to use the **imagebuilder** plugin, the imagebuilder_ binary must be
 available and in the PATH for the builder image, or an error will result.
 
 .. _imagebuilder: https://github.com/openshift/imagebuilder/
+
+.. _content_sets.yml:
 
 Content Sets
 ------------
