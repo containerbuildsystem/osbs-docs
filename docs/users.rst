@@ -490,6 +490,17 @@ version
 This key is no longer used by OSBS and is only kept in the schema for backwards
 compatibility.
 
+
+set_release_env
+~~~~~~~~~~~~~~~
+
+Optional string.  If set, osbs-client will modify each stage of the image's 
+Dockerfile, adding an ENV statement immediately following the FROM statement.
+The ENV statement will assign an environment variable with the same name as
+the value of set_release_env and the value of the current build's release number.
+Users can use this environment variable to get the release value when running
+tools inside the container.
+
 .. _container.yaml-autorebuild:
 
 autorebuild
