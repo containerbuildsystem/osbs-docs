@@ -847,13 +847,12 @@ Isolated Builds
 In some cases, you may not want to update the floating tags for certain
 builds.
 
-Consider the case of a container image that includes one, or more, packages that
-have recently been identified as containing security vulnerabilities. To address
-this issue, a new container image must be built. The difference for this build
-is that only changes related to the security fix must be applied. Any unrelated
-development that has occurred should be ignored. It would not be correct to
-update the ``latest`` floating tag reference with this build.  To achieve
-this, the concept of isolated builds was introduced.
+Consider the case of a container image that includes packages that have new
+security vulnerabilities. To address this issue, you must build a new
+container image. You only want to apply changes related to the security fixes,
+and you want to ignore any new unrelated development work. It is not correct
+to update the ``latest`` floating tag reference for this build. You can use
+OSBS's isolated builds feature to achieve this.
 
 As an example, let's use the image ``rsyslog`` again. At some point the
 container image 7.4-2 is released (version 7.4, release 2). Soon after, minor
@@ -883,8 +882,8 @@ this reason, updating the ``latest`` tag is considered incorrect.
     |
 
 To start an isolated build, use the ``isolated`` boolean parameter. Due to the
-nature of isolated builds, the release value must be set via the ``release``
-parameter which must match the format ``^\d+\.\d+(\..+)?$``
+nature of isolated builds, you must explicitly specify your build's
+``release`` parameter, which must match the format ``^\d+\.\d+(\..+)?$``.
 
 Isolated builds will only create the ``{version}-{release}`` primary tag and
 the unique tag in the container registry. OSBS does not update any floating
