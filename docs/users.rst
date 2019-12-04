@@ -885,6 +885,10 @@ To start an isolated build, use the ``isolated`` boolean parameter. Due to the
 nature of isolated builds, you must explicitly specify your build's
 ``release`` parameter, which must match the format ``^\d+\.\d+(\..+)?$``.
 
+Here is an example of an isolated build using fedpkg::
+
+  fedpkg container-build --isolated --build-release=2.1
+
 Isolated builds will only create the ``{version}-{release}`` primary tag and
 the unique tag in the container registry. OSBS does not update any floating
 tags for an isolated build.
