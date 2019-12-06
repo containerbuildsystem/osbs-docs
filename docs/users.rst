@@ -1170,3 +1170,94 @@ stored in koji build, in section ``build.extra.operator_manifests.appregistry``.
 
 Manifests will not be pushed to the application registry for scratch builds,
 isolated builds, or re-builds to prevent unwanted changes
+
+
+Building Source Container Images
+================================
+
+OSBS is able to build source container image from a particular koji build
+previously created by OSBS. To create a source container build you have to
+specify either koji N-V-R or build ID for the image build you want to
+create a source container image for.
+
+
+Under the hood the BSI_ project is used to generate source images from
+sources identified and collected by OSBS. Please note that BSI script must be
+available in the OSBS buildroot as `bsi` executable in `$PATH`.
+
+
+Current limitations:
+* only Source RPMs are added into source container image
+* only koji internal RPMs are supported
+Support for other types of sources and external builds will be added in future.
+
+.. _`BSI`: https://github.com/containers/BuildSourceImage
+
+
+Signing intent resolution
+-------------------------
+
+Resolution of signing intent is done in following order:
+
+* signing intent specified from CLI params (koji, osbs-client),
+* otherwise signing intent is taken from the original image build,
+* if undefined then default signing intent from `odcs` configuration section in `reactor-config-map` is used.
+
+If ODCS integration is disabled, unsigned packages are allowed by default.
+
+
+Koji integration
+----------------
+
+Koji integration must be enabled for building source container images.
+Source container build requires metadata stored in koji builds and koji
+database of RPM builds which source container build uses to lookup for sources.
+
+
+Koji Build Metadata Integration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Source container build uses metadata from specified image build in the following manner:
+
+* **name**: suffix `-source` is appended to original name (`ubi8-container` will be transformed to `ubi8-container-source`)
+* **version**: value is the same as original image build
+* **release**: a suffix `.X` is appended to original release value, where `X` is a sequential integer starting from 1 increased by OSBS for each source image rebuild.
+
+For example, from N-V-R `ubi8-container-8.1-20` OSBS creates source container build `ubi8-container-source-8.1-20.1`.
+
+The original image N-V-R is stored in `extra.image.sources_for_nvr` attribute in koji source container build metadata.
+
+
+Building source container images using koji
+-------------------------------------------
+
+Using a koji client CLI directly you have to specify git repo URL and branch::
+
+    koji source-container-build <target>  --koji-build-nvr=NVR --koji-build-id=ID
+
+For a full list of options::
+
+    koji source-container-build --help
+
+
+Building source container images using osbs-client
+--------------------------------------------------
+
+Please note that mainly ``koji`` and ``fedpkg`` commands should be used
+for building container images instead of direct ``osbs-client`` calls.
+
+To execute build via osbs-client CLI use::
+
+    osbs build-source-container -c <component> -u <username> --sources-for-koji-build-nvr=N-V-R --sources-for-koji-build-id=ID
+
+To see full list of options execute::
+
+    osbs build-source-container --help
+
+To see all osbs-client subcommands execute::
+
+    osbs --help
+
+Please note that ``osbs-client`` must be configured properly using config file ``/etc/osbs.conf``.
+Please refer to :ref:`osbs-client configuration section <configuring-osbs-client>`
+for configuration examples.
