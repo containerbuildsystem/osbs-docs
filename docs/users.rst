@@ -1213,6 +1213,8 @@ Koji integration must be enabled for building source container images.
 Source container build requires metadata stored in koji builds and koji
 database of RPM builds which source container build uses to lookup for sources.
 
+Source container builds uses different task type: `buildSourceContainer`.
+
 
 Koji Build Metadata Integration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
