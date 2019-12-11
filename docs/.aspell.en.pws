@@ -89,7 +89,6 @@ Kubernetes
 BType
 containerbuild
 runtimes
-pdc
 mavenfile
 abc
 pulpsecret
