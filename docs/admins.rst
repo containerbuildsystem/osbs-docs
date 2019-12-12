@@ -367,6 +367,32 @@ Example:
 .. _quay: https://quay.io/application/
 .. _`config.json`: https://github.com/containerbuildsystem/atomic-reactor/blob/master/atomic_reactor/schemas/config.json
 
+Including OpenShift build annotations in Koji task output
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+It is possible to include a ``build_annotations.json`` file in the task output
+of successful container image builds. This file may include any wanted
+OpenShift build annotations for the container build triggered by the Koji task
+in question.
+
+The ``koji-containerbuild`` plugin looks for a
+``koji_task_annotations_whitelist`` annotation in the OpenShift build
+annotations. This key should hold a list of annotations to be whitelisted for
+inclusion in the ``build_annotations.json`` file.
+
+If an empty ``build_annotations.json`` file would be generated through the
+process described above, the file is omitted from the task output. For
+instance, ``koji_task_annotations_whitelist`` could be empty, or the
+whitelisted annotations not present in OpenShift build annotations.
+
+To whitelist the desired annotations in the ``koji_task_annotations_whitelist``
+OpenShift annotation described above, you can use the
+``task_annotations_whitelist`` ``koji`` configuration in the
+``reactor_config_map``. See :ref:`config.yaml` for further reference.
+
+The ``build_annotations.json`` file is a JSON object with first level
+key/values where each key is a whitelisted OpenShift build annotation mapped to
+it's value.
 
 Priority of Container Image Builds
 ----------------------------------
