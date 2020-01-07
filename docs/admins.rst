@@ -367,6 +367,8 @@ Example:
 .. _quay: https://quay.io/application/
 .. _`config.json`: https://github.com/containerbuildsystem/atomic-reactor/blob/master/atomic_reactor/schemas/config.json
 
+.. _whitelist-annotations:
+
 Including OpenShift build annotations in Koji task output
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -499,6 +501,77 @@ such builds.
 
 The log file, *osbs-client.log*, in a Koji task gives users a better
 understanding of any delays due to scheduling.
+
+.. _cachito-integration:
+
+Cachito integration
+-------------------
+
+cachito_ caches specific versions of upstream projects source code along with
+dependencies and provides a single tarball with such content for download upon
+request. This is important when you want track the version of a project and its
+dependencies in a more robust manner, without handing control of storing and
+handling the source code for a third party (e.g., if tracking is performed in
+an external git forge, someone could force push a change to the repository or
+simply delete it).
+
+OSBS is able to use cachito to handle the source code used to build a container
+image. The source code archive provided by cachito and the data used to perform
+the cachito request may then be attached to the koji build output, making it
+easier to track the components built in a given container image.
+
+This section describes how to configure OSBS to use cachito as described above.
+:ref:`cachito-usage` describes how to get OSBS to use cachito in
+a specific container build, as an OSBS user.
+
+Configuring your cachito instance
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To enable cachito integration in OSBS, you must use the ``cachito``
+configuration in the ``reactor_config_map``. See configuration details in
+`config.json`_.
+
+Example:
+
+.. code-block:: yaml
+
+  cachito:
+    api_url: https://cachito.example.com
+    auth:
+      ssl_certs_dir: /dir/with/cert/file
+
+Configuring koji
+~~~~~~~~~~~~~~~~
+
+Adding remote-sources BType
+''''''''''''''''''''''''''''
+
+To fully support cachito_ integration, as described in
+:ref:`cachito-integration`, the `remote-sources`
+BType must be created in koji. This is done by running
+
+.. code-block:: shell
+
+  koji call addBType remote-sources
+
+This new build type will hold cachito related build artifacts generated in
+atomic-reactor, which should include a tarball with the upstream source code
+for the software installed in the container image and a `remote-source.json`
+file, which is a JSON representation of the source request sent to cachito by
+atomic-reactor. This JSON file includes information such as the repository from
+where cachito downloaded the source code and the revision reference that was
+downloaded (e.g., a git commit hash).
+
+Whitelisting `remote_source_url` build annotation
+'''''''''''''''''''''''''''''''''''''''''''''''''
+In addition to adding the new BType to koji, you may also want to whitelist the
+OpenShift `remote_source_url` build annotation. This is specially useful for
+scratch builds, where a koji build is not generated and users would not have
+information about how the sources were fetch for that build easily available.
+whitelist-annotations_ describes the steps needed to whitelist OpenShift build
+annotations.
+
+.. _cachito: https://github.com/release-engineering/cachito
 
 Troubleshooting
 ---------------

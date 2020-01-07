@@ -594,6 +594,43 @@ available and in the PATH for the builder image, or an error will result.
 
 .. _imagebuilder: https://github.com/openshift/imagebuilder/
 
+.. _cachito-usage:
+
+Fetching source code from external source using cachito
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+As described in :ref:`cachito-integration`, it is possible to use cachito to
+download a tarball with an upstream project and its dependencies and make it
+available for usage in the working directory used during an OSBS build.
+
+remote_source
+~~~~~~~~~~~~~
+
+This map contains configuration of what sources OSBS will request from cachito
+and how they will be requested. The keys accepted here are described below. If
+OSBS cachito integration is not configured in the OSBS instance, the entries
+here will be ignored.
+
+repo
+  String with an URL to the upstream project SCM repository, such as
+  ``https://git.example.com/team/repo.git``. Required.
+
+ref
+  String with a 40-character reference to the SCM reference of re project
+  described in ``repo`` to be fetched. This should be a complete git commit
+  hash. Required.
+
+pkg_managers
+  A list of package managers to be used for resolving the upstream project
+  dependencies. If not provided, cachito will try to figure out what manager to
+  use here.
+
+flags
+  List of flags to pass to the cachito request. See the cachito_ documentation
+  for further reference.
+
+.. _cachito: https://github.com/release-engineering/cachito
+
 .. _content_sets.yml:
 
 Content Sets
