@@ -601,7 +601,7 @@ Fetching source code from external source using cachito
 
 As described in :ref:`cachito-integration`, it is possible to use cachito to
 download a tarball with an upstream project and its dependencies and make it
-available for usage in the working directory used during an OSBS build.
+available for usage during an OSBS build.
 
 remote_source
 ~~~~~~~~~~~~~
@@ -628,6 +628,26 @@ pkg_managers
 flags
   List of flags to pass to the cachito request. See the cachito_ documentation
   for further reference.
+
+Once the `remote_source` map described above is set in ``container.yaml``, you
+can now copy the upstream sources (with bundled dependencies) provided by
+cachito in your build image by adding::
+
+    COPY $REMOTE_SOURCE $REMOTE_SOURCE_DIR
+
+to your Dockerfile.
+
+Note that ``$REMOTE_SOURCES_DIR`` is a build arg, available only in build time,
+with the absolute path to the directory where the sources are expected to be
+(OSBS sets other build args such as ``GOPATH`` for Golang sources relying on
+the existence of the dependencies in this directory). Hence, for cleaning up
+the image after using the sources, add the following line to the Dockerfile
+after the build is complete::
+
+    RUN rm -rf $REMOTE_SOURCE_DIR
+
+``$REMOTE_SOURCE`` is another build arg, which points to the extracted tar
+archive provided by cachito in the buildroot workdir.
 
 .. _cachito: https://github.com/release-engineering/cachito
 
