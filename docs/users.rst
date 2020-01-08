@@ -635,7 +635,9 @@ cachito in your build image by adding::
 
     COPY $REMOTE_SOURCE $REMOTE_SOURCE_DIR
 
-to your Dockerfile.
+to your Dockerfile. From this point on, you will find the root of the upstream
+project at ``$REMOTE_SOURCE_DIR/app``, and the project dependencies at
+``$REMOTE_SOURCE_DIR/deps``.
 
 Note that ``$REMOTE_SOURCES_DIR`` is a build arg, available only in build time,
 with the absolute path to the directory where the sources are expected to be
