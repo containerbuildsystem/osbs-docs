@@ -4,6 +4,56 @@ Contributing to OSBS
 Setting up a (local) development environment
 --------------------------------------------
 
+OSBS-Box_ aims to provide a convenient way to set up an entire OSBS
+environment on your machine or a VM.
+
+You will first need to set up an OpenShift Origin_ cluster. OSBS-Box
+*might* work with other OpenShift clusters as long as you are able to
+log in as ``system:admin``.
+
+Afterwards, refer to the OSBS-Box readme for further instructions on
+deployment, usage etc.
+
+OSBS-Box environment
+~~~~~~~~~~~~~~~~~~~~
+
+osbs-koji
+.........
+
+Containerized deployment of Koji. Koji-builder uses osbs-client_,
+koji-client, koji-hub and koji-builder use the koji-containerbuild_
+cli, hub and builder plugins respectively.
+
+Use the koji-client container to run container builds.
+
+osbs-orchestrator
+.................
+
+Main OSBS namespace, contains reactor-config-map and buildroot.
+
+**osbs-buildroot**: Image inside the orchestrator namespace, does most
+of the container-building work. Uses atomic-reactor_, osbs-client_ and
+dockerfile-parse_.
+
+osbs-worker
+...........
+
+Worker namespace for the x86_64 architecture (OSBS-Box does
+not support other arches).
+
+osbs-registry
+.............
+
+Container registry service. Push base images for your builds to the
+registry, pull the built images from it.
+
+.. _OSBS-Box: https://github.com/containerbuildsystem/osbs-box
+.. _Origin: https://github.com/openshift/origin/blob/release-3.11/docs/cluster_up_down.md
+.. _osbs-client: https://github.com/containerbuildsystem/osbs-client
+.. _atomic-reactor: https://github.com/containerbuildsystem/atomic-reactor
+.. _koji-containerbuild: https://github.com/containerbuildsystem/koji-containerbuild
+.. _dockerfile-parse: https://github.com/containerbuildsystem/dockerfile-parse
+
 Contribution guidelines
 -----------------------
 
