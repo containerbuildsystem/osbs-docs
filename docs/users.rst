@@ -693,9 +693,11 @@ fetch-artifacts-koji.yaml and fetch-artifacts-url.yaml.  (See `fetch-artifacts-u
 
 .. _`fetch-artifacts-nvr.json`: https://github.com/containerbuildsystem/atomic-reactor/blob/master/atomic_reactor/schemas/fetch-artifacts-nvr.json
 
-The first is meant to fetch artifacts from an existing Koji build.
-The second allows specific URLs to be used for fetching artifacts.
-fetch-artifacts-koji.yaml will be processed first.
+The first is meant to fetch artifacts from an existing Koji build.  The second
+allows specific URLs to be used for fetching artifacts.  Note that all
+combinations of the yaml files here described are valid, i.e., you can have
+either one of the two files in your repository or you could have both files in
+the repository. ``fetch-artifacts-koji.yaml`` will be processed first.
 
 fetch-artifacts-koji.yaml
 ~~~~~~~~~~~~~~~~~~~~~~~~~
