@@ -1248,8 +1248,10 @@ available in the OSBS buildroot as `bsi` executable in `$PATH`.
 
 
 Current limitations:
-* only Source RPMs are added into source container image
+
+* only Source RPMs and sources fetched through :ref:`cachito-integration` are added into source container image
 * only koji internal RPMs are supported
+
 Support for other types of sources and external builds will be added in future.
 
 .. _`BSI`: https://github.com/containers/BuildSourceImage
