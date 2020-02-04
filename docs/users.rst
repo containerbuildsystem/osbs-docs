@@ -661,7 +661,10 @@ Content Sets
 The file ``content_sets.yml`` is used to define the content sets relevant to the
 container image.  This is relevant if RPM packages in container image are in
 pulp repositories. See ``pulp_repos`` in :ref:`container.yaml-compose` for how
-this file is used during build time.
+this file is used during build time. If this file is present, it must adhere
+to the `content_sets.yml schema`_.
+
+.. _`content_sets.yml schema`: https://github.com/containerbuildsystem/atomic-reactor/blob/master/atomic_reactor/schemas/content_sets.json
 
 An example::
 
