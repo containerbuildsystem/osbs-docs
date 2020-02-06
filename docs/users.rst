@@ -451,6 +451,11 @@ component
   ``com.redhat.component`` label in generated Dockerfile. Used to name the
   build when uploading to Koji. Defaults to the module name.
 
+base_image
+  The image that is used when installing packages to create the filesystem.
+  It is also recorded as the parent image of the output image. This
+  defaults to the ``flatpak: base_image`` setting in the **reactor-config-map**.
+
 branch
   The branch of the application or runtime. In many cases, this will match the
   stream name of the module. Required.
