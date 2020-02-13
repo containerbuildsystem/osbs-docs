@@ -656,6 +656,46 @@ after the build is complete::
 ``$REMOTE_SOURCE`` is another build arg, which points to the extracted tar
 archive provided by cachito in the buildroot workdir.
 
+Replacing project dependencies with cachito
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Cachito also provides a feature to allow users to replace a project's
+dependencies with another version of that same dependency or with a completely
+different dependency (this is useful when you want to use a patched fork for a
+dependency).
+
+OSBS allows users to use this feature for test purposes. In other words, you
+can use cachito dependency replacements for scratch builds, and
+**only for scratch builds**.
+
+You can use this feature using the ``--replace-dependency`` option, which is
+available for the ``fedpkg``, ``koji``, and ``osbs`` commands.
+
+This option expects a string with the following information, separated by the
+``:`` character: ``pkg_manager:name:version[:new_name]``, where ``pkg_manager``
+is the package manager used by cachito to handle the dependency; ``name`` is
+the name of the dependency to be replaced; ``version`` is the new version of
+the dependency to be injected by cachito; and ``new_name`` is an optional
+entry, to inform cachito that the dependency known as ``name`` by the package
+manager should be replaced with a new dependency, known as ``new_name`` by the
+package manager.::
+
+  fedpkg container-build --scratch --replace-dependency gomod:pagure.org/cool-go-project:v1.2 gomod:gopkg.in/foo:2:github.com/bar/foo
+
+or::
+
+  koji container-build [...] --scratch --replace-dependency gomod:pagure.org/cool-go-project:v1.2 --replace-dependency gomod:gopkg.in/foo:2:github.com/bar/foo
+
+In the examples above, two dependencies would be replaced. cool-go-project
+would be used in version ``v1.2``, no matter what version is specified by the
+project requesting it. Whereas ``gopkg.in/foo`` will be replaced by
+``github.com/bar/foo`` version 2.
+
+Note that while in ``fedpkg`` the replace dependency option receives multiple
+parameters, the same option should be specified multiple times in ``koji`` or
+the ``osbs`` CLI. This was done to keep the consistency with the similar option
+to specify yum repository URLs in each particular CLI.
+
 .. _cachito: https://github.com/release-engineering/cachito
 
 .. _content_sets.yml:
