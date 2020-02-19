@@ -656,6 +656,10 @@ after the build is complete::
 ``$REMOTE_SOURCE`` is another build arg, which points to the extracted tar
 archive provided by cachito in the buildroot workdir.
 
+.. note:: To better use the cachito provided dependencies, a full gomod
+  supporting Golang version is required. In other words, you should use Golang
+  >= 1.13
+
 Replacing project dependencies with cachito
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
