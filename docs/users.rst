@@ -1185,6 +1185,8 @@ To execute base image build, run::
 
 The --repo-url parameter specifies the URL to a repofile. The first section
 of this is inspected and the 'baseurl' is examined to discover the compose URL.
+You can also use --compose-id parameter to specify ODCS composes from which additional
+yum repos will be used.
 
 
 Multistage builds
