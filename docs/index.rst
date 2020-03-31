@@ -33,6 +33,7 @@ Table of Contents
     build_process
     build_parameters
     contributors
+    maintainers
     reference_docs
 
 
