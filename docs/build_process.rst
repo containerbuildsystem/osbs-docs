@@ -37,7 +37,8 @@ The orchestrator build makes use of :ref:`config.yaml` to discover
 which worker clusters to direct builds to and whether/which `node
 selector`_ is required for each.
 
-.. _`node selector`: https://docs.okd.io/latest/admin_guide/managing_projects.html#developer-specified-node-selectors
+.. _`node selector`: https://docs.okd.io/3.11/admin_guide/managing_projects.html#developer-specified-node-selectors
+
 
 The separation of tasks between the orchestrator build and the worker
 build is called the "arrangement".
