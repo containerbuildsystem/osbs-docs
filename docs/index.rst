@@ -10,7 +10,7 @@ OSBS is a collection of tools, workflows and integration points that build and r
 
 OSBS hooks into Koji_ with the help of the `koji-containerbuild plugin
 <https://github.com/containerbuildsystem/koji-containerbuild>`_, and
-uses `OpenShift builds <https://docs.okd.io/latest/dev_guide/builds/index.html>`_ as Content Generators to produce layered images.
+uses `OpenShift builds <https://docs.okd.io/3.11/dev_guide/builds/index.html>`_ as Content Generators to produce layered images.
 
 .. _Koji: https://pagure.io/koji
 
