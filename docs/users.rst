@@ -1295,6 +1295,8 @@ previously created by OSBS. To create a source container build you have to
 specify either koji N-V-R or build ID for the image build you want to
 create a source container image for.
 
+When koji build is using lookaside cache, that may include all sort of things about which
+we can't get any information, in that case source container build will fail.
 
 Under the hood the BSI_ project is used to generate source images from
 sources identified and collected by OSBS. Please note that BSI script must be
