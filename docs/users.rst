@@ -1248,9 +1248,14 @@ koji for later distribution.
 .. _operator: https://coreos.com/operators/
 
 To activate the operator manifests extraction from the image, you must set a
-specific label in your Dockerfile::
+specific label in your Dockerfile to identify your build as either an operator
+bundle build or an appregistry build::
 
     LABEL  com.redhat.delivery.appregistry=true
+    LABEL  com.redhat.delivery.operator.bundle=true
+
+Only one of these labels (the appropriate one for your build) may be present,
+otherwise build will fail.
 
 When present (and set to ``true``), this label triggers the atomic-reactor
 ``export_operator_manifests`` plugin. This plugin extracts the content from the
@@ -1275,6 +1280,149 @@ The operator manifests archive is uploaded to koji as a separate type:
 
 
 .. _`config.json`: https://github.com/containerbuildsystem/atomic-reactor/blob/master/atomic_reactor/schemas/config.json
+
+.. _operator-bundle:
+
+Operator manifest bundle builds
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This type of build is for the newer style of operator manifests targeting
+Openshift 4.4 or higher.
+It is identified by the ``com.redhat.delivery.operator.bundle`` label.
+
+To make OSBS cooperate on building your operator manifest bundle, you will need
+to set up the following:
+
+**Dockerfile**
+
+.. code-block:: Dockerfile
+
+    # Base needs to be scratch
+    FROM scratch
+
+    # Make this an operator bundle build
+    LABEL com.redhat.delivery.operator.bundle=true
+
+    # Does not matter where you keep your manifests in the repo, but in the
+    # final image, they need to be in /manifests
+    COPY my-manifests-dir/ /manifests
+
+**container.yaml** (see ``operator_manifests`` in `container.yaml schema`_)
+
+.. code-block:: yaml
+
+    operator_manifests:
+      # Relative path to your manifests dir from root of repo
+      manifests_dir: my-manifests-dir
+
+Image Pullspec replacements
+***************************
+
+In addition to extracting the ``/manifests`` dir to koji after build as
+described above, the ``pin_operator_digest`` plugin is able to replace
+pullspecs in your **ClusterServiceVersion** files.
+
+The primary intent is to replace floating tags with manifest list digests to
+make operators usable in isolated environments. In addition, the plugin
+provides repo and registry replacement to allow workflows where you use private
+or testing pullspecs in your manifest and OSBS replaces them with final
+(perhaps customer-facing) pullspecs.
+
+Each step of pullspec replacement can be enabled/disabled using the
+corresponding option in ``container.yaml``. By default, all steps are enabled.
+
+.. code-block:: yaml
+
+    operator_manifests:
+      enable_digest_pinning: true
+      enable_repo_replacements: true
+      enable_registry_replacements: true
+
+digest pinning
+  Query registry for manifest list digest, replace tag with it.
+
+  E.g. ``private.com/test/foobar:v1``
+  -> ``private.com/test/foobar@sha256:123...``
+
+repo replacements
+  Query registry for package name (determined by component label in image),
+  replace namespace/repo based on said package name. Only applies to images
+  from registries that have a package mapping configured, either in OSBS site
+  configuration or in ``container.yaml``:
+
+  .. code-block:: yaml
+
+    operator_manifests:
+      repo_replacements:
+        - registry: private.com
+          package_mappings:
+            foobar-package: foo/bar
+
+  E.g. ``private.com/test/foobar@sha256:123...``
+  -> ``private.com/foo/bar@sha256:132...``
+
+  It may happen that the registry of one of your images has a package mapping,
+  but is missing the replacement / has multiple possible replacements for
+  a package. In this case, the build will fail and you will need to define the
+  replacement in ``container.yaml`` as shown above.
+
+registry replacements
+  Based purely on OSBS site configuration, after digest is pinned and repo is
+  replaced, registry may also be replaced if atomic-reactor is configured to
+  do so.
+
+  E.g. ``private.com/foo/bar@sha256:123...``
+  -> ``public.io/foo/bar@sha256:123...``
+
+Pullspec locations
+++++++++++++++++++
+
+Before OSBS can replace your pullspecs, it first needs to find them. Because
+it is practically impossible to tell if a string is a pullspec, atomic-reactor
+has a predefined set of locations where it will look for pullspecs.
+
+*Locations shown as jq queries.*
+
+1. ``.metadata.annotations.containerImage``
+2. ``.spec.relatedImages[]``
+3. ``.spec.install.spec.deployments[].spec.template.spec.containers[]``
+4. ``.spec.install.spec.deployments[].spec.template.spec.initContainers[]``
+5. ``.env[] | select(.name | test("RELATED_IMAGE_"))`` for each of [3], [4]
+
+**example.clusterserviceversion.yaml**
+
+.. code-block:: yaml
+
+    kind: ClusterServiceVersion
+    metadata:
+      annotations:
+        containerImage: registry.io/namespace/foo  # [1]
+    spec:
+      relatedImages:
+      - name: bar
+        image: registry.io/namespace/bar  # [2]
+      install:
+        spec:
+          deployments:
+          - spec:
+              template:
+                spec:
+                  containers:
+                  - name: baz
+                    image: registry.io/namespace/baz  # [3]
+                    env:
+                    - name: RELATED_IMAGE_SPAM
+                      value: registry.io/namespace/spam  # [5]
+                  initContainers:
+                  - name: eggs
+                    image: registry.io/namespace/eggs  # [4]
+
+Operator manifest appregistry builds
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This type of build is for the older style of operator manifests targeting
+Openshift 4.3 or lower.
+It is identified by the ``com.redhat.delivery.appregistry`` label.
 
 After a successful build, if :ref:`OMPS integration <omps-integration>`
 is enabled, operator manifests are uploaded into configured application

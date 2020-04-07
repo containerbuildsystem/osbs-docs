@@ -480,6 +480,52 @@ BType must be created in koji. This is done by running
 
 .. _operator: https://coreos.com/operators/
 
+Enabling Operator Manifests digest pinning (and other replacements)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To enable digest pinning and other replacements of image pullspecs for
+:ref:`operator manifest bundle <operator-bundle>` builds, atomic-reactor
+config must include the ``operator_manifests`` section. See configuration
+details in `config.json`_.
+
+Example:
+
+.. code-block:: yaml
+
+  operator_manifests:
+    allowed_registries:
+      - private-registry.example.com
+      - public-registry.io
+    repo_replacements:
+      - registry: private-registry.example.com
+        package_mappings_url: https://somewhere.net/package_mapping.yaml
+    registry_post_replace:
+      - old: private-registry.example.com
+        new: public-registry.io
+
+allowed_registries
+  List of allowed registries for images *before* replacement. If any image is
+  found whose registry is not in ``allowed_registries``, build will fail. This
+  key is required.
+
+repo_replacements
+  Each registry may optionally have a "package mapping" - a YAML file that
+  contains a mapping of [package name => list of repos] (see
+  `package_mapping.json`_). The file needs to be uploaded somewhere that OSBS
+  can access, and will be downloaded from there during build if necessary.
+
+  Images from registries with a package mapping will have their namespace/repo
+  replaced. OSBS will query the registry to find the package name for the image
+  (determined by the component label) and get the matching replacement from the
+  mapping file. If there is no replacement, or if there is more than one, build
+  will fail and user will have to specify one in ``container.yaml``.
+
+registry_post_replace
+  Each registry may optionally have a replacement. After pinning digest and
+  replacing namespace/repo, all ``old`` registries in image pullspecs will be
+  replaced by their ``new`` replacements.
+
+.. _package_mapping.json: https://github.com/containerbuildsystem/atomic-reactor/blob/master/atomic_reactor/schemas/package_mapping.json
 
 .. _omps-integration:
 
