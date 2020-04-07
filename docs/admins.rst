@@ -214,7 +214,16 @@ odcs
 Section used for ODCS related configuration.
 
 signing_intents
-  List of signing intents in their restrictive order.
+  List of signing intents in their restrictive order. Since composes can be
+  renewed in ODCS, OSBS needs to check if the signing keys used in a compose to
+  be renewed are still valid. If the signing keys are not valid anymore, i.e.,
+  keys were removed from the OSBS signing intent definition, OSBS will request
+  ODCS to update the compose signing keys. For OSBS to identify the proper
+  signing intent in such cases, you should not remove signing keys from signing
+  intents. Instead, move the keys that should not be valid anymore from the
+  ``keys`` map to the ``deprecated_keys`` map in the relevant signing intent
+  definitions. Failing to do so will result in build failures when renewing
+  composes with old signing intent key sets.
 
 default_signing_intent
   Name of the default signing intent to be used when one is not provided
