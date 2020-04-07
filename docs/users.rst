@@ -278,7 +278,7 @@ file in the git repository named ``container.yaml``. This file need
 not be present, but if it is it must adhere to the `container.yaml
 schema`_.
 
-.. _`container.yaml schema`: https://github.com/containerbuildsystem/atomic-reactor/blob/master/atomic_reactor/schemas/container.json
+.. _`container.yaml schema`: https://github.com/containerbuildsystem/osbs-client/blob/master/osbs/schemas/container.json
 
 An example::
 
