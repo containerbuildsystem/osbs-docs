@@ -904,7 +904,9 @@ for a layered image build. Users can override this behavior by specifying a
 koji parent build via the ``koji_parent_build`` API parameter. When a user
 specifies a ``koji_parent_build`` parameter, OSBS will look up the image
 reference for that koji build and override the ``FROM`` instruction with that
-image instead. The same source registry restrictions apply.
+image instead. The same source registry restrictions apply. For multi-stage
+builds, the ``koji_parent_build`` parameter will only override the final
+``FROM`` instruction.
 
 Additionally, the koji parent build must use the same container image repository
 as the value of the FROM instruction in Dockerfile. For instance, if the
