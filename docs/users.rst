@@ -895,12 +895,12 @@ build.
 Override Parent Image
 ----------------------
 
-The parent image used for building a layered image is determined by the ``FROM``
-instruction in the Dockerfile by default. Users can override this behavior
-by specifying a koji parent build via the ``koji_parent_build`` API parameter.
-When given, the image reference in the provided koji parent build will be used as
-the value of the FROM instruction. The same source registry restrictions
-apply.
+OSBS uses the ``FROM`` instruction in the Dockerfile to find a parent image
+for a layered image build. Users can override this behavior by specifying a
+koji parent build via the ``koji_parent_build`` API parameter. When a user
+specifies a ``koji_parent_build`` parameter, OSBS will look up the image
+reference for that koji build and override the ``FROM`` instruction with that
+image instead. The same source registry restrictions apply.
 
 Additionally, the koji parent build must use the same container image repository
 as the value of the FROM instruction in Dockerfile. For instance, if the
