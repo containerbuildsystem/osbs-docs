@@ -1,14 +1,26 @@
-language: python
-
 branches:
   only:
     - master
 
-install:
-  - pip install -r docs/requirements.txt
-  - sudo apt-get install graphviz
+stages:
+  - lint
+  - build
 
-before_script: cd docs
-script:
-  - make html
-  - make linkcheck
+jobs:
+  include:
+    - stage: lint
+      language: ruby
+      install:
+      - gem install mdl
+      script:
+      - mdl *.md
+
+    - stage: build
+      language: python
+      install:
+        - pip install -r docs/requirements.txt
+        - sudo apt-get install graphviz
+      before_script: cd docs
+      script:
+        - make html
+        - make linkcheck
