@@ -1,2 +1,3 @@
-# osbs-docs
-[Documentation for OSBS Project](https://osbs.readthedocs.io/)
+# OSBS Docs
+
+[Documentation for OSBS Project](https://osbs.readthedocs.io)
