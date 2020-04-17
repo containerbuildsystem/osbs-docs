@@ -7,6 +7,9 @@ branches:
 install:
   - pip install -r docs/requirements.txt
   - sudo apt-get install graphviz
+   - broken
+
+superbroken
 
 before_script: cd docs
 script:
