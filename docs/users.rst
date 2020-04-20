@@ -413,6 +413,10 @@ include_unpublished_pulp_repos
   setting, because you could end up publicly shipping container images with
   RPMs that you have not exposed publicly otherwise.
 
+ignore_absent_pulp_repos
+  If you set ``ignore_absent_pulp_repos: true`` under the ``compose`` section
+  in ``container.yaml``, ODCS will ignore missing content sets.
+
 multilib_method
   List of methods used to determine if a package should be considered multilib.
   Available methods are ``iso``, ``runtime``, ``devel``, and ``all``.
