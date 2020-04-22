@@ -1321,18 +1321,27 @@ to set up the following:
       # Relative path to your manifests dir from root of repo
       manifests_dir: my-manifests-dir
 
-Image Pullspec replacements
-***************************
+Pinning pullspecs for related images
+************************************
 
 In addition to extracting the ``/manifests`` dir to koji after build as
-described above, the ``pin_operator_digest`` plugin is able to replace
-pullspecs in your **ClusterServiceVersion** files.
+described above, the ``pin_operator_digest`` plugin is able to pin related
+image pullspecs in your **ClusterServiceVersion** files.
 
-The primary intent is to replace floating tags with manifest list digests to
-make operators usable in isolated environments. In addition, the plugin
-provides repo and registry replacement to allow workflows where you use private
-or testing pullspecs in your manifest and OSBS replaces them with final
-(perhaps customer-facing) pullspecs.
+Put simply, ``pin_operator_digest`` replaces floating tags in image pullspecs
+with manifest list digests, creates a ``.spec.relatedImages`` section in the
+file and puts all the pullspecs in it.
+
+.. note:: If your **ClusterServiceVersion** file has a non-empty
+          ``.spec.relatedImages`` section, OSBS will assume that it already
+          contains correctly pinned pullspecs and will not touch the file.
+
+Additionally, the plugin provides repo and registry replacement to allow
+workflows where you use private or testing pullspecs in your manifest and OSBS
+replaces them with final (perhaps customer-facing) pullspecs.
+
+Replacing pullspecs
++++++++++++++++++++
 
 Each step of pullspec replacement can be enabled/disabled using the
 corresponding option in ``container.yaml``. By default, all steps are enabled.
@@ -1383,17 +1392,18 @@ registry replacements
 Pullspec locations
 ++++++++++++++++++
 
-Before OSBS can replace your pullspecs, it first needs to find them. Because
+Before OSBS can pin your pullspecs, it first needs to find them. Because
 it is practically impossible to tell if a string is a pullspec, atomic-reactor
 has a predefined set of locations where it will look for pullspecs.
 
 *Locations shown as jq queries.*
 
 1. ``.metadata.annotations.containerImage``
-2. ``.spec.relatedImages[]``
-3. ``.spec.install.spec.deployments[].spec.template.spec.containers[]``
-4. ``.spec.install.spec.deployments[].spec.template.spec.initContainers[]``
-5. ``.env[] | select(.name | test("RELATED_IMAGE_"))`` for each of [3], [4]
+2. ``.spec.install.spec.deployments[].spec.template.spec.containers[]``
+3. ``.spec.install.spec.deployments[].spec.template.spec.initContainers[]``
+4. ``.env[] | select(.name | test("RELATED_IMAGE_"))`` for each of [2], [3]
+
+.. _example-csv:
 
 **example.clusterserviceversion.yaml**
 
@@ -1404,9 +1414,6 @@ has a predefined set of locations where it will look for pullspecs.
       annotations:
         containerImage: registry.io/namespace/foo  # [1]
     spec:
-      relatedImages:
-      - name: bar
-        image: registry.io/namespace/bar  # [2]
       install:
         spec:
           deployments:
@@ -1415,13 +1422,54 @@ has a predefined set of locations where it will look for pullspecs.
                 spec:
                   containers:
                   - name: baz
-                    image: registry.io/namespace/baz  # [3]
+                    image: registry.io/namespace/baz  # [2]
                     env:
                     - name: RELATED_IMAGE_SPAM
-                      value: registry.io/namespace/spam  # [5]
+                      value: registry.io/namespace/spam  # [4]
                   initContainers:
                   - name: eggs
-                    image: registry.io/namespace/eggs  # [4]
+                    image: registry.io/namespace/eggs  # [3]
+
+Creating the relatedImages section
+++++++++++++++++++++++++++++++++++
+
+Each entry in the ``.spec.relatedImages`` section needs a ``name`` and
+an ``image`` - image being simply the pullspec itself. The name is constructed
+differently depending on where the pullspec was found.
+
+annotations :ref:`[1] <example-csv>`
+  Take repo name from pullspec, add "-annotation"
+
+  E.g. ``registry.io/namespace/foo`` -> ``foo-annotation``
+
+containers :ref:`[2] <example-csv>`
+  Reuse original name, e.g. ``{name: baz, image: ...}`` -> ``baz``
+
+initContainers :ref:`[3] <example-csv>`
+  Same as containers
+
+RELATED\_IMAGE env vars :ref:`[4] <example-csv>`
+  Take name of variable, remove ``RELATED_IMAGE_`` prefix, convert to lowercase
+
+  E.g. ``RELATED_IMAGE_SPAM`` -> ``spam``
+
+The final ``relatedImages`` section of the example file would look like this:
+
+.. code-block:: yaml
+
+  spec:
+    relatedImages:
+    - name: foo-annotation
+      image: registry.io/namespace/foo@sha256:...
+    - name: baz
+      image: registry.io/namespace/baz@sha256:...
+    - name: eggs
+      image: registry.io/namespace/eggs@sha256:...
+    - name: spam
+      image: registry.io/namespace/spam@sha256:...
+
+If 2 or more entries with the same name are found, then their images must also
+match, otherwise this is a conflict and build will fail.
 
 Operator manifest appregistry builds
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
