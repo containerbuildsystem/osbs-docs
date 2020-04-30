@@ -730,6 +730,15 @@ An example::
   - server-for-power-le-rpms
   - server-extras-for-power-le-rpms
 
+File `meta_{current_layer_index}.json` with content sets for specifc arch, will be created
+in the image in /root/buildinfo directory.
+
+An example::
+
+    {
+      "content_sets": ["server-rpms", "server-extras-rpms"]
+    }
+
 Using Artifacts from Koji
 -------------------------
 
