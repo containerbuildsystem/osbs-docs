@@ -529,6 +529,9 @@ add_timestamp_to_release
   the container image will be available in container registry at:
   ``my-container-registry.example.com/fedora/rsyslog:32-5.20191007151825``.
 
+ignore_isolated_builds
+  Boolean to control whether to rebuild when parent image triggering build was isolated build.
+
 .. _osbs-config-autorebuild:
 
 Automatic Rebuilds
