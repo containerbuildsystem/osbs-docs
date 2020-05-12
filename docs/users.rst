@@ -730,14 +730,20 @@ An example::
   - server-for-power-le-rpms
   - server-extras-for-power-le-rpms
 
-File `meta_{current_layer_index}.json` with content sets for specifc arch, will be created
-in the image in /root/buildinfo directory.
+OSBS will create a /root/buildinfo/content_manifests/`{IMAGE_NVR}.json` file in
+the final built image containing platform specific content sets information.
 
-An example::
+For instance::
 
     {
+      "metadata": {
+        "image_layer_index": 3
+      },
       "content_sets": ["server-rpms", "server-extras-rpms"]
     }
+
+where `image_layer_index` is the index for the most recent layer for that
+image.
 
 Using Artifacts from Koji
 -------------------------
