@@ -1408,12 +1408,40 @@ Before OSBS can pin your pullspecs, it first needs to find them. Because
 it is practically impossible to tell if a string is a pullspec, atomic-reactor
 has a predefined set of locations where it will look for pullspecs.
 
-*Locations shown as jq queries.*
+1. metadata.annotations.containerImage anywhere in the file
 
-1. ``.metadata.annotations.containerImage``
-2. ``.spec.install.spec.deployments[].spec.template.spec.containers[]``
-3. ``.spec.install.spec.deployments[].spec.template.spec.initContainers[]``
-4. ``.env[] | select(.name | test("RELATED_IMAGE_"))`` for each of [2], [3]
+   jq: ``.. | .metadata?.annotations.containerImage | select(. != null)``
+
+2. All containers in each deployment
+
+   jq: ``.spec.install.spec.deployments[].spec.template.spec.containers[]``
+
+3. All initContainers in each deployment
+
+   jq: ``.spec.install.spec.deployments[].spec.template.spec.initContainers[]``
+
+4. All RELATED\_IMAGE\_* variables for all containers and initContainers
+
+   jq: ``.env[] | select(.name | test("RELATED_IMAGE_"))`` for each of [2], [3]
+
+5. OSBS tries to do the (almost) impossible and find all pullspecs in all
+   annotations. See *heuristic annotations* below.
+
+**Heuristic annotations**
+
+OSBS will attempt to extract all pullspecs from all attributes of each
+``metadata.annotations`` object in a CSV. If an attribute contains more than
+one pullspec (as text, e.g. comma-separated), all of them should be found.
+How OSBS does that is not important for the purposes of this document, but an
+important thing to note is that only pullspecs conforming to a relatively
+strict format will be found this way:
+
+``registry/namespace*/repo:tag`` or ``registry/namespace*/repo@sha256:digest``
+
+Any number of namespaces, including 0, is valid. Registry must contain at least
+one dot: ``registry.io`` is valid but ``localhost`` is not. Digest, if present,
+must be exactly 64 base16 characters. Tag or digest *must* be specified,
+implicit ``latest`` is not supported.
 
 .. _example-csv:
 
@@ -1425,12 +1453,16 @@ has a predefined set of locations where it will look for pullspecs.
     metadata:
       annotations:
         containerImage: registry.io/namespace/foo  # [1]
+        foobar: registry.io/foobar:latest, registry.io/ham/jam@sha256:... # [5]
     spec:
       install:
         spec:
           deployments:
           - spec:
               template:
+                metadata:
+                  annotations:
+                    containerImage: registry.io/namespace/bar  # [1]
                 spec:
                   containers:
                   - name: baz
@@ -1449,10 +1481,14 @@ Each entry in the ``.spec.relatedImages`` section needs a ``name`` and
 an ``image`` - image being simply the pullspec itself. The name is constructed
 differently depending on where the pullspec was found.
 
-annotations :ref:`[1] <example-csv>`
-  Take repo name from pullspec, add "-annotation"
+annotations :ref:`[1], [5] <example-csv>`
+  Take repo name and tag/digest from pullspec, add "-annotation"
 
-  E.g. ``registry.io/namespace/foo`` -> ``foo-annotation``
+  E.g.
+
+  - ``registry.io/foo:v1.1`` -> ``foo-v1.1-annotation``
+
+  - ``registry.io/foo@sha256:123abc...`` -> ``foo-123abc...-annotation``
 
 containers :ref:`[2] <example-csv>`
   Reuse original name, e.g. ``{name: baz, image: ...}`` -> ``baz``
@@ -1471,17 +1507,28 @@ The final ``relatedImages`` section of the example file would look like this:
 
   spec:
     relatedImages:
-    - name: foo-annotation
+    - name: foo-<digest>-annotation
       image: registry.io/namespace/foo@sha256:...
+    - name: bar-<digest>-annotation
+      image: registry.io/namespace/bar@sha256:...
     - name: baz
       image: registry.io/namespace/baz@sha256:...
     - name: eggs
       image: registry.io/namespace/eggs@sha256:...
     - name: spam
       image: registry.io/namespace/spam@sha256:...
+    - name: jam-<digest>-annotation
+      image: registry.io/ham/jam@sha256:...
+    - name: foobar-<digest>-annotation
+      image: registry.io/foobar@sha256:...
+
+OSBS makes no guarantees about the order in which relatedImages will be added.
 
 If 2 or more entries with the same name are found, then their images must also
-match, otherwise this is a conflict and build will fail.
+match, otherwise this is a conflict and build will fail. This is especially
+important for annotations, where the name is a combination of repo and tag.
+Using 2 images with the same repo and tag but different registry/namespace
+is not allowed.
 
 Operator manifest appregistry builds
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
