@@ -1430,24 +1430,26 @@ has a predefined set of locations where it will look for pullspecs.
 
    jq: ``.env[] | select(.name | test("RELATED_IMAGE_"))`` for each of [2], [3]
 
-5. OSBS tries to do the (almost) impossible and find all pullspecs in all
-   annotations. See *heuristic annotations* below.
+5. All pullspecs from all annotations. This is done heuristically (OSBS needs
+   to guess what might be a pullspec). See *heuristic annotations* below.
 
 **Heuristic annotations**
 
 OSBS will attempt to extract all pullspecs from all attributes of each
 ``metadata.annotations`` object in a CSV. If an attribute contains more than
 one pullspec (as text, e.g. comma-separated), all of them should be found.
-How OSBS does that is not important for the purposes of this document, but an
-important thing to note is that only pullspecs conforming to a relatively
-strict format will be found this way:
+`Here <pullspec-heuristic_>`_ is how OSBS implements this. One important
+thing to note is that only pullspecs conforming to a relatively strict format
+will be found this way:
 
 ``registry/namespace*/repo:tag`` or ``registry/namespace*/repo@sha256:digest``
 
 Any number of namespaces, including 0, is valid. Registry must contain at least
 one dot: ``registry.io`` is valid but ``localhost`` is not. Digest, if present,
 must be exactly 64 base16 characters. Tag or digest *must* be specified,
-implicit ``latest`` is not supported.
+implicit ``latest`` tag is not supported.
+
+.. _pullspec-heuristic: https://github.com/containerbuildsystem/atomic-reactor/commit/a8294d0e862e1465b95071af0e0722b2c21a8328
 
 .. _example-csv:
 
