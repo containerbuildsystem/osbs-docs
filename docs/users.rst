@@ -1002,6 +1002,13 @@ in the manifest list do not match the analogous koji information.  This
 behavior can be deactivated through the ``deep_manifest_list_inspection``
 option. See `config.json`_ for further reference.
 
+Manifest lists can be manually pushed to the registry to make sure a specific tag
+(e.g., latest) is available for all platforms. In such cases, these manifest lists
+may include images from different koji builds. OSBS will only perform digest checks
+for the images requested in the current build. Moreover, build requests for platforms
+that were not built in the same koji build as the one found for the given image
+reference (manifest list) will fail.
+
 It is also possible to have OSBS only warn about any digest mismatches (instead
 of halting the build with an error). This is done by setting the
 ``fail_on_digest_mismatch`` option to false in the `config.json`_ file.
