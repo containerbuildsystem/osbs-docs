@@ -392,7 +392,30 @@ pulp_repos
   See :ref:`content_sets.yml`.
 
 modules
-  list of modules for requesting ODCS compose of type "module".
+  list of modules for requesting ODCS compose of type "module". ODCS will
+  cherry-pick each module into the compose.
+
+  Use this ``modules`` option to make module builds available that are not yet
+  available from the other options like Pulp. This is useful if you want to
+  test a newly-built module before it is available in Pulp, or if you want to
+  pin to a specific module that MBS has built.
+
+  This list can be of the format ``name:stream``, ``name:stream:version``, or
+  ``name:stream:version:context``.
+
+  If you specify a ``name:stream`` without specifying a ``version:context``,
+  ODCS will query MBS to find the very latest ``version:context`` build. For
+  example, if you specify ``go-toolset:rhel8``, ODCS will query MBS for the
+  latest ``go-toolset`` module build for the ``rhel8`` stream, whereas if you
+  specify ``go-toolset:rhel8:8020020200128163444:0ab52eed``, ODCS will compose
+  that exact module instead.
+
+  Note that if you simply specify a ``name:stream`` for a module, ODCS will
+  compose the very latest module that a module developer has built for that
+  stream, and this module might not be tested by QE or GPG signed.
+  Alternatively, if your desired module is already QE'd, signed, and available
+  in Pulp, the ``pulp_repos: true`` option will ensure that your container
+  build environment only uses tested and signed modules.
 
 signing_intent
   used for verifying packages in yum repositories are signed with expected
