@@ -141,13 +141,21 @@ Example of **REACTOR_CONFIG**::
     content_versions:
     - v2
 
+    # Output registries (built images are pushed here)
     registries:
     - url: https://container-registry.example.com/v2
       auth:
         cfg_path: /var/run/secrets/atomic-reactor/v2-registry-dockercfg
 
+    # Default source registry (base images are pulled from here)
     source_registry:
         url: https://registry.private.example.com
+
+    # Additional source registries
+    pull_registries:
+    - url: https://registry.public.example.com
+      auth:
+        cfg_path: /var/run/secrets/atomic-reactor/registries-secret
 
     sources_command: "fedpkg sources"
 
