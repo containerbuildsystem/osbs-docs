@@ -415,7 +415,12 @@ include_unpublished_pulp_repos
 
 ignore_absent_pulp_repos
   If you set ``ignore_absent_pulp_repos: true`` under the ``compose`` section
-  in ``container.yaml``, ODCS will ignore missing content sets.
+  in ``container.yaml``, ODCS will ignore missing content sets. Use this
+  setting if you want to pre-configure your container's ``content_sets.yml``
+  in dist-git before a Pulp administrator creates all the repositories you
+  expect to use in the future. Alternatively, do not enable this setting if
+  you want to enforce strict error-checking on all the the content set names
+  in ``content_sets.yml``.
 
 multilib_method
   List of methods used to determine if a package should be considered multilib.
