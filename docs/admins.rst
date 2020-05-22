@@ -517,6 +517,9 @@ allowed_registries
   found whose registry is not in ``allowed_registries``, build will fail. This
   key is required.
 
+  Should be a subset of ``source_registry + pull_registries`` (see
+  `config.json`_).
+
 repo_replacements
   Each registry may optionally have a "package mapping" - a YAML file that
   contains a mapping of [package name => list of repos] (see
