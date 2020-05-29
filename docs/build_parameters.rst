@@ -174,6 +174,14 @@ Example of **REACTOR_CONFIG**::
 
     skip_koji_check_for_base_image: False
 
+    build_env_vars:
+    - name: HTTP_PROXY
+      value: "http://proxy.example.com"
+    - name: HTTPS_PROXY
+      value: "https://proxy.example.com"
+    - name: NO_PROXY
+      value: localhost,127.0.0.1
+
 
 Atomic Reactor Plugins and Arrangement Version 6
 """"""""""""""""""""""""""""""""""""""""""""""""
