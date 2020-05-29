@@ -229,6 +229,27 @@ default_signing_intent
   Name of the default signing intent to be used when one is not provided
   in ``container.yaml``.
 
+.. _config.yaml-build_env_vars:
+
+build_env_vars
+''''''''''''''
+
+Define variables that should be propagated to the build environment here.
+Note that some variables are reserved and defining them will cause an error,
+e.g. ``USER_PARAMS``, ``REACTOR_CONFIG``.
+
+For example, you might want to set up an HTTP proxy:
+
+.. code-block:: yaml
+
+  build_env_vars:
+  - name: HTTP_PROXY
+    value: "http://proxy.example.com"
+  - name: HTTPS_PROXY
+    value: "https://proxy.example.com"
+  - name: NO_PROXY
+    value: localhost,127.0.0.1
+
 
 Setting up koji for container image builds
 ------------------------------------------
