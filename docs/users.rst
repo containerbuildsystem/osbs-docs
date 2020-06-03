@@ -549,6 +549,9 @@ for autorebuilds, if autorebuilds are enabled.
 from_latest
   Boolean to control whether to rebuild from the latest commit in the build
   branch. Defaults to ``false``.
+  When ``true``, each autorebuild will use the latest commit in build branch,
+  when ``false``, each autorebuild will use the original commit
+  from build branch of original build.
 
 add_timestamp_to_release
   Boolean to control whether to append timestamp to explicitly specified release for autorebuilds.
@@ -559,6 +562,11 @@ add_timestamp_to_release
 
 ignore_isolated_builds
   Boolean to control whether to rebuild when parent image triggering build was isolated build.
+  Defaults to ``false``.
+  When ``true`` and base image specified for autorebuild is isolated build,
+  it won't trigger the autorebuild.
+  When ``false`` and base image specified for autorebuild is isolated build,
+  it will trigger the autorebuild as usual.
 
 .. _osbs-config-autorebuild:
 
@@ -571,6 +579,7 @@ changes to the base parent image.
 By default autorebuild is disabled. The feature can be enabled by making some
 changes in your dist-git repo and submitting a container build.
 
+You can modify behavior of autorebuilds in container.yaml within :ref:`container.yaml-autorebuild`.
 
 Enabling Automatic Rebuilds
 ***************************
