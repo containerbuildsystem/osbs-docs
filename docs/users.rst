@@ -935,7 +935,9 @@ tagging the resulting image in the registry:
 
   - ``{version}`` (the ``version`` label)
   - ``latest``
-  - any additional tags named in the ``additional-tags`` file
+  - any additional tags named in the ``additional-tags`` file (DEPRECATED
+    and will no longer be supported in a future version. Please consider using
+    ``tags`` in container.yaml instead)
 
 These tags are applied to the manifest list or, if multi-platform
 image builds are not enabled (see :ref:`group_manifests
