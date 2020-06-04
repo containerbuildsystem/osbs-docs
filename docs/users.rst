@@ -983,8 +983,9 @@ koji, or if NVR information cannot be extracted from the parent image, OSBS
 assumes that the parent image was not built by OSBS and halts the current
 build. In other words, an image cannot be built using a parent image which has
 not been built by OSBS. It is possible to disable this feature through reactor
-configuration. See the ``skip_koji_check_for_base_image`` option in
-`config.json`_ for further reference.
+configuration, with ``skip_koji_check_for_base_image`` option in
+`config.json`_, when there are no NVR labels set on the base image,
+if the NVR labels are set on the base image, the check is performed regardless.
 
 Digests verification
 ~~~~~~~~~~~~~~~~~~~~
