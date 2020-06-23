@@ -458,12 +458,15 @@ multilib_arches
 modular_koji_tags
   List of Koji tags in which the modular Koji Content Generator builds are
   tagged. Such builds will be included in the compose.
+  When ``true`` is specified instead of list, koji build tag of the koji build target
+  will be used instead.
 
 **If there is a "modules" key, it
 must have a non-empty list of modules. The "packages" key, and only the "packages"
 key, can have an empty list.**
 
-**The "packages", "modules" and "pulp_repos" keys can be used mutually.**
+**The "packages", "modules", "modular_koji_tags" and "pulp_repos" keys can be
+used mutually.**
 
 flatpak
 ~~~~~~~
