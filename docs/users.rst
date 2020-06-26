@@ -674,8 +674,13 @@ ref
 
 pkg_managers
   A list of package managers to be used for resolving the upstream project
-  dependencies. If not provided, cachito will try to figure out what manager to
-  use here.
+  dependencies. If not provided, Cachito will assume ``gomod`` due to backward
+  compatibility reasons, however, this default could be configured differently
+  on different Cachito deployments (make sure to check with your Cachito
+  instance admins). Finally, if this is set to an empty array (``[]``), Cachito
+  will provide the sources with no package manager magic. In other words, no
+  environment variables, dependencies, or extra configuration will be provided
+  with the sources.
 
 flags
   List of flags to pass to the cachito request. See the cachito_ documentation
