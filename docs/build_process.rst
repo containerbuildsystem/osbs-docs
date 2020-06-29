@@ -48,53 +48,81 @@ build is called the "arrangement".
     (but each new version typically builds on the previous one,
     so no functionality is lost).
 
-Arrangement version 1 (delegation)
-----------------------------------
 
-*This arrangement version is no longer supported.*
+Arrangement Version 6 (reactor_config_map)
+------------------------------------------
+The orchestrator build chooses worker clusters based on platform (multi-platform build)
+and creates worker builds in those clusters. Worker builds perform their tasks and produce an image
+for their platform. After all worker builds finish, the orchestrator build continues with its own tasks.
 
-In this arrangement, the orchestrator build chooses a worker cluster
-and creates a worker build in that cluster. From then on, the worker
-build performs all the tasks required.
+This allows automatically triggered rebuilds (where the orchestrator cluster has
+complete knowledge of the latest build configurations and their triggers).
 
-Delegating this way allows for future features such as multi-platform
-builds (with multiple worker builds per orchestrator build) and
-automated triggered rebuilds (where the orchestrator cluster has
-complete knowledge of the latest build configurations and their
-triggers).
+In this arrangement version, environment parameters are provided by the **reactor_config**.
+The order of plugins is the same, but hard coded, or placeholder, environment
+parameters in **orchestrator_inner** and **worker_inner** json files change.
 
-.. graphviz:: images/arrangement-v1.dot
-   :caption: Orchestrator and worker builds (arrangement v1)
+An osbs-client configuration option **reactor_config_map** is required to define
+the name of the ``ConfigMap`` object holding the **reactor_config**. This
+configuration option is mandatory for arrangement versions greater than or
+equal to 6. The existing osbs-client configuration **reactor_config_secret**
+is deprecated (for all arrangements).
+
 
 Orchestrator
 ~~~~~~~~~~~~
 
 Steps performed by the orchestrator build are:
 
-- For layered images:
+- Get the parent images without pulling in order to inspect environment variables
+  (this is to allow substitution to be performed in the "release"
+  label)
 
-  * pull the parent image in order to inspect environment variables
-    (this is to allow substitution to be performed in the "release"
-    label)
+- Verify that parent images comes from a build that exists in Koji
 
-- Supply a value for the "release" label if it is missing and Koji
-  integration is enabled (this value is provided to the worker build)
+- Resolve composes, integration with `odcs`_.
+  See :ref:`yum-repositories-odcs-compose` for details.
+
+- For base images, the add_filesystem plugin runs in the orchestrator build as well as
+  the worker build. This is to create a single Koji "`image-build`_"
+  task to create filesystems for all required architectures.
+
+- Supply a value for the "release" label if it is missing
+  (this value is provided to the worker build)
+
+- Reserve a build in Koji
 
 - Apply labels supplied via build request parameter to the Dockerfile
 
 - Parse server-side configuration for atomic-reactor in order to know
   which worker clusters may be considered
 
-- Create a worker build on one of the configured clusters, and collect
-  logs and status from it
+- Create worker builds on the configured clusters, and collect
+  logs and status from them
+
+- Fetch workers metadata (see :ref:`Metadata Fragment Storage`)
+
+.. _group-manifests:
+
+- The group_manifests plugin creates a `manifest list`_ object in
+  the registry, grouping together the image manifests from the worker builds.
+
+- Import the Koji build
+
+- Push floating tags to the container registry for a `manifest list`
+
+- Tag the Koji build
 
 - Update this OpenShift Build with annotations about output,
   performance, errors, worker builds used, etc
 
-- Perform any clean-up required:
+- Send email notifications if required
 
-  * For layered images, remove the parent image which was pulled at
-    the start
+- Perform any clean-up required
+
+.. _`odcs`: https://pagure.io/odcs
+.. _`image-build`: https://docs.pagure.org/koji/image_build/
+.. _`manifest list`: https://docs.docker.com/registry/spec/manifest-v2-2/#manifest-list
 
 Worker
 ~~~~~~
@@ -103,16 +131,19 @@ The orchestration step will create an OpenShift build for performing
 the worker build. Inside this, atomic-reactor will execute these steps
 as plugins:
 
-- Get (or create) parent layer against which the Dockerfile will run
+- Get (or create) parent layers against which the Dockerfile will run
 
-  * For base images, the base image filesystem is created using Koji
-    and imported as the initial image layer
+  * For base images, the add_filesystem plugin runs but does not create
+    a Koji task. Instead the orchestrator build tells it which Koji task
+    ID to stream the filesystem tar archive from. Each worker build only
+    streams the filesystem tar archive for the architecture it is running on,
+    and imports it as the initial image layer
 
-  * For layered images, the FROM image is pulled from the source
+  * For layered images, the FROM images are pulled from the source
     registry
 
-- Supply a value for the "release" label if it is missing and Koji
-  integration is enabled XXX seems wrong?
+- Supply a value for the "release" label if it is missing
+  (provided by the orchestator build)
 
 - Make various alterations to the Dockerfile
 
@@ -128,169 +159,17 @@ as plugins:
 
 - Tag and push the image to the container registry
 
-- Sync the image into Pulp from the container registry (if Pulp
-  integration is enabled) and publish it -- in this case the image is
-  deleted from the container registry later
-
 - Compress the docker image tar archive
 
-- Pull the image back from the Pulp registry in order to accurately
-  record its image ID (required because Pulp lacks support for v2
-  schema 2 manifests)
-
-- If Koji integration is enabled, upload image tar archive to Koji and
-  create a Koji Build
+- Upload image tar archive to Koji
 
 - Update this OpenShift Build with annotations about output,
   performance, errors, etc
 
-- If Koji integration is enabled, tag the Koji build
-
-- Send email notifications if required
-
 - Perform any clean-up required:
 
-  * Remove the parent image which was fetched or created at the start
+  * Remove the parent images which were fetched or created at the start
 
-  * If Pulp integration is enabled, delete the image from the
-    container registry
-
-Arrangement version 2 (orchestrator creates filesystem)
--------------------------------------------------------
-
-*This arrangement version is no longer supported.*
-
-This arrangement, available since osbs-client-0.41, is identical to
-version 1 except that:
-
-- There is a new plugin for verifying the parent image comes from a
-  build that exists in Koji
-
-- The add_filesystem plugin runs in the orchestrator build as well as
-  the worker build. This is to create a single Koji "`image-build`_"
-  task to create filesystems for all required architectures.
-
-.. _`image-build`: https://docs.pagure.org/koji/image_build/
-
-In the worker build, the add_filesystem still runs but does not create
-a Koji task. Instead the orchestrator build tells it which Koji task
-ID to stream the filesystem tar archive from. Each worker build only
-streams the filesystem tar archive for the architecture it is running
-on.
-
-Arrangement version 3 (Koji build created by orchestrator)
-----------------------------------------------------------
-
-*This arrangement version is no longer supported.*
-
-This arrangement builds on version 2. The ``koji_promote`` plugin,
-which was previously responsible for creating the Koji build, is
-replaced by these plugins:
-
-- worker build
-
-  * koji_upload
-
-- orchestrator build
-
-  * fetch_worker_metadata (see :ref:`Metadata Fragment Storage`)
-
-  * koji_import
-
-  * koji_tag_build
-
-Additionally the ``sendmail`` plugin now runs in the orchestrator
-build and not the worker build.
-
-.. _`Metadata Fragment Storage`:
-
-Metadata Fragment Storage
--------------------------
-
-When creating a Koji Build using arrangement 3 and newer, the
-koji_import plugin needs to assemble Koji Build Metadata, including:
-
-- components installed in each builder image (worker builds and
-  orchestrator build)
-
-- components installed in each built image
-
-- information about each build host
-
-To assist the orchestrator build in assembling this (JSON) data, the
-worker builds gather information about their build hosts, builder
-images, and built images. They then need to pass this data to the
-orchestrator build. After creating the Koji Build, the orchestrator
-build must then free any resources used in passing the data.
-
-The method used for passing the data from the worker builds to the
-orchestrator build is to store it temporarily in a ConfigMap object in
-the worker cluster. Its name is stored in the OpenShift Build
-annotations for the worker build. To do this the worker cluster's
-"builder" service account needs permission to create ConfigMap
-objects.
-
-The orchestrator build collects the metadata fragments and assembles
-them together with the platform-neutral metadata in the koji_import
-plugin.
-
-The orchestrator build is then responsible for removing the OpenShift
-ConfigMap from the worker cluster. To do this, the worker cluster's
-"orchestrator" service account needs permission to get and delete
-ConfigMap objects.
-
-Arrangement version 4 (Multiple worker builds)
-----------------------------------------------
-
-*This arrangement version is no longer supported.*
-
-This arrangement moves most of the Pulp integration work to the
-orchestrator build, allowing for multiple worker builds. Only the
-pulp_push plugin remains in the worker build.
-
-.. _group-manifests:
-
-A new plugin, group_manifests, creates a `manifest list`_ object in
-the registry, grouping together the image manifests from the worker
-builds.
-
-.. _`manifest list`: https://docs.docker.com/registry/spec/manifest-v2-2/#manifest-list
-
-.. graphviz:: images/arrangement-v4.dot
-   :caption: Orchestrator and worker builds (arrangement v4)
-
-Arrangement version 5 (ODCS Integration)
-----------------------------------------
-
-*This arrangement version is no longer supported.*
-
-This arrangement builds on version 4. The ``resolve_composes`` plugin enables
-integration with `odcs`_. See :ref:`yum-repositories-odcs-compose` for details.
-
-.. _`odcs`: https://pagure.io/odcs
-
-- worker build
-
-  * No changes
-
-- orchestrator build
-
-  * resolve_composes
-
-.. _`logging`:
-
-Arrangement Version 6 (reactor_config_map)
-------------------------------------------
-
-In this arrangement version, environment parameters are provided by **reactor_config**.
-The order of plugins is the same, but hard coded, or placeholder, environment
-parameters in **orchestrator_inner** and **worker_inner** json files change.
-
-An osbs-client configuration option **reactor_config_map** is required to define
-the name of the ``ConfigMap`` object holding **reactor_config**. This
-configuration option is mandatory for arrangement versions greater than or
-equal to 6. The existing osbs-client configuration **reactor_config_secret**
-is deprecated (for all arrangements).
 
 For more details on how the build system is configured as of
 Arrangement 6, consult the :ref:`build_parameters` document.
@@ -394,6 +273,44 @@ Note:
 - where the worker build log line had no timestamp (perhaps the log
   line had an embedded newline, or was logged outside the adapter
   using a different format), the line was left alone
+
+
+.. _`Metadata Fragment Storage`:
+
+Metadata Fragment Storage
+-------------------------
+
+When creating a Koji Build using arrangement 3 and newer, the
+koji_import plugin needs to assemble Koji Build Metadata, including:
+
+- components installed in each builder image (worker builds and
+  orchestrator build)
+
+- components installed in each built image
+
+- information about each build host
+
+To assist the orchestrator build in assembling this (JSON) data, the
+worker builds gather information about their build hosts, builder
+images, and built images. They then need to pass this data to the
+orchestrator build. After creating the Koji Build, the orchestrator
+build must then free any resources used in passing the data.
+
+The method used for passing the data from the worker builds to the
+orchestrator build is to store it temporarily in a ConfigMap object in
+the worker cluster. Its name is stored in the OpenShift Build
+annotations for the worker build. To do this the worker cluster's
+"builder" service account needs permission to create ConfigMap
+objects.
+
+The orchestrator build collects the metadata fragments and assembles
+them, together with the platform-neutral metadata, in the koji_import
+plugin.
+
+The orchestrator build is then responsible for removing the OpenShift
+ConfigMap from the worker cluster. To do this, the worker cluster's
+"orchestrator" service account needs permission to get and delete
+ConfigMap objects.
 
 
 Autorebuilds
