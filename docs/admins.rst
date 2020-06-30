@@ -250,6 +250,21 @@ For example, you might want to set up an HTTP proxy:
   - name: NO_PROXY
     value: localhost,127.0.0.1
 
+Limiting image size
+'''''''''''''''''''
+
+You can check the binary image's size before it is pushed to a registry. If it
+exceeds the configured size, the built image will not be pushed and the build
+fails.
+
+A typical configuration in reactor config map looks like::
+
+  image_size_limit:
+    binary_image: 10000
+
+The value is the size in bytes of uncompressed layers. When either
+``binary_image`` or ``image_size_limit`` is omitted, or if ``binary_image`` is
+set to ``0``, the check will be skipped.
 
 Setting up koji for container image builds
 ------------------------------------------
