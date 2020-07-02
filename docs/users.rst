@@ -686,6 +686,13 @@ flags
   List of flags to pass to the cachito request. See the cachito_ documentation
   for further reference.
 
+packages
+  A map of package managers where each value is an array of maps describing
+  custom behavior for the packages of that package manager. For example,
+  if you have two npm packages in the same source repository, you can specify
+  the subdirectories with the ``path`` key. For example
+  ``{"npm": [{"path": "client"}, {"path": "proxy"}]}``.
+
 Once the `remote_source` map described above is set in ``container.yaml``, you
 can now copy the upstream sources (with bundled dependencies) provided by
 cachito in your build image by adding::
