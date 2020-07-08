@@ -785,21 +785,6 @@ An example::
   - server-for-power-le-rpms
   - server-extras-for-power-le-rpms
 
-OSBS will create a /root/buildinfo/content_manifests/`{IMAGE_NVR}.json` file in
-the final built image containing platform specific content sets information.
-
-For instance::
-
-    {
-      "metadata": {
-        "image_layer_index": 3
-      },
-      "content_sets": ["server-rpms", "server-extras-rpms"]
-    }
-
-where `image_layer_index` is the index for the most recent layer for that
-image.
-
 Using Artifacts from Koji
 -------------------------
 
@@ -1617,6 +1602,66 @@ stored in koji build, in section ``build.extra.operator_manifests.appregistry``.
 Manifests will not be pushed to the application registry for scratch builds,
 isolated builds, or re-builds to prevent unwanted changes
 
+
+Inspecting built image components
+=================================
+
+It is possible to inspect OSBS built image contents from within the image
+container.
+
+In addition to being able to do so with the package manager available in the
+image, if any, e.g., RPM through ``rpm -qa`` to list all the packages installed
+in the image, OSBS also makes sure the following artifacts are shipped within
+the image
+
+Dockerfiles
+-----------
+
+The Dockerfiles used to build the current container image and its parents,
+which is located in the ``/root/buildinfo`` directory.
+
+Note that this is not necessarily the same Dockerfile provided by the user in
+the dist-git repository. OSBS makes changes to the Dockerfile and some of these
+changes may appear in these files whenever relevant. For instance, the FROM
+instruction may show the parent image digest instead of the repository and tag
+information.
+
+Image Content Manifests
+-----------------------
+
+Image Content Manifests are JSON files shipped in OSBS built images with additional
+information on the contents shipped in the image.
+
+The Image Content Manifest file is layer specific, and is located under the
+``/root/buildinfo/content_manifests`` directory. It is named after the image NVR,
+and it is validated against the JSON Schema that defines the `Image Content Manifest`_.
+
+
+Among the data available in the Image Content Manifest file (Check the JSON
+Schema for further information), most important are the ``image_layer_index``,
+which point to the layer that introduced the components listed in that file,
+i.e., the most recent layer for that image, and:
+
+.. _`Image Content Manifest`: https://github.com/containerbuildsystem/atomic-reactor/blob/master/atomic_reactor/schemas/content_manifest.json
+
+Content Sets
+~~~~~~~~~~~~
+
+The ``content_sets`` field lists the content sets listed in the git repository
+for the platform supported by the image. This attribute may differ for each
+different platform the image was built for.
+
+See :ref:`content_sets.yml` for further reference.
+
+Extra contents
+~~~~~~~~~~~~~~
+
+The ``image_contents`` field lists the non-RPM contents fetched from Cachito
+(see :ref:`cachito-usage`) that were used during the image build and that were
+made available in the image.
+
+For additional information on how to navigate through these contents, refer to
+the Image Content Manifest JSON Schema.
 
 Building Source Container Images
 ================================
