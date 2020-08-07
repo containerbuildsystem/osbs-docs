@@ -953,6 +953,47 @@ image builds are not enabled (see :ref:`group_manifests
 <group-manifests>`), to the sole image manifest resulting from the
 build.
 
+Parent Image in registry.redhat.io
+----------------------------------
+
+OSBS uses the ``FROM`` instruction in the Dockerfile to find a parent image
+build. When the user does not specify the source registry, OSBS will
+automatically add the internal registry ``Quay.io``.
+
+::
+
+  FROM ubi7:7.6 will result in pulling registry-proxy.engineering.redhat.com/rh-osbs/ubi7@sha256:$digest
+
+Access to registry.redhat.io and registry.stage.redhat.io has been added to
+OSBS to support the usage of parent builds published to the customer registry
+through the Errata workflow.
+
+Builds will get published into ``registry.stage.redhat.io`` in `prod Errata`_
+advisory in ``QE`` state after ``Push to CDN Docker Staging`` step. These
+images can be accessed with OSBS using following ``FROM`` instruction in
+Dockerfile:
+
+::
+
+  FROM registry.stage.redhat.io/$productline/$image:$tag
+
+A similar process is applied on builds published into ``registry.redhat.io``.
+Publish happens during the step ``Push to CDN Docker`` in `prod Errata`_
+advisory, which is the last step before Errata advisory is switched to
+``SHIPPED LIVE`` state. These images can be accessed with OSBS using following
+``FROM`` instruction in Dockerfile:
+
+::
+
+  FROM registry.redhat.io/$productline/$image:$tag
+
+List of published container images in registry.redhat.io can be viewed in
+`container catalog`_.
+
+.. _`prod Errata`: https://errata.devel.redhat.com
+.. _`container catalog`: https://catalog.redhat.com/software/containers/explore
+
+
 Override Parent Image
 ----------------------
 
