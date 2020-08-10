@@ -390,6 +390,7 @@ pulp_repos
   requested. If set to true, ``content_sets.yml`` must also be provided. A
   compose will be requested for each architecture in ``content_sets.yml``.
   See :ref:`content_sets.yml`.
+  Additionally also ``build_only_content_sets`` will be used if provided.
 
 modules
   list of modules for requesting ODCS compose of type "module". ODCS will
@@ -460,6 +461,13 @@ modular_koji_tags
   tagged. Such builds will be included in the compose.
   When ``true`` is specified instead of list, koji build tag of the koji build target
   will be used instead.
+
+build_only_content_sets
+  Content sets used only for building content, not for distributing.
+  Will be used only if ``pulp_repos`` is set to true. These content sets
+  won't be included in ICM :ref:`image_content_manifest`.
+  A compose will be requested for each architecture additionally with ``content_sets.yml``.
+  Definition is the same as for ``content_sets.yml`` See :ref:`content_sets.yml`.
 
 **If there is a "modules" key, it
 must have a non-empty list of modules. The "packages" key, and only the "packages"
@@ -1625,6 +1633,8 @@ the dist-git repository. OSBS makes changes to the Dockerfile and some of these
 changes may appear in these files whenever relevant. For instance, the FROM
 instruction may show the parent image digest instead of the repository and tag
 information.
+
+.. _image_content_manifest:
 
 Image Content Manifests
 -----------------------
