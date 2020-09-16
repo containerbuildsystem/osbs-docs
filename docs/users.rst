@@ -292,12 +292,15 @@ An example::
     - armhfp
     not: armhfp
 
-  go:
-    modules:
-      - module: example.com/go/packagename
-      - module: example.com/go/anotherpackage
-        archive: anotherpackage.tar.gz
-        path: anotherpackage-v0.54.1
+  remote_source:
+    repo: https://git-forge.example.com/namespace/repo.git
+    ref: AddFortyCharactersGitCommitHashRightHere
+    pkg_managers:
+    - npm
+    packages:
+      npm:
+      - path: client
+      - path: proxy
 
   compose:
     # used for requesting ODCS compose of type "tag"
@@ -341,6 +344,8 @@ not
 
 go
 ~~
+
+.. warning:: Using this key is deprecated in favor of using Cachito integration
 
 Keys in this map relate to source code in the Go language which the
 user intends to be built into the container image. They are
