@@ -547,6 +547,9 @@ Example:
     registry_post_replace:
       - old: private-registry.example.com
         new: public-registry.io
+    skip_all_allow_list:
+      - koji_package1
+      - koji_package2
 
 allowed_registries
   List of allowed registries for images *before* replacement. If any image is
@@ -572,6 +575,10 @@ registry_post_replace
   Each registry may optionally have a replacement. After pinning digest and
   replacing namespace/repo, all ``old`` registries in image pullspecs will be
   replaced by their ``new`` replacements.
+
+skip_all_allow_list
+  List of koji packages which are allowed to use ``skip_all`` option in
+  the ``operator_manifests`` section of ``container.yaml``.
 
 .. _package_mapping.json: https://github.com/containerbuildsystem/atomic-reactor/blob/master/atomic_reactor/schemas/package_mapping.json
 
