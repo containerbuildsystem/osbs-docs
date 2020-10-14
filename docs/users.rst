@@ -1598,6 +1598,29 @@ important for annotations, where the name is a combination of repo and tag.
 Using 2 images with the same repo and tag but different registry/namespace
 is not allowed.
 
+Skip all processing for operator bundles
+++++++++++++++++++++++++++++++++++++++++
+
+When option ``skip_all`` is enabled in ``container.yaml``, it will enforce skip
+processing of operator bundles.
+
+.. code-block:: yaml
+
+    operator_manifests:
+      # Relative path to your manifests dir from root of repo
+      manifests_dir: my-manifests-dir
+      skip_all: true
+
+OSBS won't do any changes to operator's CSV file, but will still perform some
+basic checks like:
+
+1. check that only 1 CSV file exists
+2. check that ``relatedImages`` section exists, if there are any pullspecs defined in CSV file
+
+``skip_all`` option is allowed to use only for koji packages which are defined in
+atomic-reactor config in ``skip_all_allow_list`` in ``operator_manifests`` section.
+See configuration details in `config.json`_.
+
 Operator manifest appregistry builds
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
