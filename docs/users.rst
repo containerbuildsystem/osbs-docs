@@ -783,7 +783,9 @@ The file ``content_sets.yml`` is used to define the content sets relevant to the
 container image.  This is relevant if RPM packages in container image are in
 pulp repositories. See ``pulp_repos`` in :ref:`container.yaml-compose` for how
 this file is used during build time. If this file is present, it must adhere
-to the `content_sets.yml schema`_.
+to the `content_sets.yml schema`_. In addition, repository id can also be
+specified to include one or more specific repositories in the final generated
+compose.
 
 .. _`content_sets.yml schema`: https://github.com/containerbuildsystem/atomic-reactor/blob/master/atomic_reactor/schemas/content_sets.json
 
@@ -793,6 +795,7 @@ An example::
   x86_64:
   - server-rpms
   - server-extras-rpms
+  - server-rpms__Server__x86_64
 
   ppc64le:
   - server-for-power-le-rpms
