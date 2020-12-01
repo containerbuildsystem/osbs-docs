@@ -716,12 +716,21 @@ to your Dockerfile. From this point on, you will find the root of the upstream
 project at ``$REMOTE_SOURCE_DIR/app``, and the project dependencies at
 ``$REMOTE_SOURCE_DIR/deps``.
 
-Note that ``$REMOTE_SOURCES_DIR`` is a build arg, available only in build time,
-with the absolute path to the directory where the sources are expected to be
-(OSBS sets other build args such as ``GOPATH`` for Golang sources relying on
-the existence of the dependencies in this directory). Hence, for cleaning up
-the image after using the sources, add the following line to the Dockerfile
-after the build is complete::
+OSBS also creates ``$REMOTE_SOURCE_DIR/cachito.env`` bash script with exported
+environment variables received from cachito request (such as ``GOPATH``,
+``GOCACHE``) with the absolute path to the directory where the sources are
+expected to be. The Golang sources rely on the existence of the dependencies
+in this directory. OSBS adds these variables into Dockerfile as arguments. It
+is recommended to use cachito.env script anyway because parent image can have
+set Golang environment variables and these variables will not be overwritten by
+arguments. cachito.env file can be used as follows:
+
+    WORKDIR $REMOTE_SOURCE_DIR/app
+    RUN source $REMOTE_SOURCE_DIR/cachito.env && go build .
+
+Note that ``$REMOTE_SOURCES_DIR`` is a build arg, available only in build time.
+Hence, for cleaning up the image after using the sources, add the following
+line to the Dockerfile after the build is complete::
 
     RUN rm -rf $REMOTE_SOURCE_DIR
 
