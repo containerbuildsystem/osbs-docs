@@ -509,6 +509,39 @@ such builds.
 The log file, *osbs-client.log*, in a Koji task gives users a better
 understanding of any delays due to scheduling.
 
+Setting Priorities on Koji Tags
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+By default, OSBS creates all buildContainer tasks with the same koji default
+priority (20).
+
+To allow container developers to set higher priorities, a Koji admin can
+set a special ``osbs.priority`` key on the Koji target's tag. For example, if
+the Koji build tag is ``my-tag-1.0-containers-priority``, enable
+``osbs.priority`` like so::
+
+    koji edit-tag my-tag-1.0-containers-priority -x osbs.priority=True
+
+To disable this for a build tag::
+
+    koji edit-tag my-tag-1.0-containers-priority -r osbs.priority
+
+To show the settings for tag::
+
+    koji taginfo my-tag-1.0-containers-priority
+    Tag: my-tag-1.0-containers-priority [12345]
+    Arches:
+    Groups:
+    Tag options:
+      osbs.priority : True
+    Inheritance:
+
+Note: In Koji, if you set an "extra" field on a parent tag, all children tags
+will inherit that setting. If you set this on a grandparent tag at the top of
+a long inheritance chain, it could allow users to change OSBS priorities wider
+than you expected. In practice, Koji build tags usually have no child tags, so
+this is usually not an issue.
+
 Operator manifests
 ------------------
 
