@@ -201,6 +201,52 @@ Accessing built images
 Information about registry and image name is included in koji build. Use one
 of names listed in ``extra.image.index.pull`` to pull built image from a registry.
 
+If you are building multiple architectures of your components (see :ref:`image-configuration`),
+it is possible to run/test containers for architectures that do not match your local system using
+both ``podman`` and ``docker``.
+
+Docker
+~~~~~~
+
+Overrides are available using the ``--platform`` argument::
+
+  $ uname -m
+  x86_64
+  $ docker run --platform=linux/s390x --rm -it registry.access.redhat.com/ubi8/ubi:latest uname -m
+  Unable to find image 'registry.access.redhat.com/ubi8/ubi:latest' locally
+  latest: Pulling from ubi8/ubi
+  93db6d6cdd93: Pull complete
+  985161ee72a9: Pull complete
+  Digest: sha256:82e0fbbf1f3e223550aefbc28f44dc6b04967fe25788520eac910ac8281cec9e
+  Status: Downloaded newer image for registry.access.redhat.com/ubi8/ubi:latest
+  s390x
+
+The necessary QEMU packages should be installed and available if you are running Docker Desktop.
+
+
+Podman
+~~~~~~
+
+Overrides are available using the ``--override-os`` and ``--override-arch`` arguments::
+
+  $ uname -m
+  x86_64
+  $ podman run -it --rm -it --pull always --override-os=linux --override-arch=arm64 registry.access.redhat.com/ubi8 uname -m
+  Trying to pull registry.access.redhat.com/ubi8:latest...
+  Getting image source signatures
+  Copying blob cbe902a0a8c4 skipped: already exists
+  Copying blob e753ad39f085 [--------------------------------------] 0.0b / 0.0b
+  Copying config 70dab2c4ec done
+  Writing manifest to image destination
+  Storing signatures
+  aarch64
+
+If running from Fedora, you will need to install ``qemu-user-static`` before running the different
+architectures. Additionally, there is `a known issue`_ with podman where a new architecture is
+not pulled if there is already `one` architecture pulled. Adding ``--pull always`` will make it behave
+as expected (as above).
+
+.. _a known issue: https://github.com/containers/podman/issues/8001
 
 Writing a Dockerfile
 --------------------
