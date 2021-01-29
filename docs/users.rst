@@ -841,23 +841,60 @@ The file ``content_sets.yml`` is used to define the content sets relevant to the
 container image.  This is relevant if RPM packages in container image are in
 pulp repositories. See ``pulp_repos`` in :ref:`container.yaml-compose` for how
 this file is used during build time. If this file is present, it must adhere
-to the `content_sets.yml schema`_. In addition, repository id can also be
-specified to include one or more specific repositories in the final generated
-compose.
+to the `content_sets.yml schema`_. You can specify Pulp repositories by
+content set name, repository id, or both.
 
 .. _`content_sets.yml schema`: https://github.com/containerbuildsystem/atomic-reactor/blob/master/atomic_reactor/schemas/content_sets.json
 
-An example::
+This example uses RHEL 7 and RHEL 7 Extras Pulp content set names:
+
+.. code-block:: yaml
 
   ---
   x86_64:
-  - server-rpms
-  - server-extras-rpms
-  - server-rpms__Server__x86_64
+  - rhel-7-server-rpms
+  - rhel-7-server-extras-rpms
 
   ppc64le:
-  - server-for-power-le-rpms
-  - server-extras-for-power-le-rpms
+  - rhel-7-for-power-le-rpms
+  - rhel-7-for-power-le-extras-rpms
+
+This example uses RHEL 8's Pulp content set names:
+
+.. code-block:: yaml
+
+  ---
+  x86_64:
+    - rhel-8-for-x86_64-baseos-rpms
+    - rhel-8-for-x86_64-appstream-rpms
+  ppc64le:
+    - rhel-8-for-ppc64le-baseos-rpms
+    - rhel-8-for-ppc64le-appstream-rpms
+  s390x:
+    - rhel-8-for-s390x-baseos-rpms
+    - rhel-8-for-s390x-appstream-rpms
+
+This example uses RHEL 8.4 EUS's Pulp repository IDs:
+
+.. code-block:: yaml
+
+  ---
+  x86_64:
+  - rhel-8-for-x86_64-baseos-eus-rpms__8_DOT_4
+  - rhel-8-for-x86_64-appstream-eus-rpms__8_DOT_4
+
+  ppc64le:
+  - rhel-8-for-ppc64le-baseos-eus-rpms__8_DOT_4
+  - rhel-8-for-ppc64le-appstream-eus-rpms__8_DOT_4
+
+  s390x:
+  - rhel-8-for-s390x-baseos-eus-rpms__8_DOT_4
+  - rhel-8-for-s390x-appstream-eus-rpms__8_DOT_4
+
+  aarch64:
+  - rhel-8-for-s390x-baseos-eus-rpms__8_DOT_4
+  - rhel-8-for-s390x-appstream-eus-rpms__8_DOT_4
+
 
 Using Artifacts from Koji
 -------------------------
