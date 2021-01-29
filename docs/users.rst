@@ -326,7 +326,9 @@ schema`_.
 
 .. _`container.yaml schema`: https://github.com/containerbuildsystem/osbs-client/blob/master/osbs/schemas/container.json
 
-An example::
+An example:
+
+.. code-block:: yaml
 
   ---
   platforms:
@@ -885,7 +887,7 @@ the repository. ``fetch-artifacts-koji.yaml`` will be processed first.
 fetch-artifacts-koji.yaml
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-::
+.. code-block:: yaml
 
   - nvr: foobar # All archives will be downloaded
 
@@ -944,7 +946,7 @@ build will fail due to no archives matching request.
 fetch-artifacts-url.yaml
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-::
+.. code-block:: yaml
 
   - url: http://download.example.com/JBossDV/6.3.0/jboss-dv-6.3.0-teiid-jdbc.jar
     md5: e85807e42460b3bc22276e6808839013
