@@ -743,6 +743,10 @@ pkg_managers
   environment variables, dependencies, or extra configuration will be provided
   with the sources.
 
+  The full information about supported package managers is in the
+  `upstream Cachito package manager documentation
+  <https://github.com/release-engineering/cachito#package-managers>`_.
+
 flags
   List of flags to pass to the cachito request. See the cachito_ documentation
   for further reference.
