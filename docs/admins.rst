@@ -266,6 +266,23 @@ The value is the size in bytes of uncompressed layers. When either
 ``binary_image`` or ``image_size_limit`` is omitted, or if ``binary_image`` is
 set to ``0``, the check will be skipped.
 
+Custom CA bundle
+''''''''''''''''
+
+It is allowed to specify a custom CA bundle explicitly to include self-signed
+certificates. If set, it will be injected into every YUM repository added by
+users. The custom CA bundle is used during the container build process only.
+
+Set the CA bundle certificate by config ``builder_ca_bundle`` at the top level
+of the reactor config. The value must be a file name with an absolute path to
+an existing certificate file inside the builder image. For example, if the
+required self-signed certificate is included in the file
+``/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem``, then the config is:
+
+.. code-block:: yaml
+
+   builder_ca_bundle: /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
+
 Setting up koji for container image builds
 ------------------------------------------
 
