@@ -1188,6 +1188,70 @@ Isolated builds will only create the ``{version}-{release}`` primary tag and
 the unique tag in the container registry. OSBS does not update any floating
 tags for an isolated build.
 
+
+.. _operator-bundle-isolated-builds:
+
+Operator bundle isolated builds
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In some cases you may want to rebuild operator bundle image with customized
+Cluster Service Version (CSV) file, like using CVE patched related images
+and updates to metadata used by the operator upgrade procedure.
+
+Modifications to CSV file are possible only for isolated builds::
+
+  koji container-build \
+     --operator-csv-modifications-url=https://example.com/path/to/file.json \
+     --isolated \
+     --release=2.1
+
+Option  ``--operator-csv-modifications-url`` must contain a path to remote JSON
+file in the following format as shows the example bellow:
+
+.. code-block:: json
+
+    {
+      "pullspec_replacements": [
+        {
+          "original": "registry.example.com/namespace/app:v2.2.0",
+          "new": "registry.example.com/namespace/app@sha256:a0ae15b2c8b2c7ba115d37625e750848658b76bed7fa9f7e7f6a5e8ab3c71bac",
+          "pinned": true
+        }
+      ],
+      "append": {
+        "spec": {
+          "skips": ["1.0.0"]
+        }
+      },
+      "update": {
+        "metadata": {
+          "name": "app.v1.0.1-01610399900-patched",
+          "substitutes-for": "1.0.0"
+        },
+        "spec": {
+          "version": "1.0.0-01610399900-patched"
+        }
+      }
+    }
+
+Attribute ``pullspec_replacements`` must contain list of replacements for all images
+pullspecs used in the operator CSV file.
+
+Attribute ``append`` is optional. It contains nested structure of attributes to be
+updated recursively by appending (attributes will be created if don't exist).
+Terminal property must contain a list with values to append.
+
+Attribute ``update`` is optional. It contains nested structure of attributes to be
+updated recursively (attributes will be created if don't exist).
+
+With enabled modifications to operator CSV file OSBS will not perform digest pinning
+for images, an user is responsible for the content.
+
+For more details about operator bundles please see :ref:`operator-bundle` section.
+
+This feature may require additional site configuration changes, please see
+:ref:`operator-csv-modifications-admin` section.
+
+
 Yum repositories
 ----------------
 
@@ -1695,6 +1759,11 @@ match, otherwise this is a conflict and build will fail. This is especially
 important for annotations, where the name is a combination of repo and tag.
 Using 2 images with the same repo and tag but different registry/namespace
 is not allowed.
+
+Modifications to operator CSV file
+++++++++++++++++++++++++++++++++++
+Isolated operator bundle builds support additional modifications.
+Please read section :ref:`operator-bundle-isolated-builds`.
 
 Skip all processing for operator bundles
 ++++++++++++++++++++++++++++++++++++++++

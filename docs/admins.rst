@@ -580,6 +580,33 @@ skip_all_allow_list
   List of koji packages which are allowed to use ``skip_all`` option in
   the ``operator_manifests`` section of ``container.yaml``.
 
+.. _operator-csv-modifications-admin:
+
+Enabling operator CSV modifications
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To allow operator CSV modifications attributes which are allowed to be updated
+must be added to the ``allowed_attributes`` list.
+
+Example:
+
+.. code-block:: yaml
+
+  operator_manifests:
+    csv_modifications:
+      allowed_attributes:
+      -  ["spec", "skips",]
+      -  ["spec", "version",]
+      -  ["metadata", "substitutes-for",]
+      -  ["metadata", "name",]
+
+csv_modifications
+  Section with configuration related to operator CSV modifications (for future expansion)
+
+allowed_attributes
+  List of paths to attributes (defined as list of strings) which are allowed to be modified
+
+
 .. _package_mapping.json: https://github.com/containerbuildsystem/atomic-reactor/blob/master/atomic_reactor/schemas/package_mapping.json
 
 .. _omps-integration:
