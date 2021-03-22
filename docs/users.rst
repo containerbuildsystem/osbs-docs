@@ -1019,10 +1019,13 @@ and verified.
 Koji Build Metadata Integration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In the future, a reference of each artifact fetched by OSBS will be
-added to the koji build metadata once imported via content generator API.
-The list of components for the container image in output list will
-include the fetched artifacts in addition to the installed RPMs.
+A reference of each artifact fetched by OSBS is added to the koji build metadata
+once imported via content generator API. The list of components for the
+container image in output list includes the fetched artifacts in addition to the
+installed RPMs.
+
+Metadata for artifacts fetched using fetch-artifacts-koji are added as kojifile type
+components under image output alongside the rpm type components.
 
 .. _image-tags:
 
