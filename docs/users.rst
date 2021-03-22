@@ -996,6 +996,12 @@ fetch-artifacts-url.yaml
     sha256: 3ba8a145a3b1381d668203cd73ed62d53ba8a145a3b1381d668203cd73ed62d5
     # Optionally, overwrite target name
     target: custom-dir/custom-name.jar
+  - url: http://download.example.com/JBossDV/6.3.0/jboss-dv-6.3.0-teiid-jdbc.jar
+    md5: e85807e42460b3bc22276e6808839013
+    # Optionally, provide source of the artifact
+    source-url: http://download.example.com/JBossDV/6.3.0/jboss-dv-6.3.0-teiid-jdbc-sources.tar.gz
+    # When source-url is specified, checksum must be provided
+    source-md5: af8ee0374e8160dc19b2598da2b22162
 
 Each archive will be downloaded to artifacts/<target_path> at the root
 of git repository. It can be used from Dockerfile via ADD/COPY instruction:
@@ -1015,6 +1021,10 @@ when verifying artifact was downloaded properly. At least one of them is
 required. If more than one is defined, multiple hashes will be computed
 and verified.
 
+If source-url is specified, the source-md5, source-sha1 or source-sha256
+attributes specify the corresponding hash to be used when verifying sources.
+At least one of the these three checksums must be provided.
+
 
 Koji Build Metadata Integration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1026,6 +1036,11 @@ installed RPMs.
 
 Metadata for artifacts fetched using fetch-artifacts-koji are added as kojifile type
 components under image output alongside the rpm type components.
+
+When fetch-artifacts-url is used, and source-url is specified. The source
+archive specified by source-url will be downloaded, source checksums will be
+verified and all source archives will be attached to the brew build output as
+remote-source-file type.
 
 .. _image-tags:
 
