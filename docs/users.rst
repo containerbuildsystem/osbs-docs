@@ -1172,6 +1172,13 @@ configuration, with ``skip_koji_check_for_base_image`` option in
 `config.json`_, when there are no NVR labels set on the base image,
 if the NVR labels are set on the base image, the check is performed regardless.
 
+OSBS skips this Koji NVR check for scratch builds. This means that when a user
+builds a layered image on a scratch build, that layered image must also be a
+scratch build. For example, if OSBS tags one scratch build as
+``rsync-containers-candidate-93619-20191017205627``, users can build another
+layered scratch build on top of that with ``FROM
+rsync-containers-candidate-93619-20191017205627`` in the Dockerfile.
+
 Digests verification
 ~~~~~~~~~~~~~~~~~~~~
 
