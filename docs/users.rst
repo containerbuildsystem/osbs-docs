@@ -900,30 +900,34 @@ This example uses RHEL 8.4 EUS's Pulp repository IDs:
   - rhel-8-for-s390x-appstream-eus-rpms__8_DOT_4
 
 
-Using Artifacts from Koji
+Using Artifacts from Koji or Project Newcastle(aka PNC)
 -------------------------
 
 During a container build, it might be desirable to fetch some artifacts
-from an existing Koji build. For instance, when building a Java-based
-container, JAR archives from a Koji build are required to be added to
-the resulting container image.
+from an existing Koji build or a PNC build. For instance, when
+building a Java-based container, JAR archives from a Koji build or PNC build
+are required to be added to the resulting container image.
 
 
 The atomic-reactor pre-build plugin, fetch_maven_artifacts, can be used
 for including non-RPM content in a container image during build time.
-This plugin will look for the existence of two files in the git repository
+This plugin will look for the existence of three files in the git repository
 in the same directory as the Dockerfile:
-fetch-artifacts-koji.yaml and fetch-artifacts-url.yaml.  (See `fetch-artifacts-url.json`_ and `fetch-artifacts-nvr.json`_ for their YAML schema.)
-
-.. _`fetch-artifacts-url.json`: https://github.com/containerbuildsystem/atomic-reactor/blob/master/atomic_reactor/schemas/fetch-artifacts-url.json
+fetch-artifacts-koji.yaml, fetch-artifacts-pnc.yaml and fetch-artifacts-url.yaml.
+(See `fetch-artifacts-nvr.json`_, `fetch-artifacts-pnc.json`_ and
+`fetch-artifacts-url.json`_ for their YAML schema.)
 
 .. _`fetch-artifacts-nvr.json`: https://github.com/containerbuildsystem/atomic-reactor/blob/master/atomic_reactor/schemas/fetch-artifacts-nvr.json
 
-The first is meant to fetch artifacts from an existing Koji build.  The second
-allows specific URLs to be used for fetching artifacts.  Note that all
-combinations of the yaml files here described are valid, i.e., you can have
-either one of the two files in your repository or you could have both files in
-the repository. ``fetch-artifacts-koji.yaml`` will be processed first.
+.. _`fetch-artifacts-pnc.json`: https://github.com/containerbuildsystem/atomic-reactor/blob/master/atomic_reactor/schemas/fetch-artifacts-pnc.json
+
+.. _`fetch-artifacts-url.json`: https://github.com/containerbuildsystem/atomic-reactor/blob/master/atomic_reactor/schemas/fetch-artifacts-url.json
+
+fetch-artifacts-nvr.yaml is meant to fetch artifacts from an existing Koji build.
+fetch-artifacts-pnc.yaml is meant to fetch artifacts from an existing PNC build.
+fetch-artifacts-url.yaml allows specific URLs to be used for fetching artifacts. 
+
+All these configurations can be used together in any combination but aren't mandatory.
 
 fetch-artifacts-koji.yaml
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -982,6 +986,42 @@ matches multiple archives.
 *Note that only archives of maven type are supported.* If in the nvr
 supplied an archive item references a non maven artifact, the container
 build will fail due to no archives matching request.
+
+
+fetch-artifacts-pnc.yaml
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: yaml
+
+  metadata:
+    # this object allows additional parameters, you can put any metadata here
+    author: shadowman
+  builds:
+    # all artifacts are grouped by builds to keep track of their sources
+    - build_id: 1234
+      artifacts:
+        # list of artifacts to fetch, artifacts are fetched from PNC using their IDs
+        - id : 12345
+          # the target can just be a filename or path+filename
+          target: test/rhba-common-7.10.0.redhat-00004.pom
+        - id: 12346
+          target: prod/rhba-common-7.10.0.redhat-00004-dist.zip
+    - build_id: 1235
+      artifacts:
+        - id: 12354
+          target: test/client-patcher-7.10.0.redhat-00004.jar
+        - id: 12355
+          target: prod/rhdm-7.10.0.redhat-00004-update.zip
+
+Each artifact will be downloaded to artifacts/<target_path> at the root
+of git repository. It can be used from Dockerfile via ADD/COPY instruction:
+
+Upon downloading each file, the plugin will verify the file checksums by
+leveraging the checksum value provided by PNC REST API. If
+checksum fails, container build fails immediately. All types of checksum types
+provided will be verified.
+
+If build or artifact specified does not exist, the container build will fail.
 
 
 fetch-artifacts-url.yaml
