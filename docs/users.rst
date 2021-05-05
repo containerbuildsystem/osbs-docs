@@ -1077,6 +1077,9 @@ installed RPMs.
 Metadata for artifacts fetched using fetch-artifacts-koji are added as kojifile type
 components under image output alongside the rpm type components.
 
+For artifacts fetched using fetch-artifacts-pnc, all the PNC build IDs specified
+are added to build extra image pnc metadata.
+
 When fetch-artifacts-url is used, and source-url is specified. The source
 archive specified by source-url will be downloaded, source checksums will be
 verified and all source archives will be attached to the brew build output as
