@@ -1612,7 +1612,7 @@ to set up the following:
 
 .. code-block:: Dockerfile
 
-    # Base needs to be scratch
+    # Base needs to be scratch, and multi-stage builds are not allowed
     FROM scratch
 
     # Make this an operator bundle build
