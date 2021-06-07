@@ -1141,12 +1141,9 @@ image instead. The same source registry restrictions apply. For multi-stage
 builds, the ``koji_parent_build`` parameter will only override the final
 ``FROM`` instruction.
 
-Additionally, the koji parent build must use the same container image repository
-as the value of the FROM instruction in Dockerfile. For instance, if the
-Dockerfile states ``FROM fedora:27``, the koji parent build has to be of a
-container image that pushed to the ``fedora`` repository. The koji parent build
-may refer to a ``fedora:26`` image, but using a koji parent build for an image
-that was pushed to ``rsyslog`` will cause a build failure.
+If the ``FROM`` instruction on last stage of the Dockerfile is set to either
+``scratch`` or ``koji/image-build``, the ``koji_parent_build`` parameter will
+be ignored.
 
 This behavior requires koji integration to be enabled in the OSBS environment.
 
