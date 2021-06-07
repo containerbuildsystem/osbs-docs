@@ -595,7 +595,7 @@ compatibility.
 set_release_env
 ~~~~~~~~~~~~~~~
 
-Optional string.  If set, osbs-client will modify each stage of the image's 
+Optional string.  If set, osbs-client will modify each stage of the image's
 Dockerfile, adding an ENV statement immediately following the FROM statement.
 The ENV statement will assign an environment variable with the same name as
 the value of set_release_env and the value of the current build's release number.
@@ -925,7 +925,7 @@ fetch-artifacts-koji.yaml, fetch-artifacts-pnc.yaml and fetch-artifacts-url.yaml
 
 fetch-artifacts-nvr.yaml is meant to fetch artifacts from an existing Koji build.
 fetch-artifacts-pnc.yaml is meant to fetch artifacts from an existing PNC build.
-fetch-artifacts-url.yaml allows specific URLs to be used for fetching artifacts. 
+fetch-artifacts-url.yaml allows specific URLs to be used for fetching artifacts.
 
 All these configurations can be used together in any combination but aren't mandatory.
 
