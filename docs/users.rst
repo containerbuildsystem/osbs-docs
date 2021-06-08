@@ -623,6 +623,7 @@ add_timestamp_to_release
   For example if name is ``fedora/rsyslog``, version is ``32``, and release is ``5``,
   the container image will be available in container registry at:
   ``my-container-registry.example.com/fedora/rsyslog:32-5.20191007151825``.
+  Release value must be specified in the Dockerfile to enable this feature.
 
 ignore_isolated_builds
   Boolean to control whether to rebuild when parent image triggering build was isolated build.
