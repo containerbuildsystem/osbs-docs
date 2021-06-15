@@ -717,6 +717,7 @@ As described in :ref:`cachito-integration`, it is possible to use cachito to
 download a tarball with an upstream project and its dependencies and make it
 available for usage during an OSBS build.
 
+
 remote_source
 ~~~~~~~~~~~~~
 
@@ -724,6 +725,12 @@ This map contains configuration of what sources OSBS will request from cachito
 and how they will be requested. The keys accepted here are described below. If
 OSBS cachito integration is not configured in the OSBS instance, the entries
 here will be ignored.
+
+.. _remote-source-keys:
+
+remote_source keys
+******************
+
 
 repo
   String with an URL to the upstream project SCM repository, such as
@@ -782,7 +789,7 @@ arguments. cachito.env file can be used as follows:
     WORKDIR $REMOTE_SOURCE_DIR/app
     RUN source $CACHITO_ENV_FILE && go build .
 
-Note that ``$REMOTE_SOURCES_DIR`` is a build arg, available only in build time.
+Note that ``$REMOTE_SOURCE_DIR`` is a build arg, available only in build time.
 Hence, for cleaning up the image after using the sources, add the following
 line to the Dockerfile after the build is complete::
 
@@ -794,6 +801,64 @@ archive provided by cachito in the buildroot workdir.
 .. note:: To better use the cachito provided dependencies, a full gomod
   supporting Golang version is required. In other words, you should use Golang
   >= 1.13
+
+remote_sources
+~~~~~~~~~~~~~~
+Alternative to remote_source map that allows multiple remote sources.
+The usage of remote_sources has to be allowed in the OSBS Instance configuration. See :ref:`allow-multiple-remote-sources`.
+remote_sources map shares many of its keys with remote_source map but has two additional keys:
+
+\- name
+    Serves as a unique identifier for remote source.
+    It is a non-empty unique string containing only alphanumeric characters, underscore or dash.
+
+remote_source:
+    See :ref:`remote-source-keys`.
+
+
+container.yaml example with multiple remote sources:
+
+.. code-block:: yaml
+
+        remote_sources:
+        - name: cachito-pip-with-deps
+          remote_source:
+            repo: https://github.com/cachito-testing/cachito-pip-with-deps
+            ref: 56efa5f7eb4ff1b7ea1409dbad76f5bb378291e6
+            pkg_managers: [“pip”]
+        - name: cachito-gomod-with-deps
+          remote_source:
+            repo: https://github.com/cachito-testing/cachito-gomod-with-deps
+            ref: 21e42c6a62a23002408438d07169e2d7c76649c5
+            pkg_managers: [“gomod”]
+
+
+
+Once the `remote_sources` map described above is set in ``container.yaml``, you
+can now copy the upstream sources (with bundled dependencies) provided by
+cachito in your build image by adding::
+
+   COPY $REMOTE_SOURCES $REMOTE_SOURCES_DIR
+
+to your Dockerfile. This ``$REMOTE_SOURCES_DIR`` directory contains subdirectory for each remote source.
+You can access the source of an individual remote source at ``$REMOTE_SOURCES_DIR/{name}/app``.
+The dependencies can be correspondingly found at ``$REMOTE_SOURCES_DIR/{name}/deps``
+
+OSBS also creates ``$REMOTE_SOURCES_DIR/{name}/cachito.env`` bash script with exported
+environment variables received from cachito request (such as ``GOPATH``,
+``GOCACHE`` for gomod package manager and ``PIP_CERT``,``PIP_INDEX_URL`` for pip).
+Users should use the following command in the Dockerfile to set all required variables:
+
+     RUN source $REMOTE_SOURCES_DIR/{name}/cachito.env
+
+Note that ``$REMOTE_SOURCES_DIR`` is a build arg, available only in build time.
+Hence, for cleaning up the image after using the sources, add the following
+line to the Dockerfile after the build is complete::
+
+    RUN rm -rf $REMOTE_SOURCES_DIR
+
+``$REMOTE_SOURCES`` is another build arg, which points to the directory that
+contains extracted tar archives provided by cachito in the buildroot workdir.
 
 Replacing project dependencies with cachito
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

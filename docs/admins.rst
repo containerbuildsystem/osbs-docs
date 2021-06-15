@@ -688,6 +688,20 @@ Example:
     auth:
       ssl_certs_dir: /dir/with/cert/file
 
+.. _allow-multiple-remote-sources:
+
+Allowing multiple remote sources
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+To enable support for multiple remote sources, set
+the ``allow_multiple_remote_sources`` flag to ``true`` in
+``reactor_config_map``.
+
+.. code-block:: yaml
+
+    allow_multiple_remote_sources: true
+
+
+
 Configuring koji
 ~~~~~~~~~~~~~~~~
 
