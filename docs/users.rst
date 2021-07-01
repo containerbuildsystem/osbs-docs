@@ -1157,7 +1157,7 @@ Image tags
 ----------
 
 OSBS's atomic-reactor pushes the new container image to the container
-registry (or Pulp, if Pulp integration is enabled) and updates various tag
+registry and updates various tag
 references in the registry. In addition, when multi-platform builds are
 enabled, atomic-reactor groups each set of images into a manifest list
 and tags that manifest list.

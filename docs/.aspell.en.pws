@@ -35,7 +35,6 @@ fedpkg
 SerialLatestOnly
 graphviz
 ImageChangeTriggers
-dockpulp
 distro
 LoggerAdapter
 userId
@@ -91,7 +90,6 @@ containerbuild
 runtimes
 mavenfile
 abc
-pulpsecret
 ksurl
 uri
 imagestream

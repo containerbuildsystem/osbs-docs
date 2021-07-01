@@ -85,11 +85,6 @@ Example of **REACTOR_CONFIG**::
             ssl_certs_dir: /var/run/secrets/atomic-reactor/kojisecret
         use_fast_upload: false
 
-    pulp:
-        name: my-pulp
-        auth:
-            ssl_certs_dir: /var/run/secrets/atomic-reactor/pulpsecret
-
     odcs:
         api_url: https://odcs.example.com/api/1
         auth:
@@ -161,7 +156,6 @@ Example of **REACTOR_CONFIG**::
 
     required_secrets:
     - kojisecret
-    - pulpsecret
     - odcssecret
     - v2-registry-dockercfg
     - client-config-secret
@@ -255,7 +249,6 @@ example, if **reactor_config** defines::
 
     required_secrets:
     - kojisecret
-    - pulpsecret
 
 A secret named **kojisecret** must be available in orchestrator and
 worker clusters. The worker and orchestrator versions don't need to have the
