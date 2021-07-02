@@ -340,15 +340,17 @@ An example:
     - armhfp
     not: armhfp
 
-  remote_source:
-    repo: https://git-forge.example.com/namespace/repo.git
-    ref: AddFortyCharactersGitCommitHashRightHere
-    pkg_managers:
-    - npm
-    packages:
-      npm:
-      - path: client
-      - path: proxy
+  remote_sources:
+  - name: npm-example
+    remote_source:
+      repo: https://git-forge.example.com/namespace/repo.git
+      ref: AddFortyCharactersGitCommitHashRightHere
+      pkg_managers:
+      - npm
+      packages:
+        npm:
+        - path: client
+        - path: proxy
 
   compose:
     # used for requesting ODCS compose of type "tag"
@@ -720,6 +722,8 @@ available for usage during an OSBS build.
 
 remote_source
 ~~~~~~~~~~~~~
+.. note:: The usage of remote_sources map is preferred over remote_source.
+    Single remote_source map will be deprecated in the future.
 
 This map contains configuration of what sources OSBS will request from cachito
 and how they will be requested. The keys accepted here are described below. If
@@ -804,9 +808,12 @@ archive provided by cachito in the buildroot workdir.
 
 remote_sources
 ~~~~~~~~~~~~~~
+.. note:: The usage of remote_sources map is preferred over remote_source.
+    Single remote_source map will be deprecated in the future.
+
 Alternative to remote_source map that allows multiple remote sources.
 The usage of remote_sources has to be allowed in the OSBS Instance configuration. See :ref:`allow-multiple-remote-sources`.
-remote_sources map shares many of its keys with remote_source map but has two additional keys:
+The remote_sources map is an array of remote_source maps with an additional name parameter:
 
 \- name
     Serves as a unique identifier for remote source.
@@ -835,21 +842,24 @@ container.yaml example with multiple remote sources:
 
 
 Once the `remote_sources` map described above is set in ``container.yaml``, you
-can now copy the upstream sources (with bundled dependencies) provided by
-cachito in your build image by adding::
+can copy the upstream sources and bundled dependencies for all remote references in your build
+image by adding::
 
    COPY $REMOTE_SOURCES $REMOTE_SOURCES_DIR
 
 to your Dockerfile. This ``$REMOTE_SOURCES_DIR`` directory contains subdirectory for each remote source.
-You can access the source of an individual remote source at ``$REMOTE_SOURCES_DIR/{name}/app``.
+You can access the source of an individual remote source at ``$REMOTE_SOURCES_DIR/{name}/app``,
+where ``{name}`` refers to name of given remote source as defined in container.yaml file.
 The dependencies can be correspondingly found at ``$REMOTE_SOURCES_DIR/{name}/deps``
 
 OSBS also creates ``$REMOTE_SOURCES_DIR/{name}/cachito.env`` bash script with exported
 environment variables received from cachito request (such as ``GOPATH``,
-``GOCACHE`` for gomod package manager and ``PIP_CERT``,``PIP_INDEX_URL`` for pip).
-Users should use the following command in the Dockerfile to set all required variables:
+``GOCACHE`` for gomod package manager and ``PIP_CERT``, ``PIP_INDEX_URL`` for pip).
+Users should use the following command in the Dockerfile to set all required variables::
 
-     RUN source $REMOTE_SOURCES_DIR/{name}/cachito.env
+    RUN source $REMOTE_SOURCES_DIR/{name}/cachito.env
+
+.. note:: the environment variable ``$CACHITO_ENV_FILE`` is no longer available for multiple remote sources.
 
 Note that ``$REMOTE_SOURCES_DIR`` is a build arg, available only in build time.
 Hence, for cleaning up the image after using the sources, add the following
