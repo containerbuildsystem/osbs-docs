@@ -1145,21 +1145,20 @@ At least one of the these three checksums must be provided.
 Koji Build Metadata Integration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-A reference of each artifact fetched by OSBS is added to the koji build metadata
-once imported via content generator API. The list of components for the
-container image in output list includes the fetched artifacts in addition to the
-installed RPMs.
+When OSBS fetches artifacts, it stores references to each artifact in Koji's
+content generator metadata.
 
-Metadata for artifacts fetched using fetch-artifacts-koji are added as kojifile type
-components under image output alongside the rpm type components.
+For artifacts from ``fetch-artifact-koji``, OSBS will list each artifact
+component as ``"type": "kojifile"`` in the ``components`` list of each
+``docker-image`` build.
 
-For artifacts fetched using fetch-artifacts-pnc, all the PNC build IDs specified
-are added to build extra image pnc metadata.
+For artifacts from ``fetch-artifacts-pnc``, OSBS will add all the PNC build
+IDs to the ``build.extra.image.pnc`` metadata.
 
-When fetch-artifacts-url is used, and source-url is specified. The source
-archive specified by source-url will be downloaded, source checksums will be
-verified and all source archives will be attached to the brew build output as
-remote-source-file type.
+For artifacts from ``fetch-artifacts-url`` with ``source-url``, OSBS will
+attach all source archives to the Koji build as a ``remote-sources`` archive
+type. You can download these to your computer with ``koji download-build
+--type=remote-sources``.
 
 .. _image-tags:
 
