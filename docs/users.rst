@@ -1074,19 +1074,19 @@ fetch-artifacts-pnc.yaml
     author: shadowman
   builds:
     # all artifacts are grouped by builds to keep track of their sources
-    - build_id: 1234
+    - build_id: '1234' # build id must be string
       artifacts:
         # list of artifacts to fetch, artifacts are fetched from PNC using their IDs
-        - id : 12345
+        - id : '12345' # artifact id must be string
           # the target can just be a filename or path+filename
           target: test/rhba-common-7.10.0.redhat-00004.pom
-        - id: 12346
+        - id: '12346'
           target: prod/rhba-common-7.10.0.redhat-00004-dist.zip
-    - build_id: 1235
+    - build_id: '1235'
       artifacts:
-        - id: 12354
+        - id: '12354'
           target: test/client-patcher-7.10.0.redhat-00004.jar
-        - id: 12355
+        - id: '12355'
           target: prod/rhdm-7.10.0.redhat-00004-update.zip
 
 Each artifact will be downloaded to artifacts/<target_path> at the root
