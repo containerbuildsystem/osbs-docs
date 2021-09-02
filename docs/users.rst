@@ -977,7 +977,7 @@ This example uses RHEL 8.4 EUS's Pulp repository IDs:
 
 
 Using Artifacts from Koji or Project Newcastle(aka PNC)
--------------------------
+-------------------------------------------------------
 
 During a container build, it might be desirable to fetch some artifacts
 from an existing Koji build or a PNC build. For instance, when
@@ -1063,6 +1063,7 @@ matches multiple archives.
 supplied an archive item references a non maven artifact, the container
 build will fail due to no archives matching request.
 
+.. _fetch-artifacts-pnc-usage:
 
 fetch-artifacts-pnc.yaml
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -2006,6 +2007,7 @@ Extra contents
 ~~~~~~~~~~~~~~
 
 The ``image_contents`` field lists the non-RPM contents fetched from Cachito
+and middleware contents fetched using :ref:`fetch-artifacts-pnc-usage`.
 (see :ref:`cachito-usage`) that were used during the image build and that were
 made available in the image.
 
