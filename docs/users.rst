@@ -251,44 +251,57 @@ as expected (as above).
 Writing a Dockerfile
 --------------------
 
-A Dockerfile is required for building container images in OSBS. It must be
-placed at the root of git repository. There can only be a single Dockerfile per
-git repository branch.
+OSBS builds a container image from a ``Dockerfile``. Developers must place
+their ``Dockerfile`` at the root of a Git repository. OSBS will only process a
+single ``Dockerfile`` per Git repository branch.
 
-Some labels are required to be defined:
+Developers must set the following mandatory labels in each ``Dockerfile``:
 
-- ``com.redhat.component``: the value of this label is used when importing a
-  build into Koji via content generator API. We recommend that all images use
-  a component string ending in ``-container`` here, so that you can easily
-  distinguish these container builds from other non-container builds in Koji.
-  The value can't be empty.
-- ``name``: value is used to define the repository name in container registry to
-  push built image. Limit this to lowercase alphanumerical values with the
-  possibility to use dash as a word separator. A single ``/`` is also allowed.
-  ``.`` is not allowed in the first section. For instance, **fed/rsys.log** and
-  **rsyslog** are allowed, but **fe.d/rsyslog** and **rsys.log** aren't.
-  The value can't be empty.
-- ``version``: used as the version portion of Koji build NVR, as well as, for
-  the version tag in container repository.
-  The value can't be empty, and may be defined via ENV variable from parent.
+- ``com.redhat.component``: OSBS uses this value as the "name" when importing
+  a build into Koji. We recommend that you use a string ending in
+  ``-container`` here, so that you can easily distinguish these container
+  builds from other non-container builds in Koji. Example:
+  ``LABEL com.redhat.component=rsyslog-container``.
 
-For example::
+- ``name``: OSBS pushes each built image to a repository in a container
+  registry, and this label determines the name of the repository. For example,
+  if you use ``LABEL name=fedora/rsyslog``, you will be able to pull your
+  image with ``podman pull my-container-registry.example.com/fedora/rsyslog``.
+
+  Limit this to lowercase alphanumerical values and dashes.  A single ``/`` is
+  also allowed.  ``.`` is not allowed in the first section.  For instance,
+  ``fed/rsys.log`` and ``rsyslog`` are allowed, but ``fe.d/rsyslog`` and
+  ``rsys.log`` aren't.
+
+- ``version``: OSBS uses this for the "version" portion of the Koji build
+  Name-Version-Release, as well as the version-release tag in container
+  repository.  Example: ``32``. (You may define this via ``ENV`` from parent
+  image if you want to use the same version as the parent.)
+
+A combined example, in a ``Dockerfile``::
 
     LABEL com.redhat.component=rsyslog-container \
           name=fedora/rsyslog \
           version=32
+          release=1
 
-When OSBS builds a container image that defines the above labels, a Koji build
-will be created in the format rsyslog-container-32-X. Where X is the release
-value.  The container image will be available in container registry at:
-``my-container-registry.example.com/fedora/rsyslog:32``.
+When OSBS builds the above ``Dockerfile``, it will import the build into Koji
+as ``rsyslog-container-32-1``. You can pull the image from OSBS's container
+registry with::
 
-The ``release`` label can also be used to specify the release value use for Koji
-build. The value can't be empty, and may be defined via ENV variable from parent.
-When omitted, the release value will be automatically determined by
-querying Koji's getNextRelease API method.
+    podman pull my-container-registry.example.com/fedora/rsyslog:32-1
 
-Other labels are set automatically when not set in the Dockerfile:
+The ``release`` label is optional. OSBS uses this for the "release" portion of
+the Koji build Name-Version-Release, as well as the version-release tag in
+container repository.  (You may define ``release`` with ``ENV``
+from the parent image if you want to use the same release as the parent.)
+
+If you omit a ``release`` label, OSBS will automatically determine a release
+number for your build by querying Koji's ``getNextRelease`` API method.
+
+OSBS will automatically set other labels for your image if you do not
+set these in your ``Dockerfile``. Here are the default labels OSBS will set
+automatically:
 
 - ``build-date``: Date/Time image was built as RFC 3339 date-time.
 - ``architecture``: Architecture for the image.
@@ -296,12 +309,11 @@ Other labels are set automatically when not set in the Dockerfile:
 - ``vcs-ref``: A reference within the version control repository; e.g. a git commit.
 - ``vcs-type``: The type of version control used by the container source. Currently, only git is supported.
 
-Although it is also possible to automatically include the ``vcs-url`` label, the default set
-of automatically included labels does not include the label.
-
-Sites wanting to include the ``vcs-url`` label to the set should do so by using custom
-``orchestrator_inner:n.json`` and ``worker_inner:n.json`` specifying the full set of implicit labels
-for the ``add_labels_in_dockerfile`` plugin::
+OSBS administrators can also automatically include other labels such as
+``vcs-url``. If you are an OSBS administrator and you want to include the
+``vcs-url`` label, do so by using custom ``orchestrator_inner:n.json`` and
+``worker_inner:n.json``, specifying the full set of implicit labels for the
+``add_labels_in_dockerfile`` plugin::
 
     {
       "args": {
@@ -310,8 +322,8 @@ for the ``add_labels_in_dockerfile`` plugin::
       "name": "add_labels_in_dockerfile"
     },
 
-Finally, it is also possible to set additional labels through the reactor
-configuration, by setting the label key values in ``image_labels``.
+Finally, OSBS administrators may also set additional labels through the
+reactor configuration, by setting the label key values in ``image_labels``.
 
 
 .. _image-configuration:
