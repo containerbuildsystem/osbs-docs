@@ -1940,10 +1940,6 @@ This type of build is for the older style of operator manifests targeting
 Openshift 4.3 or lower.
 It is identified by the ``com.redhat.delivery.appregistry`` label.
 
-After a successful build, if :ref:`OMPS integration <omps-integration>`
-is enabled, operator manifests are uploaded into configured application
-registry and namespace.
-
 Details on how operator manifest can be accessed from the application registry are
 stored in koji build, in section ``build.extra.operator_manifests.appregistry``.
 
