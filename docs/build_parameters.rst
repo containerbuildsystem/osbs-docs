@@ -76,8 +76,6 @@ Example of **REACTOR_CONFIG**::
           max_concurrent_builds: 6
           enabled: True
 
-    clusters_client_config_dir: /var/run/secrets/atomic-reactor/client-config-secret
-
     koji:
         hub_url: https://koji.example.com/hub
         root_url: https://koji.example.com/root
@@ -163,8 +161,6 @@ Example of **REACTOR_CONFIG**::
     worker_token_secrets:
     - x86-64-worker-1
     - x86-64-worker-2
-
-    default_image_build_method: imagebuilder
 
     skip_koji_check_for_base_image: False
 
