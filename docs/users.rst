@@ -1572,7 +1572,7 @@ to discover the kickstart configuration used for the built image.
 
 To execute base image build, run::
 
-  fedpkg container-build --target=<target> --repo=url=<repo-url>
+  fedpkg container-build --target=<target> --repo-url=<repo-url>
 
 The --repo-url parameter specifies the URL to a repofile. The first section
 of this is inspected and the 'baseurl' is examined to discover the compose URL.
