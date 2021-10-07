@@ -466,12 +466,21 @@ modules
   specify ``go-toolset:rhel8:8020020200128163444:0ab52eed``, ODCS will compose
   that exact module instead.
 
+  This can be modified by specifying ``module_resolve_tags`` (not to be
+  confused with ``modular_koji_tags``). When this is present, then instead of
+  querying MBS for the latest built version, ODCS will look up the
+  most recent build of ``name::stream`` in any of the given tags in Koji.
+  (E.g. ``["<release>-pending"]`` might be specified to only find builds
+  that have been attached to an errata for ``<release>``.)
+
   Note that if you simply specify a ``name:stream`` for a module, ODCS will
   compose the very latest module that a module developer has built for that
-  stream, and this module might not be tested by QE or GPG signed.
-  Alternatively, if your desired module is already QE'd, signed, and available
-  in Pulp, the ``pulp_repos: true`` option will ensure that your container
-  build environment only uses tested and signed modules.
+  stream (the one with the greatest version number), and this module might not
+  be tested by QE or GPG signed, or even intended to be released. It's typically
+  best to specify ``module_resolve_tags``. Alternatively, if your desired module
+  is already QE'd, signed, and available in Pulp, skip using the ``modules`` option
+  entirely, and instead use the ``pulp_repos: true`` option. This will ensure that
+  your container build environment only uses tested and signed modules.
 
 signing_intent
   used for verifying packages in yum repositories are signed with expected
@@ -512,9 +521,14 @@ multilib_arches
   "i686" packages in the compose.
 
 modular_koji_tags
-  List of Koji tags in which the modular Koji Content Generator builds are
-  tagged. Such builds will be included in the compose.
-  When ``true`` is specified instead of list, koji build tag of the koji build target
+  List of Koji tags that have modules tagged into them. The latest version of
+  each module ``name::stream`` in these tags will be included in the compose.
+  When ``true`` is specified instead of a list, the Koji build tag of the Koji
+  build target will be used instead.
+
+module_resolve_tags
+  List of Koji tags to use when resolving the modules in ``modules``. When ``true``
+  is specified instead of a list, the Koji build tag of the Koji build target
   will be used instead.
 
 build_only_content_sets
