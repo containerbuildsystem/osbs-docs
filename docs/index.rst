@@ -1,6 +1,17 @@
 OpenShift Build Service
 =======================
 
+.. warning::
+  This version is under the development to support Openshift 4 and Tekton pipelines and it's not ready for use.
+
+  For version running on Openshift 3 please visit https://osbs.readthedocs.io/en/osbs_ocp3/ for stable docs.
+
+.. note::
+  Required releases of components:
+    - osbs-client >= 2.0.0
+    - atomic-reactor >= 4.0.0
+    - koji-containerbuild >= 1.0.0
+
 
 OSBS is a collection of tools, workflows and integration points that build and release layered container images.
 
