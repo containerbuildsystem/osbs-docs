@@ -25,40 +25,12 @@ autorebuilds and are not affected by environment changes.
 Reactor Configuration
 """""""""""""""""""""
 
-As of Arrangement 6, environment configuration is provided to build containers
-in a way that is less coupled to the ``Build``/``BuildConfig`` objects. The
-pre-build plugin ``reactor_config`` determines and provides all
-environment configuration to other plugins.
-
-Previously, the value of ``reactor_config`` was mounted into container as a
-secret. With Arrangement 6 it is supplied as a ``ConfigMap`` like::
+The environment configuration is supplied as a ``ConfigMap`` like::
 
     apiVersion: v1
     kind: ConfigMap
     data:
         "config.yaml": <encoded yaml>
-
-For an orchestrator build, the ``ConfigMap`` is mapped via the `downward API
-<https://docs.openshift.com/container-platform/3.11/dev_guide/downward_api.html>`_
-into the **REACTOR_CONFIG** environment variable in a build container.  When
-the ``BuildConfig`` is instantiated, OpenShift selects the ``ConfigMap`` with
-name given in  **reactor-config-map**, retrieves the contents of the key
-**config.yaml**, and sets it as the value of the **REACTOR_CONFIG**
-environment variable in the build container.
-
-For worker builds, the **REACTOR_CONFIG** environment variable is defined
-as an inline **value** (via the
-**reactor_config_override** build parameter in osbs-client). To populate this
-parameter, the ``orchestrate_build`` plugin uses the ``reactor_config``
-plugin to read the reactor configuration for the orchestrator build, using it as
-the basis of the reactor configuration for worker builds with the following
-modifications:
-
-- **openshift** section is replaced with worker specific values. These
-  values can be read from the osbs-client ``Configuration`` object created for
-  each worker cluster.
-- **worker_token_secrets** is completely removed. This section is intended
-  for orchestrator builds only.
 
 The schema definition `config.json`_ in atomic-reactor contains a description
 for each property.
@@ -172,95 +144,10 @@ Example of **REACTOR_CONFIG**::
     - name: NO_PROXY
       value: localhost,127.0.0.1
 
-
-Atomic Reactor Plugins and Arrangement Version 6
-""""""""""""""""""""""""""""""""""""""""""""""""
-
-Prior to Arrangement 6, atomic-reactor plugins received environment parameters
-as their own plugin parameters. Arrangement 6 was introduced to indicate that
-plugins should retrieve environment parameters from **reactor_config** instead.
-Plugin parameters that are really environment parameters have been
-made optional.
-
-The osbs-client configuration **reactor_config_map** defines
-the name of the ``ConfigMap`` object holding **reactor_config**. This
-configuration option is mandatory for arrangement versions greater than or
-equal to 6. Previous osbs-client configuration **reactor_config_secret**
-is deprecated.
-
-An osbs-client build parameter **reactor_config_override**
-allows reactor configuration to be passed in as a python dict. It is
-also validated against `config.json`_ schema. When both
-**reactor_config_map** and **reactor_config_override** are defined,
-**reactor_config_override** takes precedence. NOTE: **reactor_config_override**
-is a python dict, not a string of serialized data.
-
-Creating Builds
+User Parameters
 """""""""""""""
 
-osbs-client no longer renders the atomic-reactor plugin configuration
-at ``Build`` creation.
-Instead, the **USER_PARAMS** environment variable is set on the ``Build``
-containing only user parameters as JSON. For example::
-
-
-    {
-        "build_type": "orchestrator",
-        "git_branch": "my-git-branch",
-        "git_ref": "abc12",
-        "git_uri": "git://git.example.com/spam.git",
-        "is_auto": False,
-        "isolated": False,
-        "koji_task_id": "123456",
-        "platforms": ["x86_64"],
-        "scratch": False,
-        "target": "my-koji-target",
-        "user": "lcarva",
-        "yum_repourls": ["http://yum.example.com/spam.repo", "http://yum.example.com/bacon.repo"],
-    }
-
-
-Rendering Plugins
-"""""""""""""""""
-
-Once the build is started, control is handed over to atomic-reactor. Its input
-plugin ``osv3`` looks for the environment variable **USER_PARAMS** and uses the
-osbs-client method ``render_plugins_configuration`` to generate the plugin
-configuration on the fly.  The generated plugin configuration contains the
-order in which plugins will run as well as user parameters.
-
-
-Secrets
-"""""""
-
-Because the plugin configuration renders at build time (after ``Build``
-object is created), we cannot select which secrets to mount in container
-build based on which plugins have been enabled. Instead, all the secrets that
-may be needed must be mounted. The **reactor_config** ``ConfigMap`` defines
-the full set of secrets it needs via its **required_secrets** list.
-
-When orchestrator build starts worker builds, it uses the same set of secrets.
-This requires worker clusters to have the same set of secrets available. For
-example, if **reactor_config** defines::
-
-    required_secrets:
-    - kojisecret
-
-A secret named **kojisecret** must be available in orchestrator and
-worker clusters. The worker and orchestrator versions don't need to have the
-same value. For instance, worker and orchestrator builds may use different
-authentication certificates.
-
-Secrets needed for communication from orchestrator build to worker clusters are
-defined separately in **worker_token_secrets**. These are not passed along
-to worker builds.
-
-Site Customization
-""""""""""""""""""
-
-The site customization configuration file is no longer read from the system
-creating the OpenShift ``Build`` (usually koji builder). Instead, this
-customization file must be stored and read from inside the builder image.
+TBD
 
 
 .. _`config.json`: https://github.com/containerbuildsystem/atomic-reactor/blob/master/atomic_reactor/schemas/config.json
