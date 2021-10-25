@@ -13,26 +13,6 @@ information on how options are configured within OSBS builds.
 Configuring osbs-client
 -----------------------
 
-When submitting a new build request to OSBS as a user, this request is
-for an orchestrator build. When the orchestrator build wants to create
-worker builds it also does this through osbs-client.
-
-As a result there are two osbs.conf files to consider:
-
-- the one external to OSBS, for creating orchestrator builds, and
-- the one internal to OSBS, stored in a Kubernetes secret (named by
-  `client_config_secret`_) in the orchestrator cluster
-
-These can have the same content. The important features are discussed
-below.
-
-can_orchestrate
-~~~~~~~~~~~~~~~
-
-The parameter ``can_orchestrate`` defaults to false. The API method
-``create_orchestrator_build`` will fail unless ``can_orchestrate`` is
-true for the chosen instance section.
-
 reactor_config_map
 ~~~~~~~~~~~~~~~~~~~~~
 
@@ -40,40 +20,6 @@ reactor_config_map
 Kubernetes configmap holding :ref:`config.yaml`. A pre-build plugin will
 read its value from REACTOR_CONFIG environment variable.
 
-.. _client_config_secret:
-
-client_config_secret
-~~~~~~~~~~~~~~~~~~~~
-
-When ``client_config_secret`` is specified this is the name of a
-Kubernetes secret (holding a key ``osbs.conf``) for use by
-atomic-reactor when it creates worker builds. The `orchestrate_build`
-plugin is told the path to this.
-
-token_secrets
-~~~~~~~~~~~~~
-
-When ``token_secrets`` is specified the specified secrets (space
-separated) will be mounted in the OpenShift build. When ":" is used,
-the secret will be mounted at the specified path, i.e. the format is::
-
-  token_secrets = secret:path secret:path ...
-
-This allows an ``osbs.conf`` file (from `client_config_secret`_) to
-be constructed with a known value to use for ``token_file``.
-
-Node selector
-~~~~~~~~~~~~~
-
-When an entry with the pattern ``node_selector.platform`` (for some
-*platform*) is specified, builds for this platform submitted to this
-cluster must include the given node selector, so as to run on a node
-of the correct architecture. This allows for installations that have
-mixed-architecture clusters and where node labels differentiate
-architecture.
-
-If the value is ``none``, this platform is the only one available and
-no node selector is required.
 
 Platform description
 ~~~~~~~~~~~~~~~~~~~~
@@ -90,23 +36,14 @@ architecture (optional)
 build_from
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Specifies the build image (AKA "buildroot") to be used for building container
-images, to be set in the ``Build``/``BuildConfig`` OpenShift objects under the
-``.spec.strategy.customStrategy.from`` object. This can be a full reference to
-a specific container image in a container registry; or it can reference an
-ImageStreamTag object.
+Specifies the build image to be used for building container
+images. This is a full reference to
+a specific container image in a container registry (including
+registry, repository, and either tag or digest).
 
 Updating this globally effectively deploys a different version of
 OSBS.
 
-It takes one of the following forms:
-
-imagestream:*imagestream*:*tag*
-  use the image from the specified OpenShift ImageStreamTag
-
-image:*pullspec*
-  pull the image from the specified pullspec (including
-  registry, repository, and either tag or digest)
 
 Deploy OSBS on OpenShift
 ------------------------
@@ -294,102 +231,8 @@ different than that required for the orchestrator build itself to
 submit worker builds. The ``osbs.conf`` used by the Koji builder would
 include::
 
-  [general]
-  build_json_dir = /usr/share/osbs/
+  TBD
 
-  [platform:x86_64]
-  architecture = amd64
-
-  [default]
-  openshift_url = https://orchestrator.example.com:8443/
-  build_image = example.registry.com/buildroot:blue
-
-  distribution_scope = public
-
-  can_orchestrate = true  # allow orchestrator builds
-
-  # This secret contains configuration relating to which worker
-  # clusters to use and what their capacities are:
-  reactor_config_map = reactorconf
-
-  # This secret contains the osbs.conf which atomic-reactor will use
-  # when creating worker builds
-  client_config_secret = osbsconf
-
-  # These additional secrets are mounted inside the build container
-  # and referenced by token_file in the build container's osbs.conf
-  token_secrets =
-    workertoken:/var/run/secrets/atomic-reactor/workertoken
-
-  # and auth options, registries, secrets, etc
-
-  [scratch]
-  openshift_url = https://orchestrator.example.com:8443/
-  build_image = example.registry.com/buildroot:blue
-
-  reactor_config_map = reactorconf
-  client_config_secret = osbsconf
-  token_secrets = workertoken:/var/run/secrets/atomic-reactor/workertoken
-
-  # All scratch builds have distribution-scope=private
-  distribution_scope = private
-
-  # This causes koji output not to be configured, and for the low
-  # priority node selector to be used.
-  scratch = true
-
-  # and auth options, registries, secrets, etc
-
-This shows the configuration required to submit a build to the
-orchestrator cluster using ``create_prod_build`` or
-``create_orchestrator_build``.
-
-Also shown is the configuration for scratch builds, which will be
-identical to regular builds but with "private" distribution scope for
-built images and with the scratch option enabled.
-
-Example configuration file: inside builder image
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The ``osbs.conf`` used by the builder image for the orchestrator
-cluster, and which is contained in the Kubernetes secret named by
-``client_config_secret`` above, would include::
-
-  [general]
-  build_json_dir = /usr/share/osbs/
-
-  [platform:x86_64]
-  architecture = amd64
-
-  [prod-mixed]
-  openshift_url = https://worker01.example.com:8443/
-  node_selector.x86_64 = beta.kubernetes.io/arch=amd64
-  node_selector.ppc64le = beta.kubernetes.io/arch=ppc64le
-  use_auth = true
-
-  # This is the path to the token specified in a token_secrets secret.
-  token_file =
-    /var/run/secrets/atomic-reactor/workertoken/worker01-serviceaccount-token
-
-  # The same builder image is used for the orchestrator and worker
-  # builds, but used with different configuration. It should not
-  # be specified here.
-  # build_image = registry.example.com/buildroot:blue
-
-  # and auth options, registries, secrets, etc
-
-  [prod-osd]
-  openshift_url = https://api.prod-example.openshift.com/
-  node_selector.x86_64 = none
-  use_auth = true
-  token_file =
-    /var/run/secrets/atomic-reactor/workertoken/osd-serviceaccount-token
-  # and auth options, registries, secrets, etc
-
-In this configuration file there are two worker clusters, one which
-builds for both x86_64 and ppc64le platforms using nodes with specific
-labels (prod-mixed), and another which only accepts x86_64 builds
-(prod-osd).
 
 .. _whitelist-annotations:
 
