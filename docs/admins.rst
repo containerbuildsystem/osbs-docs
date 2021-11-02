@@ -226,12 +226,48 @@ Setting up koji for container image builds
 Example configuration file: Koji builder
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The configuration required for submitting an orchestrator build is
-different than that required for the orchestrator build itself to
-submit worker builds. The ``osbs.conf`` used by the Koji builder would
-include::
+Configuration of the ``osbs.conf`` used by the Koji builder is required for
+binary and source builds, and each of build type has it's own section.
+The minimal configuration for binary and source build would include::
 
-  TBD
+  [general]
+  build_json_dir = /usr/share/osbs/
+
+  # default configuration section for source builds
+  [default_source]
+  openshift_url = https://source.example.com:8443/
+  # openshift namespace
+  namespace = source_example
+  use_auth = true
+  verify_ssl = true
+  # path to source pipeline run
+  pipeline_run_path = /usr/share/osbs/source-container-pipeline-run.yaml
+  # name of config map for regular builds
+  reactor_config_map = reactor-config-map
+  # name of config map for scratch builds
+  reactor_config_map_scratch = reactor-config-map-scratch
+  # path to openshift token
+  token_file = /etc/osbs/openshift-serviceaccount.token
+  # also possible to specify directly token with:
+  # token = ...
+
+  # default configuration section for binary builds
+  [default_binary]
+  openshift_url = https://binary.example.com:8443/
+  # openshift namespace
+  namespace = binary_example
+  use_auth = true
+  verify_ssl = true
+  # path to binary pipeline run
+  pipeline_run_path = /usr/share/osbs/binary-container-pipeline-run.yaml
+  # name of config map for regular builds
+  reactor_config_map = reactor-config-map
+  # name of config map for scratch builds
+  reactor_config_map_scratch = reactor-config-map-scratch
+  # path to openshift token
+  token_file = /etc/osbs/openshift-serviceaccount.token
+  # also possible to specify directly token with:
+  # token = ...
 
 
 .. _whitelist-annotations:
