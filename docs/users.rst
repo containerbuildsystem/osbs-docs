@@ -383,10 +383,6 @@ An example:
 
   image_build_method: docker_api
 
-  autorebuild:
-    from_latest: false
-    add_timestamp_to_release: false
-
 platforms
 ~~~~~~~~~
 
@@ -629,91 +625,6 @@ The ENV statement will assign an environment variable with the same name as
 the value of set_release_env and the value of the current build's release number.
 Users can use this environment variable to get the release value when running
 tools inside the container.
-
-.. _container.yaml-autorebuild:
-
-autorebuild
-~~~~~~~~~~~
-
-This map accepts keys, as described below. This values are only used
-for autorebuilds, if autorebuilds are enabled.
-
-from_latest
-  Boolean to control whether to rebuild from the latest commit in the build
-  branch. Defaults to ``false``.
-  When ``true``, each autorebuild will use the latest commit in build branch,
-  when ``false``, each autorebuild will use the original commit
-  from build branch of original build.
-
-add_timestamp_to_release
-  Boolean to control whether to append timestamp to explicitly specified release for autorebuilds.
-  Defaults to ``false``. When ``true`` it will append timestamp to release with ``.`` separator.
-  For example if name is ``fedora/rsyslog``, version is ``32``, and release is ``5``,
-  the container image will be available in container registry at:
-  ``my-container-registry.example.com/fedora/rsyslog:32-5.20191007151825``.
-  Release value must be specified in the Dockerfile to enable this feature.
-
-ignore_isolated_builds
-  Boolean to control whether to rebuild when parent image triggering build was isolated build.
-  Defaults to ``false``.
-  When ``true`` and base image specified for autorebuild is isolated build,
-  it won't trigger the autorebuild.
-  When ``false`` and base image specified for autorebuild is isolated build,
-  it will trigger the autorebuild as usual.
-
-.. _osbs-config-autorebuild:
-
-Automatic Rebuilds
-~~~~~~~~~~~~~~~~~~
-
-This section specifies whether and how a build should be rebuilt based on
-changes to the base parent image.
-
-By default autorebuild is disabled. The feature can be enabled by making some
-changes in your dist-git repo and submitting a container build.
-
-You can modify behavior of autorebuilds in container.yaml within :ref:`container.yaml-autorebuild`.
-
-Enabling Automatic Rebuilds
-***************************
-
-Enable autorebuild in config::
-
-    fedpkg container-build-setup --set-autorebuild true
-
-This will create/update the .osbs-repo-config file.
-The file will be automatically added for commit.
-
-Finally, add all modified files, commit, and push modifications.
-For these **changes to take place, request a container build** as usual::
-
-    fedpkg container-build
-
-This must be a regular non-scratch/non-isolated build.
-The steps above apply to a single branch in your dist-git repo.
-It must be repeated for each branch you wish to enable the feature.
-
-The next time the parent image used by your container image is updated, your image will be automatically rebuilt.
-
-
-Disabling Automatic Rebuilds
-****************************
-
-First, use fedpkg to disable autorebuild::
-
-    fedpkg container-build-setup --set-autorebuild false
-
-This will create/update the .osbs-repo-config file.
-The file will be automatically added for commit.
-
-Finally, commit and push modifications. For these **changes to take place,
-request a container build** as usual::
-
-    fedpkg container-build
-
-This must be a regular non-scratch/non-isolated build.
-The steps above apply to a single branch in your dist-git repo.
-It must be repeated for each branch you wish to disable the feature.
 
 
 image_build_method
@@ -1536,11 +1447,10 @@ be determined, the build will fail. Note that if given compose is expired or
 soon to be expired, OSBS will automatically renew it.
 
 The ``signing_intent`` specified in ``container.yaml`` can be overridden with
-the build parameter of same name. This particular parameter will be ignored for
-autorebuilds. The value in ``container.yaml`` should always be used in that
-case. Note that the signing intent used by the compose of parent image is still
-taken into account which may lead to downgrading signing intent for the layered
-image.
+the build parameter of same name. The value in ``container.yaml`` should
+always be used in that case. Note that the signing intent used by the compose
+of parent image is still taken into account which may lead to downgrading
+signing intent for the layered image.
 
 The Koji build metadata will contain a new key,
 ``build.extra.image.odcs.signing_intent_overridden``, to indicate whether or not
