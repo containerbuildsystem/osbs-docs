@@ -18,8 +18,7 @@ of the container images built, for example, distribution scope, vendor,
 authoritative-registry, etc.
 
 User parameters contain the unique information for a user's build request: git
-repository, git branch, Koji target, etc. These should be reused for
-autorebuilds and are not affected by environment changes.
+repository, git branch, Koji target, etc.
 
 
 Reactor Configuration
