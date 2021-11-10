@@ -527,3 +527,5 @@ container logs. For instance::
       File "/usr/bin/atomic-reactor", line 11, in <module>
 
 In this example, this build is stuck talking to the docker client (``docker/client.py``).
+
+.. _`config.json`: https://github.com/containerbuildsystem/atomic-reactor/blob/master/atomic_reactor/schemas/config.json
