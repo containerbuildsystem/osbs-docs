@@ -13,7 +13,8 @@ OpenShift Build Service
     - koji-containerbuild >= 1.0.0
 
 
-OSBS is a collection of tools, workflows and integration points that build and release layered container images.
+OSBS is a collection of tools, workflows and integration points that build and release layered
+container images.
 
 OSBS hooks into Koji_ with the help of the `koji-containerbuild plugin
 <https://github.com/containerbuildsystem/koji-containerbuild>`_, and

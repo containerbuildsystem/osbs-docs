@@ -243,8 +243,8 @@ Overrides are available using the ``--override-os`` and ``--override-arch`` argu
 
 If running from Fedora, you will need to install ``qemu-user-static`` before running the different
 architectures. Additionally, there is `a known issue`_ with podman where a new architecture is
-not pulled if there is already `one` architecture pulled. Adding ``--pull always`` will make it behave
-as expected (as above).
+not pulled if there is already `one` architecture pulled. Adding ``--pull always`` will make it
+behave as expected (as above).
 
 .. _a known issue: https://github.com/containers/podman/issues/8001
 
@@ -307,7 +307,8 @@ automatically:
 - ``architecture``: Architecture for the image.
 - ``com.redhat.build-host``: OpenShift node where image was built.
 - ``vcs-ref``: A reference within the version control repository; e.g. a git commit.
-- ``vcs-type``: The type of version control used by the container source. Currently, only git is supported.
+- ``vcs-type``: The type of version control used by the container
+  source. Currently, only git is supported.
 
 OSBS administrators can also automatically include other labels such as
 ``vcs-url``. If you are an OSBS administrator and you want to include the
@@ -412,10 +413,12 @@ themselves. Keys here are only for identifying source code which was
 used to create the files in the container image.
 
 modules
-  sequence of mappings containing information for the Go modules (packages) built and shipped in the container image. The accepted mappings are listed bellow.
+  sequence of mappings containing information for the Go modules (packages) built and shipped in
+  the container image. The accepted mappings are listed bellow.
 
   module
-    top-level go module (package) name to be built in the image. If ``modules`` is specified, this entry is required.
+    top-level go module (package) name to be built in the image. If ``modules`` is specified, this
+    entry is required.
 
   archive
     possibly-compressed archive containing full source code including vendored dependencies.
@@ -749,7 +752,8 @@ remote_sources
     Single remote_source map will be deprecated in the future.
 
 Alternative to remote_source map that allows multiple remote sources.
-The usage of remote_sources has to be allowed in the OSBS Instance configuration. See :ref:`allow-multiple-remote-sources`.
+The usage of remote_sources has to be allowed in the OSBS Instance configuration. See
+:ref:`allow-multiple-remote-sources`.
 The remote_sources map is an array of remote_source maps with an additional name parameter:
 
 \- name
@@ -782,9 +786,10 @@ Once the `remote_sources` map described above is set in ``container.yaml``, you
 can copy the upstream sources and bundled dependencies for all remote references in your build
 image by adding::
 
-   COPY $REMOTE_SOURCES $REMOTE_SOURCES_DIR
+    COPY $REMOTE_SOURCES $REMOTE_SOURCES_DIR
 
-to your Dockerfile. This ``$REMOTE_SOURCES_DIR`` directory contains subdirectory for each remote source.
+to your Dockerfile. This ``$REMOTE_SOURCES_DIR`` directory contains subdirectory for each remote
+source.
 You can access the source of an individual remote source at ``$REMOTE_SOURCES_DIR/{name}/app``,
 where ``{name}`` refers to name of given remote source as defined in container.yaml file.
 The dependencies can be correspondingly found at ``$REMOTE_SOURCES_DIR/{name}/deps``
@@ -1964,8 +1969,9 @@ available in the OSBS buildroot as `bsi` executable in `$PATH`.
 
 Current limitations:
 
-* only Source RPMs and sources fetched through :ref:`cachito-integration` are added into source container image
-* only koji internal RPMs are supported
+  * only Source RPMs and sources fetched through :ref:`cachito-integration`
+    are added into source container image
+  * only koji internal RPMs are supported
 
 Support for other types of sources and external builds will be added in future.
 
@@ -1977,9 +1983,10 @@ Signing intent resolution
 
 Resolution of signing intent is done in following order:
 
-* signing intent specified from CLI params (koji, osbs-client),
-* otherwise signing intent is taken from the original image build,
-* if undefined then default signing intent from `odcs` configuration section in `reactor-config-map` is used.
+  * signing intent specified from CLI params (koji, osbs-client),
+  * otherwise signing intent is taken from the original image build,
+  * if undefined then default signing intent from `odcs` configuration section
+    in `reactor-config-map` is used.
 
 If ODCS integration is disabled, unsigned packages are allowed by default.
 
@@ -1999,13 +2006,17 @@ Koji Build Metadata Integration
 
 Source container build uses metadata from specified image build in the following manner:
 
-* **name**: suffix `-source` is appended to original name (`ubi8-container` will be transformed to `ubi8-container-source`)
-* **version**: value is the same as original image build
-* **release**: a suffix `.X` is appended to original release value, where `X` is a sequential integer starting from 1 increased by OSBS for each source image rebuild.
+  * **name**: suffix `-source` is appended to original name (`ubi8-container` will be
+    transformed to `ubi8-container-source`)
+  * **version**: value is the same as original image build
+  * **release**: a suffix `.X` is appended to original release value, where `X` is a
+    sequential integer starting from 1 increased by OSBS for each source image rebuild.
 
-For example, from N-V-R `ubi8-container-8.1-20` OSBS creates source container build `ubi8-container-source-8.1-20.1`.
+For example, from N-V-R `ubi8-container-8.1-20` OSBS creates source container build
+`ubi8-container-source-8.1-20.1`.
 
-The original image N-V-R is stored in `extra.image.sources_for_nvr` attribute in koji source container build metadata.
+The original image N-V-R is stored in `extra.image.sources_for_nvr` attribute in koji source
+container build metadata.
 
 
 Building source container images using koji
