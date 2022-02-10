@@ -105,7 +105,8 @@ Example of **REACTOR_CONFIG**::
     content_versions:
     - v2
 
-    # Output registries (built images are pushed here)
+    # Output registries (built images are pushed here), although it is an array for
+    #  backward compatibility, we are only accepting one registry
     registries:
     - url: https://container-registry.example.com/v2
       auth:
