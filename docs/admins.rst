@@ -270,34 +270,26 @@ The minimal configuration for binary and source build would include::
   # token = ...
 
 
-.. _whitelist-annotations:
-
 Including OpenShift build annotations in Koji task output
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-It is possible to include a ``build_annotations.json`` file in the task output
-of successful container image builds. This file may include any wanted
-OpenShift build annotations for the container build triggered by the Koji task
-in question.
+Successful container image builds may include a ``build_annotations.json`` file
+in the task output. This file includes a subset of the OpenShift annotations
+for the container build triggered by the Koji task in question.
 
-The ``koji-containerbuild`` plugin looks for a
-``koji_task_annotations_whitelist`` annotation in the OpenShift build
-annotations. This key should hold a list of annotations to be whitelisted for
-inclusion in the ``build_annotations.json`` file.
+The ``koji-containerbuild`` builder plugin hardcodes the list of annotations to
+include in the generated file. If none of the predefined annotations are present
+and ``build_annotations.json`` would thus be empty, the file is omitted from the
+task output entirely.
 
-If an empty ``build_annotations.json`` file would be generated through the
-process described above, the file is omitted from the task output. For
-instance, ``koji_task_annotations_whitelist`` could be empty, or the
-whitelisted annotations not present in OpenShift build annotations.
+The ``build_annotations.json`` file is a JSON object with first level key/values
+where each key is an OpenShift build annotation mapped to it's value.
 
-To whitelist the desired annotations in the ``koji_task_annotations_whitelist``
-OpenShift annotation described above, you can use the
-``task_annotations_whitelist`` ``koji`` configuration in the
-``reactor_config_map``. See :ref:`config.yaml` for further reference.
-
-The ``build_annotations.json`` file is a JSON object with first level
-key/values where each key is a whitelisted OpenShift build annotation mapped to
-it's value.
+Note that, confusingly, the annotation values in ``build_annotations.json``
+do not in fact come from annotations. Due to seemingly unreliable behavior of
+updating annotations on Tekton PipelineRun objects, ``koji-containerbuild``
+takes the values from Tekton results instead. OSBS pipelines provide only the
+required subset of annotations via Tekton results.
 
 
 Operator manifests
@@ -473,15 +465,6 @@ file, which is a JSON representation of the source request sent to cachito by
 atomic-reactor. This JSON file includes information such as the repository from
 where cachito downloaded the source code and the revision reference that was
 downloaded (e.g., a git commit hash).
-
-Whitelisting `remote_source_url` build annotation
-'''''''''''''''''''''''''''''''''''''''''''''''''
-In addition to adding the new BType to koji, you may also want to whitelist the
-OpenShift `remote_source_url` build annotation. This is specially useful for
-scratch builds, where a koji build is not generated and users would not have
-information about how the sources were fetch for that build easily available.
-whitelist-annotations_ describes the steps needed to whitelist OpenShift build
-annotations.
 
 .. _cachito: https://github.com/release-engineering/cachito
 
