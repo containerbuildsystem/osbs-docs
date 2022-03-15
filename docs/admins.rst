@@ -71,29 +71,36 @@ token from the mounted secret file.
 Server-side Configuration for atomic-reactor
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This will list the maximum number of jobs that should be active at any
-given time for each cluster. It will also list worker clusters in
-order of preference. It may also contain additional environment configuration
-such as ODCS integration.
+OSBS builds container images using podman-remote on remote VMs (hosts).
+OSBS needs only ssh key and hostname to connect to remote host and
+execute podman.
 
-The runtime configuration will take the form of a Kubernetes secret
-with content as in the example below::
+Example of reactor-config-map runtime configuration::
 
   ---
-  clusters:
-    x86_64:
-    - name: prod-x86_64-osd
-      max_concurrent_builds: 16
-    - name: prod-x86_64
-      max_concurrent_builds: 6
-      enabled: true
-    - name: prod-other
-      max_concurrent_builds: 2
-      enabled: false
-
-    ppc64le:
-    - name: prod-ppc64le
-      max_concurrent_builds: 6
+  remote_hosts:
+    slots_dir: path/foo
+    pools:
+      x86_64:
+        osbs-remote-hosts-1-x86_64:
+          enabled: true
+          auth: /secret-path
+          username: podman-user
+          slots: 1
+          socket_path: /run/user/2022/podman/podman.sock
+        osbs-remote-hosts-2-x86_64:
+          enabled: false
+          auth: /secret-path
+          username: podman-user
+          slots: 2
+          socket_path: /run/user/2022/podman/podman.sock
+      ppc64le:
+        osbs-remote-hosts-1-ppc64le:
+          enabled: true
+          auth: /secret-path
+          username: podman-user
+          slots: 3
+          socket_path: /run/user/2022/podman/podman.sock
 
   odcs:
     signing_intents:
@@ -109,39 +116,35 @@ with content as in the example below::
 
 .. _config.yaml-clusters:
 
-clusters
-''''''''
+remote_hosts
+''''''''''''
 
-This maps each platform to a list of clusters and their concurrent
-build limits. For each platform to build for, a worker cluster is
-chosen as follows:
+This section provides a shared path to the slots directory.
+The slots directory holds files with information about ongoing
+builds.
 
-- clusters with the enabled key set to false are discarded
+The section also provides Remote host pools objects of specific platforms.
+Each platform object contains hosts with the same architecture.
 
-- each remaining cluster in turn will be queried to discover all
-  currently active worker builds (not failed, complete, in error, or
-  cancelled)
+Host object provides key information for building images:
+- hosts with the enabled key set to false are ignored
 
-- the cluster load is computed by dividing the number of active worker
-  builds by the specified maximum number of concurrent builds allowed
-  on the cluster
+- `auth` provides file path to SSH key
 
-- the worker build is submitted to whichever cluster has the lowest
-  load; in this way, an even load distribution across all clusters is
+- `slots` represent maximum host capacity. The number of builds which
+  can be built in parallel
+
+- the host for building images will be picked based on current
+  availability defined by a ratio of `available slots` divided by `all
+  slots`
+
+- the remote host build is submitted to whichever host has the lowest
+  load; in this way, even load distribution across all hosts is
   enforced
 
-There are several throttles preventing too many worker builds being
-submitted. Each worker cluster can be configured to only schedule a
-certain number of worker builds at a time by setting a default
-resource request. The orchestrator cluster will similarly only run a
-certain number of orchestrator builds at a time based on the resource
-request in the orchestrator build JSON template. A Koji builder will
-only run a certain number of containerbuild tasks based on its
-configured capacity.
-
-This mechanism can also be used to temporarily disable a worker
-cluster by removing it from the list or adding ``enabled: false`` to
-the cluster description for each platform.
+This mechanism can also be used to temporarily disable a remote host by
+removing it from the list or adding ``enabled: false`` to
+the host description for each platform.
 
 .. _config.yaml-odcs:
 
