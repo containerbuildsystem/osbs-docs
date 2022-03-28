@@ -94,7 +94,6 @@ Example of **REACTOR_CONFIG**::
         url: https://openshift.example.com
         auth:
             enable: True
-        build_json_dir: /usr/share/osbs/
 
     group_manifests: False
 
