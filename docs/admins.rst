@@ -234,7 +234,6 @@ binary and source builds, and each of build type has it's own section.
 The minimal configuration for binary and source build would include::
 
   [general]
-  build_json_dir = /usr/share/osbs/
 
   # default configuration section for source builds
   [default_source]
