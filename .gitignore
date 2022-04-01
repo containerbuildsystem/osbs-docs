@@ -1,6 +1,0 @@
-_build*
-_build_html*
-**/*.swp
-
-# aspell substitutions file
-docs/.aspell.en.prepl
