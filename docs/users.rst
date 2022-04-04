@@ -310,19 +310,6 @@ automatically:
 - ``vcs-type``: The type of version control used by the container
   source. Currently, only git is supported.
 
-OSBS administrators can also automatically include other labels such as
-``vcs-url``. If you are an OSBS administrator and you want to include the
-``vcs-url`` label, do so by using custom ``orchestrator_inner:n.json`` and
-``worker_inner:n.json``, specifying the full set of implicit labels for the
-``add_labels_in_dockerfile`` plugin::
-
-    {
-      "args": {
-        "auto_labels": ["build-date", "architecture", "vcs-type", "vcs-url", "vcs-ref", "com.redhat.build-host"]
-      },
-      "name": "add_labels_in_dockerfile"
-    },
-
 Finally, OSBS administrators may also set additional labels through the
 reactor configuration, by setting the label key values in ``image_labels``.
 
