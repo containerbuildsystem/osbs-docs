@@ -305,7 +305,6 @@ automatically:
 
 - ``build-date``: Date/Time image was built as RFC 3339 date-time.
 - ``architecture``: Architecture for the image.
-- ``com.redhat.build-host``: OpenShift node where image was built.
 - ``vcs-ref``: A reference within the version control repository; e.g. a git commit.
 - ``vcs-type``: The type of version control used by the container
   source. Currently, only git is supported.
