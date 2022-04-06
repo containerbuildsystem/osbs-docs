@@ -272,6 +272,78 @@ The minimal configuration for binary and source build would include::
   # token = ...
 
 
+
+Pipeline run template
+'''''''''''''''''''''
+Osbs-client requires path to tekton PipelineRun template (``pipeline_run_path``)
+which is used to create PipelineRun tekton object. PipelineRun template must be
+created according to OSBS tekton Pipeline definitions with modifications suitable for
+the deployment (different way of getting PVC, extra labels, extra tekton configuration,
+etc..).
+
+
+Example:
+
+.. code-block:: yaml
+
+  ---
+  apiVersion: tekton.dev/v1beta1
+  kind: PipelineRun
+  metadata:
+    name: '$osbs_pipeline_run_name'
+  spec:
+    pipelineRef:
+      name: source-container-0-1
+    params:
+      - name: OSBS_IMAGE
+        value: "registry/tests_image:latest"
+      - name: USER_PARAMS
+        value: '$osbs_user_params_json'  # json must be in ' '
+    workspaces:
+      - name: ws-context-dir
+        volumeClaimTemplate:
+          metadata:
+            name: source-container-context-pvc
+            namespace: '$osbs_namespace'
+            annotations:
+              kubernetes.io/reclaimPolicy: Delete
+          spec:
+            accessModes:
+              - ReadWriteOnce
+            resources:
+              requests:
+                storage: 100Mi
+      - name: ws-build-dir
+        volumeClaimTemplate: "just example, any other method"
+      - name: ws-registries-secret
+        secret:
+          secretName: registries-secret
+      - name: ws-koji-secret
+        secret:
+          secretName: koji-secret
+      - name: ws-reactor-config-map
+        configmap:
+          name: '$osbs_configmap_name'
+    timeout: 3h
+
+Osbs-client provides extra template variables, starting with prefix ``$osbs_``
+to inject OSBS specific data.
+
+.. list-table:: Substitution variables
+   :header-rows: 1
+
+   * - Variable
+     - Description
+   * - $osbs_configmap_name
+     - Name of configmap to be used in build (taken from osbs-client config)
+   * - $osbs_namespace
+     - OSBS namespace used for build (taken from osbs-client config)
+   * - $osbs_pipeline_run_name
+     - Pipeline run name created by OSBS (required)
+   * - $osbs_user_params_json
+     - OSBS user parameters encoded in JSON. It's JSON string; don't forget to use it as `'$osbs_user_params_json'`
+
+
 Including OpenShift build annotations in Koji task output
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
