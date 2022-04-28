@@ -38,14 +38,29 @@ Example of **REACTOR_CONFIG**::
 
     version: 1
 
-    clusters:
-        x86_64:
-        - name: x86_64-worker-1
-          max_concurrent_builds: 15
-          enabled: True
-        - name: x86_64-worker-2
-          max_concurrent_builds: 6
-          enabled: True
+    remote_hosts:
+        slots_dir: path/foo
+        pools:
+            x86_64:
+                osbs-remote-hosts-1-x86_64:
+                    enabled: true
+                    auth: /secret-path
+                    username: podman-user
+                    slots: 1
+                    socket_path: /run/user/2022/podman/podman.sock
+                osbs-remote-hosts-2-x86_64:
+                    enabled: false
+                    auth: /secret-path
+                    username: podman-user
+                    slots: 2
+                    socket_path: /run/user/2022/podman/podman.sock
+            ppc64le:
+                osbs-remote-hosts-1-ppc64le:
+                    enabled: true
+                    auth: /secret-path
+                    username: podman-user
+                    slots: 3
+                    socket_path: /run/user/2022/podman/podman.sock
 
     koji:
         hub_url: https://koji.example.com/hub
@@ -128,10 +143,6 @@ Example of **REACTOR_CONFIG**::
     - odcssecret
     - v2-registry-dockercfg
     - client-config-secret
-
-    worker_token_secrets:
-    - x86-64-worker-1
-    - x86-64-worker-2
 
     skip_koji_check_for_base_image: False
 
