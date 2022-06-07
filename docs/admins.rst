@@ -44,6 +44,12 @@ registry, repository, and either tag or digest).
 Updating this globally effectively deploys a different version of
 OSBS.
 
+cleanup_used_resources
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Specifies the cleanup strategy for OSBS builds. By default this is set to
+``true``. When it is set to ``true`` it'll remove the build pipeline on a
+completed or failed build.
 
 Deploy OSBS on OpenShift
 ------------------------
