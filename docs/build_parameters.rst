@@ -34,7 +34,9 @@ The environment configuration is supplied as a ``ConfigMap`` like::
 The schema definition `config.json`_ in atomic-reactor contains a description
 for each property.
 
-Example of **REACTOR_CONFIG**::
+Example of **REACTOR_CONFIG**:
+
+.. code-block:: yaml
 
     version: 1
 
@@ -119,12 +121,9 @@ Example of **REACTOR_CONFIG**::
     content_versions:
     - v2
 
-    # Output registries (built images are pushed here), although it is an array for
-    #  backward compatibility, we are only accepting one registry
-    registries:
-    - url: https://container-registry.example.com/v2
-      auth:
-        cfg_path: /var/run/secrets/atomic-reactor/v2-registry-dockercfg
+    # Output registry (built images are pushed here).
+    registry:
+        url: https://container-registry.example.com/v2
 
     # Default source registry (base images are pulled from here)
     source_registry:
@@ -133,8 +132,8 @@ Example of **REACTOR_CONFIG**::
     # Additional source registries
     pull_registries:
     - url: https://registry.public.example.com
-      auth:
-        cfg_path: /var/run/secrets/atomic-reactor/registries-secret
+
+    registries_cfg_path: /var/run/secrets/atomic-reactor/v2-registry-dockercfg
 
     sources_command: "fedpkg sources"
 
@@ -153,6 +152,10 @@ Example of **REACTOR_CONFIG**::
       value: "https://proxy.example.com"
     - name: NO_PROXY
       value: localhost,127.0.0.1
+
+- ``registries_cfg_path``: A directory path where holds a docker
+  configuration file for registry authentication. Either `.dockercfg`
+  or `.dockerconfigjson` is supported. A typical configuration
 
 User Parameters
 """""""""""""""
