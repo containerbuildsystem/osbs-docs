@@ -1128,10 +1128,8 @@ tagging the resulting image in the registry:
     and will no longer be supported in a future version. Please consider using
     ``tags`` in container.yaml instead)
 
-These tags are applied to the manifest list or, if multi-platform
-image builds are not enabled (see :ref:`group_manifests
-<group-manifests>`), to the sole image manifest resulting from the
-build.
+These tags are applied to the manifest list or, if multi-platform image builds
+are not enabled, to the sole image manifest resulting from the build.
 
 Override Parent Image
 ----------------------
