@@ -390,7 +390,7 @@ not
 go
 ~~
 
-.. warning:: Using this key is deprecated in favor of using Cachito integration
+.. warning:: Using this key is deprecated in favor of using Cachito integration. To switch to Cachito, set the ``remote_sources`` key instead. OSBS does not permit users to specify a ``go`` key with a ``remote_sources`` key.
 
 Keys in this map relate to source code in the Go language which the
 user intends to be built into the container image. They are
