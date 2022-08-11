@@ -494,6 +494,8 @@ This section describes how to configure OSBS to use cachito as described above.
 :ref:`cachito-usage` describes how to get OSBS to use cachito in
 a specific container build, as an OSBS user.
 
+.. _configure-cachito-instance:
+
 Configuring your cachito instance
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
