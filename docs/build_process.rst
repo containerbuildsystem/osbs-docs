@@ -3,6 +3,147 @@
 Understanding the Build Process
 ===============================
 
+General workflow
+----------------
+
+.. image:: images/osbs2_detail.svg
+   :alt: OSBS workflow diagram
+
+
+OSBS build starts either with fedpkg or koji command. It creates buildContainer/buildSourceContainer
+task in koji hub. When osbs koji builders have free capacity, they will pick up task
+and koji-containerbuild plugin will start. It will use osbs-client and call
+create_binary_container_build/create_source_container_build,
+which will connect to Openshift cluster and create binary/source tekton pipeline run.
+Each binary and source tekton pipeline consists of multiple tasks, both of them also have exit task
+which runs always regardless of previous tasks success (in finally section of pipeline).
+If any task in pipeline fails, all consecutive tasks except those in finally will be skipped.
+
+When koji build is reserved (enabled by default), it will create koji build owned by OSBS,
+and later when koji build is imported, owner of the build will change to koji task submitter.
+
+Binary builds are also using set of remote host VMs for each platform, on which actual image build
+is performed, binary build task is using podman-remote to execute such builds on them.
+
+OSBS is importing koji build for all but scratch builds.
+
+Binary koji build contains:
+    - osbs-build.log (logs from pipeline run)
+    - platform specific logs for build task and podman build itself
+      (x86_64.log, x86_64-build.log, etc)
+    - image archive which contains only README file with the pullspec (additionally
+      to koji metadata)
+    - for operator bundle builds, archive with operator manifests
+    - for builds which use remote sources, json and archive with remote sources
+
+Source koji build contains:
+    - osbs-build.log (logs from pipeline run)
+    - empty x86_64 image archive with README file with the pullspec
+
+Binary koji task contains:
+    - build results
+    - logs are streamed during build
+        * checkout-for-labels.log (logs from repository cloning on brew builder)
+        * osbs-build.log (logs from pipeline run)
+        * osbs-client.log (logs from osbs-client)
+        * logs from build task for each platform (ppc64le.log, x86_64.log, etc)
+    - if there are any user warning there will be user_warnings.log
+
+Source koji task contains:
+    - build results
+    - logs are streamed during build
+        * osbs-build.log (logs from pipeline run)
+        * osbs-client.log (logs from osbs-client)
+    - if there are any user warning there will be user_warnings.log
+
+
+Binary pipeline consists of these tasks:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Clone task:
+    * Clone git repository with sources
+
+- Prebuild task:
+    * Fetch artifacts from lookaside cache if used
+    * For flatpak builds, create Dockerfile
+    * Resolve final platforms (based on container.yaml and disabled remote hosts)
+    * Verify existence and validity of parent images
+    * Verify that parent images come from existing koji build
+    * Resolve composes, integration with `odcs`_. See :ref:`yum-repositories-odcs-compose`
+      for details.
+    * For base image builds, create koji image task ("`image-build`_" task to create filesystems
+      for all required platforms) and include filesystem to build directory
+    * Supply "release" label if it is missing from Dockerfile and also reserve koji build nvr
+      in koji
+    * Apply automatic and configurable labels in Dockerfile
+    * Resolve and fetch remote sources if any requested
+    * For operator bundle builds, pin operator digests
+    * Generate and add help if required
+    * Fetch artifacts from PNC or URLs if requested
+    * Generate and add image content manifest
+    * Include yum repos, either from explicitly provided repos, or from odcs composes
+
+- Build tasks:
+    * Run multiple build tasks based on requested platforms to build for and push images
+      in the registry
+
+- Postbuild task:
+    * For flatpak builds, create OCI image, and push it to registry
+    * Query platform specific images to discover installed RPM packages, used later for compare
+      packages and koji metadata
+    * For operator bundle builds, fetch and zip operator manifest, used later for importing
+      to koji build
+    * Compare packages installed in images for all platforms
+    * Create a `manifest list`_ object in the registry, grouping together the image manifests
+      for all platforms
+    * Push floating tags to the registry for a manifest list
+    * Import the Koji build
+    * Tag the Koji build
+
+- Set results task:
+    * Set pipeline run results based on outputs of previous tasks
+
+- Exit task:
+    * For failed builds, cancel koji build nvr reservation
+    * Send email notifications if required (with default configuration for failed builds)
+
+.. _`image-build`: https://docs.pagure.org/koji/image_build/
+.. _`manifest list`: https://docs.docker.com/registry/spec/manifest-v2-2/#manifest-list
+.. _`odcs`: https://pagure.io/odcs
+
+Source pipeline consists of these tasks:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Build task:
+    * Fetch all sources from binary build (srpms, remote sources, artifacts)
+    * Reserve koji build nvr in koji
+    * Build source image using `BuildSourceImage`_
+    * Tag and push source image to the registry
+    * Import the Koji build
+    * Tag the Koji build
+
+- Set results task:
+    * Set pipeline run results based on outputs of previous tasks
+
+- Exit task:
+    * For failed builds, cancel koji build nvr reservation
+
+.. _`BuildSourceImage`: https://github.com/containers/BuildSourceImage
+
+Binary workflow
+---------------
+
+.. image:: images/osbs2_binary.svg
+   :alt: OSBS binary detail workflow diagram
+
+
+Source workflow
+---------------
+
+.. image:: images/osbs2_source.svg
+   :alt: OSBS source detail workflow diagram
+
+
 Logging
 -------
 
