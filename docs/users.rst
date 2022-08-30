@@ -1202,7 +1202,8 @@ tagging the resulting image in the registry:
   over time. In other words, every time you build a new container image,
   OSBS updates these floating tags. Examples: ``latest``, or ``{version}``
 
-  The floating tags must match the pattern `^[\w.]{0,127}$`. 
+  The floating tags must match the pattern `^[\w.]{0,127}$`. For example, 
+  `3scale2.12.dev` is a valid tag, but `3scale2.12-dev` isn't.
   
   Floating tags are configurable. If you set ``tags`` in container.yaml, OSBS
   applies those tags to your newly-built image as floating tags.
