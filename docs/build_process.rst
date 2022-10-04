@@ -128,7 +128,11 @@ Source pipeline consists of these tasks:
 - Exit task:
     * For failed builds, cancel koji build nvr reservation
 
+.. note::
+    You can find the task definitions in `atomic-reactor/tekton/tasks`_
+
 .. _`BuildSourceImage`: https://github.com/containers/BuildSourceImage
+.. _`atomic-reactor/tekton/tasks`: https://github.com/containerbuildsystem/atomic-reactor/tree/master/tekton/tasks
 
 Binary workflow
 ---------------
