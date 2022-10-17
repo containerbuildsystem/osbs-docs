@@ -1,10 +1,10 @@
-OpenShift Build Service
-=======================
+OpenShift Build Service 2
+=========================
 
 .. warning::
-  This version is under the development to support Openshift 4 and Tekton pipelines and it's not ready for use.
+  This version is for Openshift 4 and Tekton pipelines.
 
-  For version running on Openshift 3 please visit https://osbs.readthedocs.io/en/osbs_ocp3/ for stable docs.
+  For version running on Openshift 3 please visit https://osbs.readthedocs.io/en/osbs_ocp3/ .
 
 .. note::
   Required releases of components:
