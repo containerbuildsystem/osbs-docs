@@ -15,7 +15,7 @@
 
       steps:
         - name: Check out repo
-          uses: actions/checkout@v2
+          uses: actions/checkout@v3
 
         - name: Run doc8
           uses: containerbuildsystem/actions/doc8@master
