@@ -594,3 +594,42 @@ container logs. For instance::
 In this example, this build is stuck talking to the docker client (``docker/client.py``).
 
 .. _`config.json`: https://github.com/containerbuildsystem/atomic-reactor/blob/master/atomic_reactor/schemas/config.json
+
+Remote hosts
+------------
+
+Remote hosts are hosts that are used by OSBS to build binary images.
+During the binary container build phase of OSBS pipeline, podman-remote build command is
+executed on these hosts.
+
+Provisioning
+~~~~~~~~~~~~
+
+You need to provision hosts (virtual machines or bare-metal machines) that will serve
+as remote hosts for OSBS. These need to be accessible via SSH.
+
+If you are intending to use OSBS to build images for multiple architectures,
+you need to provision host for each of those architectures.
+
+You can also provision and use as many remote hosts
+as you want, depending on the expected load.
+
+
+Setup of remote hosts
+~~~~~~~~~~~~~~~~~~~~~
+
+When you have your remote hosts ready, you need to configure them with a ansible
+custom playbook that uses the `ansible-osbs-remote-hosts`_ role.
+
+The `ansible-osbs-remote-hosts`_ role will prepare the remote hosts by installing
+podman and configuring the hosts so that podman can be used in a rootless mode.
+
+For usage of the role, please see `ansible-osbs-remote-hosts`_ repo documentation.
+
+.. _`ansible-osbs-remote-hosts`: https://github.com/containerbuildsystem/ansible-role-osbs-remote-hosts
+
+Configuring OSBS
+~~~~~~~~~~~~~~~~
+
+After the remote hosts are provisioned and configured, they need to be added to
+OSBS configuration, for that see the :ref:`config.yaml` section.
