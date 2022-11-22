@@ -51,6 +51,21 @@ Specifies the cleanup strategy for OSBS builds. By default this is set to
 ``true``. When it is set to ``true`` it'll remove the build pipeline on a
 completed or failed build.
 
+default_buildtime_limit
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Specifies default build time limit. If users don't specify a build time
+limit, this limit is used. It is integer set in seconds. If this value
+is not specified, the default value set by maintainers is used.
+
+max_buildtime_limit
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Specifies max build time limit. This is used to cap build time limit
+set by the user. If the user specifies build time limit greater than
+this value an exception will be thrown. If this value is not specified,
+the default value set by maintainers is used.
+
 Deploy OSBS on OpenShift
 ------------------------
 
