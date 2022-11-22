@@ -412,6 +412,16 @@ modules
   path
     path to directory containing source code (or its parent), possibly within archive.
 
+.. _container.yaml-buildtime_limit:
+
+buildtime_limit
+~~~~~~~~~~~~~~~
+
+This parameter is used for setting a build time limit in seconds. After specified
+seconds the build will timeout. Also note that, this is an optional parameter.
+If it's not specified, default build time will be used. This configuration can
+not exceed max build time. Max build time and default build time are set by maintainers.
+
 .. _container.yaml-compose:
 
 compose
