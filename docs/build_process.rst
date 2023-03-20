@@ -35,6 +35,17 @@ Binary koji build contains:
       to koji metadata)
     - for operator bundle builds, archive with operator manifests
     - for builds which use remote sources, json and archive with remote sources
+    - icm.json (image content manifest)
+
+icm.json is including components for rpms, pnc artifacts and remote sources from cachito
+and is in CycloneDX format `cyclonedx`_, with following differences:
+
+    - each component has also key "build_dependency" (boolean),
+      if components are from the last stage or from the last parent
+      image it is set to True, if components are from other than
+      the last parent it is set to False
+    - at the top level of json there is key "incompleteness_reasons" which
+      indicates reasons why image content manifest is incomplete
 
 Source koji build contains:
     - osbs-build.log (logs from pipeline run)
@@ -110,6 +121,7 @@ Binary pipeline consists of these tasks:
 .. _`image-build`: https://docs.pagure.org/koji/image_build/
 .. _`manifest list`: https://docs.docker.com/registry/spec/manifest-v2-2/#manifest-list
 .. _`odcs`: https://pagure.io/odcs
+.. _`cyclonedx`: https://cyclonedx.org/docs/1.4/json/
 
 Source pipeline consists of these tasks:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
