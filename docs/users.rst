@@ -1100,9 +1100,11 @@ image instead. The same source registry restrictions apply. For multi-stage
 builds, the ``koji_parent_build`` parameter will only override the final
 ``FROM`` instruction.
 
-If the ``FROM`` instruction on last stage of the Dockerfile is set to either
-``scratch`` or ``koji/image-build``, the ``koji_parent_build`` parameter will
-be ignored.
+If the ``FROM`` instruction on last stage of the Dockerfile is set
+to ``scratch`` build will fail if you specify the ``koji_parent_build`` parameter.
+
+If the ``FROM`` instruction on last stage of the Dockerfile is set
+to ``koji/image-build`` the ``koji_parent_build`` parameter will be ignored.
 
 This behavior requires koji integration to be enabled in the OSBS environment.
 
