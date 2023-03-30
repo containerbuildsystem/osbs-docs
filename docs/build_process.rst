@@ -42,8 +42,8 @@ and is in CycloneDX format `cyclonedx`_, with following differences:
 
     - each component has also key "build_dependency" (boolean),
       if components are from the last stage or from the last parent
-      image it is set to True, if components are from other than
-      the last parent it is set to False
+      image it is set to False, if components are from other than
+      the last parent it is set to True
     - at the top level of json there is key "incompleteness_reasons" which
       indicates reasons why image content manifest is incomplete
 
