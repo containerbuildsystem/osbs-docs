@@ -427,8 +427,10 @@ not exceed max build time. Max build time and default build time are set by main
 compose
 ~~~~~~~
 
-This section is used for requesting yum repositories at build time. When this
-section is defined, a compose will be requested by using ODCS.
+Use this section to request Yum repositories at build time. OSBS will request
+a compose from ODCS and insert the ``.repo`` file into your container build
+environment. When you run a ``yum install`` command in your ``Dockerfile``,
+Yum will consider this repo for RPMs.
 
 packages
   list of package names to be included in ODCS compose. Package in this case
