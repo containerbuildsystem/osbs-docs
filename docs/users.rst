@@ -650,13 +650,50 @@ available and in the PATH for the builder image, or an error will result.
 
 .. _cachito-usage:
 
-Fetching source code from external source using cachito
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Fetching source code from external source
+-----------------------------------------
+
+OSBS allows multiple providers for remote sources, namely Cachito and Hermeto.
+
+Users can chose which provider to use by configuration in ``container.yaml``:
+
+.. code-block:: yaml
+
+  ---
+  remote_sources_version: 2
+
+
+.. list-table:: Remote source provider
+   :widths: 25 25
+   :header-rows: 1
+
+   * - Provider
+     - Numerical value
+   * - Cachito
+     - 1
+   * - Hermeto
+     - 2
+
+
+When ``remote_sources_version`` isn't provided, default version will be used.
+This is configurable by admins.
+
+Cachito
+~~~~~~~
 
 As described in :ref:`cachito-integration`, it is possible to use cachito to
 download a tarball with an upstream project and its dependencies and make it
 available for usage during an OSBS build.
 
+.. note:: In order for these entries to be used, both OSBS Cachito integration and usage
+  of ``remote_sources`` need to be allowed in the OSBS Instance configuration. See
+  :ref:`configure-cachito-instance` and :ref:`allow-multiple-remote-sources`.
+
+Hermeto
+~~~~~~~
+
+Hermeto runs as part of OSBS pipeline, it's not an external service.
+For compatibility reasons, majority of options are same as with Cachito.
 
 remote_sources
 ~~~~~~~~~~~~~~
@@ -665,9 +702,7 @@ A list of remote_source maps, each with an additional name parameter. For each
 remote_source, OSBS will request a source archive bundle from cachito. The keys
 accepted here are described below.
 
-.. note:: In order for these entries to be used, both OSBS cachito integration and usage
-  of remote_sources need to be allowed in the OSBS Instance configuration. See
-  :ref:`configure-cachito-instance` and :ref:`allow-multiple-remote-sources`.
+
 
 name
   Serves as a unique identifier for the remote source.
@@ -685,21 +720,20 @@ remote_source
 
   pkg_managers
     A list of package managers to be used for resolving the upstream project
-    dependencies. If not provided, Cachito will assume ``gomod`` due to backward
+    dependencies. If not provided, Cachito/Hermeto will assume ``gomod`` due to backward
     compatibility reasons, however, this default could be configured differently
     on different Cachito deployments (make sure to check with your Cachito
-    instance admins). Finally, if this is set to an empty array (``[]``), Cachito
+    instance admins). Finally, if this is set to an empty array (``[]``), Cachito/Hermeto
     will provide the sources with no package manager magic. In other words, no
     environment variables, dependencies, or extra configuration will be provided
     with the sources.
 
-    The full information about supported package managers is in the
-    `upstream Cachito package manager documentation
-    <https://github.com/release-engineering/cachito#package-managers>`_.
+    Supported package managers are: ``gomod``, ``rubygems``, ``pip``, ``yarn``,
+    ``npm``, ``git-submodule``
 
   flags
-    List of flags to pass to the cachito request. See the cachito_ documentation
-    for further reference.
+    List of flags to pass to the Cachito/Hermeto request.
+    See the cachito_ and hermeto_ documentation for further reference.
 
   packages
     A map of package managers where each value is an array of maps describing
@@ -738,11 +772,11 @@ where ``{name}`` refers to the name of a given remote source as defined in conta
 The dependencies can be correspondingly found at ``$REMOTE_SOURCES_DIR/{name}/deps``
 
 OSBS also creates a ``$REMOTE_SOURCES_DIR/{name}/cachito.env`` bash script with exported
-environment variables received from each cachito request (such as ``GOPATH``,
+environment variables (such as ``GOPATH``,
 ``GOCACHE`` for gomod package manager and ``PIP_CERT``, ``PIP_INDEX_URL`` for pip).
 Users should use the following command in the Dockerfile to set all required variables::
 
-    RUN source $REMOTE_SOURCES_DIR/{name}/cachito.env
+    RUN source $REMOTE_SOURCES_DIR/{name}/cachito.env  # filename is compatible with Hermeto
 
 Note that ``$REMOTE_SOURCES_DIR`` is a build arg, available only in build time.
 Hence, for cleaning up the image after using the sources, add the following
@@ -751,14 +785,13 @@ line to the Dockerfile after the build is complete::
     RUN rm -rf $REMOTE_SOURCES_DIR
 
 ``$REMOTE_SOURCES`` is another build arg, which points to the directory that
-contains extracted tar archives provided by cachito in the buildroot workdir.
+contains extracted remote source tar archives in the buildroot workdir.
 
-.. note:: To better use the cachito provided dependencies, a full gomod
-  supporting Golang version is required. In other words, you should use Golang
-  >= 1.13
 
 Replacing project dependencies with cachito
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. note:: Hermeto doesn't support replacements.
 
 Cachito also provides a feature to allow users to replace a project's
 dependencies with another version of that same dependency or with a completely
@@ -797,7 +830,8 @@ parameters, the same option should be specified multiple times in ``koji`` or
 the ``osbs`` CLI. This was done to keep the consistency with the similar option
 to specify yum repository URLs in each particular CLI.
 
-.. _cachito: https://github.com/release-engineering/cachito
+.. _cachito: https://github.com/containerbuildsystem/cachito
+.. _hermeto: https://github.com/hermetoproject/cachi2
 
 .. _content_sets.yml:
 
