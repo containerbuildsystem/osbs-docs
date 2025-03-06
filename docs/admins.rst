@@ -489,8 +489,8 @@ allowed_attributes
 
 .. _cachito-integration:
 
-Cachito integration
--------------------
+Cachito/Hermeto integration
+---------------------------
 
 cachito_ caches specific versions of upstream projects source code along with
 dependencies and provides a single tarball with such content for download upon
@@ -500,13 +500,17 @@ handling the source code for a third party (e.g., if tracking is performed in
 an external git forge, someone could force push a change to the repository or
 simply delete it).
 
-OSBS is able to use cachito to handle the source code used to build a container
-image. The source code archive provided by cachito and the data used to perform
-the cachito request may then be attached to the koji build output, making it
+hermeto_ is successor of Cachito, it's a CLI tool, not a service like Cachito,
+that resolves dependencies to provide data for hermetic builds. Unfortunately
+Hermeto doesn't do Caching.
+
+OSBS is able to use Cachito or Hermeto to handle the source code used to build a container
+image. The source code archive provided by Cachito/Hermeto and the data used to perform
+the Cachito/Hermeto request may then be attached to the koji build output, making it
 easier to track the components built in a given container image.
 
-This section describes how to configure OSBS to use cachito as described above.
-:ref:`cachito-usage` describes how to get OSBS to use cachito in
+This section describes how to configure OSBS to use Cachito/Hermeto as described above.
+:ref:`cachito-usage` describes how to get OSBS to use Cachito/Hermeto in
 a specific container build, as an OSBS user.
 
 .. _configure-cachito-instance:
@@ -526,6 +530,25 @@ Example:
     api_url: https://cachito.example.com
     auth:
       ssl_certs_dir: /dir/with/cert/file
+
+Configuring Hermeto
+~~~~~~~~~~~~~~~~~~~
+
+To enable Hermeto, you should provide Hermeto container images into pipelineRun
+template parameter ``hermeto-image``
+
+
+Choosing default provider for remote sources
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+You can configure if Cachito (number 1) or Hermeto (number 2) should be
+the default method for remote sources.
+
+.. code-block:: yaml
+
+  remote_sources_default_version: 1
+
+
+
 
 .. _allow-multiple-remote-sources:
 
@@ -547,8 +570,8 @@ Configuring koji
 Adding remote-sources BType
 ''''''''''''''''''''''''''''
 
-To fully support cachito_ integration, as described in
-:ref:`cachito-integration`, the `remote-sources`
+To fully support cachito_ integration or hermeto_ integration,
+as described in :ref:`cachito-integration`, the `remote-sources`
 BType must be created in koji. This is done by running
 
 .. code-block:: shell
@@ -563,7 +586,8 @@ atomic-reactor. This JSON file includes information such as the repository from
 where cachito downloaded the source code and the revision reference that was
 downloaded (e.g., a git commit hash).
 
-.. _cachito: https://github.com/release-engineering/cachito
+.. _cachito: https://github.com/containerbuildsystem/cachito
+.. _hermeto: https://github.com/hermetoproject/cachi2
 
 
 Obtaining Atomic Reactor stack trace
